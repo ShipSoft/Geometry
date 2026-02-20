@@ -1,0 +1,46 @@
+# SHiP Subsystem Geometric Envelopes
+# Source: SHiP_preliminary_infrastructure_requirements_layout_and_integration_at_ECN3_v0.3_docx_cpdf.pdf
+# Tables 3 and 4 (pages 15-17)
+# EDMS NO. 3309666, REV. 0.3
+#
+# Coordinate system:
+#   Origin: Target front face (first tungsten disk)
+#   Z-axis: Along beam direction (longitudinal)
+#   Y-axis: Vertical (against gravity)
+#   X-axis: Horizontal, perpendicular to beam (completes right-handed system)
+#   Beam axis height: 1.7 m above floor
+#
+# Notes:
+#   - Width and height are given as up/downstream values where the envelope varies (frustum shape)
+#   - For constant cross-sections, upstream and downstream values are identical
+#   - Half-widths and half-heights are symmetric about the beam axis
+#   - The Surround Background Tagger wraps around the Decay Volume with 0.46 m thickness
+#   - Weight is total weight in tonnes
+#   - Configuration column indicates which muon shield option the subsystem belongs to:
+#     WARM = normal-conducting only, HYBRID = superconducting + normal-conducting, COMMON = both
+#
+subsystem,configuration,z_start_m,z_end_m,length_m,half_width_upstream_m,half_width_downstream_m,half_height_upstream_m,half_height_downstream_m,weight_t
+Magnetised hadron stopper,COMMON,2.14,4.44,2.30,,,,,
+Muon shield 1 (NC),WARM,4.74,12.14,7.40,2.10,2.00,1.60,1.60,250
+Muon shield 2 (NC),WARM,12.24,19.24,7.00,0.35,1.15,0.35,1.55,90
+Muon shield 3 (NC),WARM,19.34,24.34,5.00,0.10,1.65,1.95,2.30,25
+Muon shield 4 (NC),WARM,24.44,26.12,1.68,0.10,1.65,1.95,2.30,25
+Muon shield 5 (NC),WARM,26.22,32.22,6.00,0.50,1.60,0.10,2.15,260
+Scattering and neutrino detector,WARM,26.40,31.50,5.10,0.30,0.40,0.30,0.40,4.2
+Muon shield 1 (SC),HYBRID,4.74,11.74,7.00,2.10,2.00,1.60,1.60,250
+Muon shield 2 (NC),HYBRID,14.74,19.74,5.00,0.35,1.15,0.35,1.55,90
+Muon shield 3 (NC),HYBRID,19.84,21.52,1.68,0.10,1.65,1.95,2.30,25
+Muon shield 4 (NC),HYBRID,21.62,27.62,6.00,0.50,1.60,0.10,2.15,260
+Scattering and neutrino detector,HYBRID,21.80,26.90,5.10,0.30,0.40,0.30,0.40,4.2
+Upstream background tagger,COMMON,32.52,32.92,0.40,0.75,0.75,1.60,1.60,4
+Decay volume,COMMON,32.92,83.32,50.40,0.70,2.20,1.55,3.20,25
+Surround background tagger,COMMON,32.92,83.32,50.40,0.46,0.46,0.46,0.46,150
+Straw Tracker station 1,COMMON,83.57,84.57,1.00,3.00,3.00,3.50,3.50,20
+Straw Tracker station 2,COMMON,85.57,86.57,1.00,3.00,3.00,3.50,3.50,20
+Main spectrometer magnet,COMMON,87.07,92.07,5.00,3.25,3.25,4.30,4.30,680
+Straw Tracker station 3,COMMON,92.57,93.57,1.00,3.00,3.00,3.50,3.50,20
+Straw Tracker station 4,COMMON,94.57,95.57,1.00,3.00,3.00,3.50,3.50,20
+Timing detector,COMMON,95.82,96.32,0.50,2.75,2.75,3.25,3.25,5
+Split ECAL (front),COMMON,96.87,97.07,0.20,2.25,2.25,3.50,3.50,200
+Split ECAL (back),COMMON,98.07,98.67,0.60,2.75,2.75,3.50,3.50,800
+HCAL,COMMON,98.77,99.77,1.00,3.00,3.00,3.50,3.50,800
