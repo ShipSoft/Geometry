@@ -12,12 +12,12 @@ class SHiPMaterials;
 /**
  * @brief Factory for the TimingDetector (TimeDet) geometry.
  *
- * Builds a container volume and populates it with 444 scintillator bars
- * (3 columns × 148 rows) via GeoModelXML (Gmx2Geo).  Each bar is a
+ * Builds a container volume and populates it with 330 scintillator bars
+ * (3 columns × 110 rows) via GeoModelXML (Gmx2Geo).  Each bar is a
  * GeoFullPhysVol (sensitive volume) registered through SHiPTimingDetInterface.
  *
  * Container half-sizes (mm): 2750 × 3250 × 250.
- * Bar half-sizes (mm):        840 × 30 × 5.
+ * Bar half-sizes (mm):        700 × 30 × 5.
  */
 class TimingDetectorFactory {
    public:

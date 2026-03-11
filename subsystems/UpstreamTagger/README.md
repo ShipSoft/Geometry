@@ -20,7 +20,7 @@ Position in world: z = 32720 mm.
 
 | Material     | Density    | Usage           |
 |--------------|------------|-----------------|
-| Scintillator | 1.032 g/cm³ | Detector slab  |
+| Scintillator | 1.023 g/cm³ | Detector slab  |
 
 ## Status
 
