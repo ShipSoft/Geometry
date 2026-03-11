@@ -2,7 +2,8 @@
 # Copyright (C) CERN for the benefit of the SHiP Collaboration
 
 add_executable(build_geometry build_geometry.cpp)
-target_link_libraries(build_geometry
+target_link_libraries(
+    build_geometry
     PRIVATE
         SHiPGeometry
         GeoModelCore::GeoModelKernel
@@ -11,7 +12,4 @@ target_link_libraries(build_geometry
 )
 
 add_executable(validate_geometry validate_geometry.cpp)
-target_link_libraries(validate_geometry
-    PRIVATE
-        sqlite3
-)
+target_link_libraries(validate_geometry PRIVATE sqlite3)

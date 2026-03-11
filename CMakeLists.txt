@@ -3,7 +3,8 @@
 
 cmake_minimum_required(VERSION 3.16)
 
-project(SHiPGeometry
+project(
+    SHiPGeometry
     VERSION 0.1.0
     DESCRIPTION "SHiP detector geometry implementation using GeoModel"
     LANGUAGES CXX
@@ -48,29 +49,48 @@ include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
 # Export all targets (main library + subsystem libraries)
-install(TARGETS
+install(
+    TARGETS
         SHiPGeometry
-        Cavern Target MuonShield Magnet DecayVolume
-        Trackers Calorimeter UpstreamTagger TimingDetector
+        Cavern
+        Target
+        MuonShield
+        Magnet
+        DecayVolume
+        Trackers
+        Calorimeter
+        UpstreamTagger
+        TimingDetector
     EXPORT SHiPGeometryTargets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
 # Install main headers
-install(DIRECTORY include/
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-)
+install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 # Install subsystem headers (needed for transitive include dirs in exported targets)
-foreach(subsys Cavern Target MuonShield Magnet DecayVolume Trackers Calorimeter UpstreamTagger TimingDetector)
-    install(DIRECTORY subsystems/${subsys}/include/${subsys}
+foreach(
+    subsys
+    Cavern
+    Target
+    MuonShield
+    Magnet
+    DecayVolume
+    Trackers
+    Calorimeter
+    UpstreamTagger
+    TimingDetector
+)
+    install(
+        DIRECTORY subsystems/${subsys}/include/${subsys}
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     )
 endforeach()
 
 # Install the export targets file
-install(EXPORT SHiPGeometryTargets
+install(
+    EXPORT SHiPGeometryTargets
     FILE SHiPGeometryTargets.cmake
     NAMESPACE SHiPGeometry::
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/SHiPGeometry
@@ -89,8 +109,9 @@ write_basic_package_version_file(
     COMPATIBILITY SameMajorVersion
 )
 
-install(FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/SHiPGeometryConfig.cmake
-    ${CMAKE_CURRENT_BINARY_DIR}/SHiPGeometryConfigVersion.cmake
+install(
+    FILES
+        ${CMAKE_CURRENT_BINARY_DIR}/SHiPGeometryConfig.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/SHiPGeometryConfigVersion.cmake
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/SHiPGeometry
 )
