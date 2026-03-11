@@ -11,7 +11,7 @@ namespace SHiPGeometry {
  * @brief Main geometry builder for the SHiP detector
  */
 class SHiPGeometryBuilder {
-public:
+   public:
     SHiPGeometryBuilder();
     ~SHiPGeometryBuilder();
 
@@ -22,4 +22,4 @@ public:
     GeoPhysVol* build();
 };
 
-} // namespace SHiPGeometry
+}  // namespace SHiPGeometry

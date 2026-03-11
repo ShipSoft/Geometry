@@ -1,0 +1,29 @@
+---
+Language: Cpp
+BasedOnStyle: Google
+ColumnLimit: 100
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+BreakBeforeBraces: Attach
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AlwaysBreakTemplateDeclarations: Yes
+PointerAlignment: Left
+ReferenceAlignment: Left
+SpaceAfterTemplateKeyword: true
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex: '^"(SHiPGeometry|Cavern|Target|MuonShield|Magnet|DecayVolume|Trackers|Calorimeter|UpstreamTagger|TimingDetector)/'
+    Priority: 1
+  - Regex: '^"'
+    Priority: 2
+  - Regex: '^<GeoModel'
+    Priority: 3
+  - Regex: '^<G4'
+    Priority: 4
+  - Regex: '^<'
+    Priority: 5
+SortIncludes: CaseSensitive
+...

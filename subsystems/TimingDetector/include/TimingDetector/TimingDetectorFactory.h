@@ -7,19 +7,37 @@ class GeoPhysVol;
 
 namespace SHiPGeometry {
 
+class SHiPMaterials;
+
 /**
- * @brief Factory for the TimingDetector (timing detector) geometry
+ * @brief Factory for the TimingDetector (TimeDet) geometry.
+ *
+ * Builds a container volume and populates it with 444 scintillator bars
+ * (3 columns × 148 rows) via GeoModelXML (Gmx2Geo).  Each bar is a
+ * GeoFullPhysVol (sensitive volume) registered through SHiPTimingDetInterface.
+ *
+ * Container half-sizes (mm): 2750 × 3250 × 250.
+ * Bar half-sizes (mm):        840 × 30 × 5.
  */
 class TimingDetectorFactory {
-public:
-    TimingDetectorFactory() = default;
+   public:
+    explicit TimingDetectorFactory(SHiPMaterials& materials);
     ~TimingDetectorFactory() = default;
 
-    /**
-     * @brief Build the TimingDetector geometry
-     * @return Pointer to the physical volume
-     */
+    /** Build the TimingDetector geometry and return the container volume. */
     GeoPhysVol* build();
+
+    /** Number of sensitive bars registered during the last build() call. */
+    int barCount() const { return m_barCount; }
+
+   private:
+    SHiPMaterials& m_materials;
+    int m_barCount{0};
+
+    // Container dimensions (mm)
+    static constexpr double s_containerHalfX = 2750.0;
+    static constexpr double s_containerHalfY = 3250.0;
+    static constexpr double s_containerHalfZ = 250.0;
 };
 
-} // namespace SHiPGeometry
+}  // namespace SHiPGeometry

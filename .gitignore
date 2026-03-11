@@ -1,0 +1,7 @@
+build/
+install/
+*.db
+*.gdml
+gdml/
+__pycache__/
+.ruff_cache/

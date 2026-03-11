@@ -3,40 +3,57 @@
 
 #pragma once
 
-#include <memory>
+#include <map>
 #include <string>
 
 class GeoMaterial;
+class GeoElement;
 
 namespace SHiPGeometry {
 
 /**
- * @brief Material definitions for the SHiP detector
- * 
- * This class provides access to all materials used in the SHiP detector geometry.
- * Materials are loaded from the GDML file and made available through this interface.
+ * @brief Central material manager for the SHiP detector
+ *
+ * This class provides access to all materials and elements used in the SHiP detector geometry.
+ * Materials are created once and shared across all subsystem factories.
  */
 class SHiPMaterials {
-public:
+   public:
     SHiPMaterials();
     ~SHiPMaterials() = default;
 
+    // Prevent copying (materials should be shared)
+    SHiPMaterials(const SHiPMaterials&) = delete;
+    SHiPMaterials& operator=(const SHiPMaterials&) = delete;
+
+    /**
+     * @brief Get an element by name
+     * @param name Element name (e.g., "Nitrogen", "Oxygen")
+     * @return Pointer to GeoElement or nullptr if not found
+     */
+    GeoElement* getElement(const std::string& name) const;
+
     /**
      * @brief Get a material by name
-     * @param name Material name as defined in GDML
+     * @param name Material name (e.g., "Air", "Concrete", "Tungsten")
      * @return Pointer to GeoMaterial or nullptr if not found
      */
-    const GeoMaterial* getMaterial(const std::string& name) const;
+    GeoMaterial* getMaterial(const std::string& name) const;
 
     /**
-     * @brief Load materials from GDML file
-     * @param gdmlFile Path to GDML file containing material definitions
+     * @brief Get a material by name, throwing if not found
+     * @param name Material name (e.g., "Air", "Concrete", "Tungsten")
+     * @return Pointer to GeoMaterial (never nullptr)
+     * @throws std::runtime_error if material not found
      */
-    void loadFromGDML(const std::string& gdmlFile);
+    GeoMaterial* requireMaterial(const std::string& name) const;
 
-private:
-    class Impl;
-    std::unique_ptr<Impl> m_impl;
+   private:
+    void createElements();
+    void createMaterials();
+
+    std::map<std::string, GeoElement*> m_elements;
+    std::map<std::string, GeoMaterial*> m_materials;
 };
 
-} // namespace SHiPGeometry
+}  // namespace SHiPGeometry

@@ -8,11 +8,18 @@ add_library(Calorimeter
 target_include_directories(Calorimeter
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
 
 target_link_libraries(Calorimeter
     PUBLIC
-        GeoModelCore::GeoModelCore
-        GeoModelKernel::GeoModelKernel
+        GeoModelCore::GeoModelKernel
 )
+
+if(BUILD_TESTING)
+    include(Catch)
+    add_executable(test_calorimeter test_calorimeter.cpp)
+    target_link_libraries(test_calorimeter PRIVATE Calorimeter SHiPGeometry Catch2::Catch2WithMain)
+    catch_discover_tests(test_calorimeter)
+endif()

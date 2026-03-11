@@ -15,7 +15,16 @@ target_include_directories(SHiPGeometry
 
 target_link_libraries(SHiPGeometry
     PUBLIC
-        GeoModelCore::GeoModelCore
-        GeoModelKernel::GeoModelKernel
-        GeoModelIO::GeoModelIO
+        GeoModelCore::GeoModelKernel
+        GeoModelIO::GeoModelRead
+        GeoModelIO::GeoModelWrite
+        Cavern
+        Target
+        MuonShield
+        DecayVolume
+        UpstreamTagger
+        Trackers
+        Magnet
+        TimingDetector
+        Calorimeter
 )

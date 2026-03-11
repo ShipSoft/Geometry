@@ -1,0 +1,14 @@
+# SPDX-License-Identifier: LGPL-3.0-or-later
+# Copyright (C) CERN for the benefit of the SHiP Collaboration
+
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+find_dependency(GeoModelCore  CONFIG REQUIRED)
+find_dependency(GeoModelIO    CONFIG REQUIRED)
+find_dependency(GeoModelTools CONFIG REQUIRED)
+
+include("${CMAKE_CURRENT_LIST_DIR}/SHiPGeometryTargets.cmake")
+
+check_required_components(SHiPGeometry)

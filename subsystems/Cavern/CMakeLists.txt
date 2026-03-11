@@ -8,11 +8,18 @@ add_library(Cavern
 target_include_directories(Cavern
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
 
 target_link_libraries(Cavern
     PUBLIC
-        GeoModelCore::GeoModelCore
-        GeoModelKernel::GeoModelKernel
+        GeoModelCore::GeoModelKernel
 )
+
+if(BUILD_TESTING)
+    include(Catch)
+    add_executable(test_cavern test_cavern.cpp)
+    target_link_libraries(test_cavern PRIVATE Cavern SHiPGeometry Catch2::Catch2WithMain)
+    catch_discover_tests(test_cavern)
+endif()

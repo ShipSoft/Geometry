@@ -8,11 +8,18 @@ add_library(DecayVolume
 target_include_directories(DecayVolume
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
 
 target_link_libraries(DecayVolume
     PUBLIC
-        GeoModelCore::GeoModelCore
-        GeoModelKernel::GeoModelKernel
+        GeoModelCore::GeoModelKernel
 )
+
+if(BUILD_TESTING)
+    include(Catch)
+    add_executable(test_decayvolume test_decayvolume.cpp)
+    target_link_libraries(test_decayvolume PRIVATE DecayVolume SHiPGeometry Catch2::Catch2WithMain)
+    catch_discover_tests(test_decayvolume)
+endif()

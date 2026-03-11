@@ -1,0 +1,53 @@
+# prek configuration
+# https://github.com/ahal/prek
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+        args: ['--maxkb=500']
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: mixed-line-ending
+        args: ['--fix=lf']
+
+  - repo: https://github.com/pre-commit/mirrors-clang-format
+    rev: v19.1.6
+    hooks:
+      - id: clang-format
+        types_or: [c++, c]
+
+  - repo: https://github.com/cpplint/cpplint
+    rev: 2.0.0
+    hooks:
+      - id: cpplint
+        args:
+          - '--filter=-build/include_subdir,-build/include_order,-build/c++17,-build/include_what_you_use,-build/namespaces,-legal/copyright,-readability/todo,-runtime/references,-whitespace/indent,-whitespace/line_length'
+
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.3.0
+    hooks:
+      - id: codespell
+        additional_dependencies: [tomli]
+
+  - repo: https://github.com/cmake-lint/cmake-lint
+    rev: 1.4.3
+    hooks:
+      - id: cmakelint
+        args: ['--filter=-linelength,-readability/wonkycase']
+
+  - repo: local
+    hooks:
+      - id: committed
+        name: committed (conventional commits)
+        language: system
+        entry: committed
+        stages: [commit-msg]
+
+ci:
+  autofix_prs: true
+  autoupdate_commit_msg: "chore(deps): update pre-commit hooks"
+  autofix_commit_msg: "style: pre-commit fixes"
