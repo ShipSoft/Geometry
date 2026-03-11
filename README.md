@@ -1,5 +1,7 @@
 # SHiP Geometry
 
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/ShipSoft/Geometry/main.svg)](https://results.pre-commit.ci/latest/github/ShipSoft/Geometry/main)
+
 This repository contains the SHiP experiment geometry implementation using GeoModel.
 
 The SHiP geometry is described using GeoModel and is used by the simulation and digitisation/reconstruction packages which are developed in a separate repository.
