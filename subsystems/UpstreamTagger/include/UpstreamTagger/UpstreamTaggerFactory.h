@@ -54,8 +54,9 @@ class UpstreamTaggerFactory {
     GeoVPhysVol* build(SHiPUBTManager* manager = nullptr);
 
     // Envelope half-dimensions (mm) — used by the test to check against CSV limits
-    static constexpr double s_halfX = 1000.0;
-    static constexpr double s_halfY = 1500.0;
+    // Envelope half-dimensions match CSV: half_width=750mm, half_height=1600mm
+    static constexpr double s_halfX =  750.0;
+    static constexpr double s_halfY = 1600.0;
     static constexpr double s_halfZ =    8.0;
 
    private:

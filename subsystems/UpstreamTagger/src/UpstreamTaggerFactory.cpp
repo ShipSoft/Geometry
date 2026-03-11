@@ -76,9 +76,6 @@ void placeTubeSubLayer(GeoPhysVol*        envelope,
     }
 }
 
-// ============================================================================
-//  placeDoubleStaggeredLayer  (file-scope helper)
-// ============================================================================
 void placeDoubleStaggeredLayer(GeoPhysVol*        envelope,
                                GeoLogVol*         wallLog,
                                GeoLogVol*         gasLog,
@@ -97,9 +94,6 @@ void placeDoubleStaggeredLayer(GeoPhysVol*        envelope,
                       rOuter_mm, tag, 1, manager);
 }
 
-// ============================================================================
-//  makeEnvelope  (file-scope helper)
-// ============================================================================
 GeoPhysVol* makeEnvelope(GeoPhysVol*        mother,
                          const GeoMaterial* mat,
                          const std::string& tag,
@@ -133,7 +127,7 @@ GeoVPhysVol* UpstreamTaggerFactory::build(SHiPUBTManager* manager)
     const GeoMaterial* arco2 = m_materials.requireMaterial("ArCO2");
     const GeoMaterial* poly  = m_materials.requireMaterial("Polystyrene");
 
-    // ---- Tube cross-section dimensions --------------------------------------
+    // ---- Tube cross-section -------------------------------------------------
     const double rOuter  = s_tubeROuter_mm * mm;
     const double rInner  = (s_tubeROuter_mm - s_tubeWall_mm) * mm;
     const double rGas    = rInner - 0.001 * mm;   // 1 µm clearance
@@ -142,13 +136,10 @@ GeoVPhysVol* UpstreamTaggerFactory::build(SHiPUBTManager* manager)
     if (rInner <= 0.0 || rInner >= rOuter)
         throw std::runtime_error("UBT: invalid tube wall thickness");
 
-    // ---- Tile dimensions ----------------------------------------------------
+    // ---- Tile half-size -----------------------------------------------------
     const double tileHalf = 0.5 * s_tileSide_mm * mm;
 
-    // ---- Shared logical volumes ---------------------------------------------
-    //  One wall LV and one gas LV per region (5 regions = 5 pairs).
-    //  They are named by region so the SD can identify them by LV name.
-
+    // ---- Shared logical volumes (one wall+gas pair per region) --------------
     auto makeTubeLVs = [&](const std::string& region)
         -> std::pair<GeoLogVol*, GeoLogVol*>
     {
@@ -167,22 +158,30 @@ GeoVPhysVol* UpstreamTaggerFactory::build(SHiPUBTManager* manager)
                                  new GeoBox(tileHalf, tileHalf, tileHalf),
                                  const_cast<GeoMaterial*>(poly));
 
-    // ---- Layout constants (all in mm) ---------------------------------------
-    constexpr double outerHalfY_mm    = 650.0;
-    constexpr double outerCtrY_mm     = 850.0;
-    constexpr double leftHalfX_mm     = 600.0;
-    constexpr double leftCtrX_mm      = -400.0;
-    constexpr double rightHalfX_mm    = 600.0;
-    constexpr double rightCtrX_mm     = +400.0;
+    // ---- Layout constants scaled to CSV envelope (all mm) -------------------
+    // CSV: half_width=750mm, half_height=1600mm, halfZ(length/2)=200mm
+    //
+    // Outer band: y=[+200,+1600] top / y=[-1600,-200] bottom
+    constexpr double outerHalfY_mm    = 700.0;   // (1600-200)/2
+    constexpr double outerCtrY_mm     = 900.0;   // (200+1600)/2
+    // Left half-plane:  x=[-750,+200] → halfX=475, ctrX=-275
+    constexpr double leftHalfX_mm     = 475.0;
+    constexpr double leftCtrX_mm      = -275.0;
+    // Right half-plane: x=[-200,+750] → halfX=475, ctrX=+275
+    constexpr double rightHalfX_mm    = 475.0;
+    constexpr double rightCtrX_mm     = +275.0;
+    // Z offset between left/right half-planes
     constexpr double zLeft_mm         = -2.0 * s_tubeROuter_mm;
     constexpr double zRight_mm        = +2.0 * s_tubeROuter_mm;
     constexpr double outerEnvHalfZ_mm = 3.0 * s_tubeROuter_mm + 0.5;
+    // Central strip: x=[-600,+600], y=[-200,+200]
     constexpr double ctrHalfX_mm      = 600.0;
     constexpr double ctrHalfY_mm      = 200.0;
     constexpr double ctrEnvHalfZ_mm   = s_tubeROuter_mm + 0.5;
-    constexpr double tileBlkHalfX_mm  = 200.0;
+    // Tile blocks: x=[-750,-600] left, x=[+600,+750] right
+    constexpr double tileBlkHalfX_mm  = 75.0;    // (750-600)/2
     constexpr double tileBlkHalfY_mm  = 200.0;
-    constexpr double tileBlkCtrX_mm   = 800.0;
+    constexpr double tileBlkCtrX_mm   = 675.0;   // 600+75
 
     // ---- Top-level envelope -------------------------------------------------
     auto* envPV = new GeoPhysVol(

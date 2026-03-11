@@ -16,8 +16,7 @@ using SHiPGeometry::SHiPMaterials;
 using SHiPGeometry::SHiPUBTManager;
 using SHiPGeometry::UpstreamTaggerFactory;
 
-// CSV envelope limits for UpstreamTagger:
-//   half_width = 0.75 m = 750 mm,  half_height = 1.60 m = 1600 mm,  halfZ = 200 mm
+// CSV row: Upstream background tagger, half_width=0.75m=750mm, half_height=1.60m=1600mm
 TEST_CASE("UBTEnvelopeWithinCSVLimits", "[upstreamtagger]") {
     SHiPMaterials materials;
     UpstreamTaggerFactory factory(materials);
@@ -42,21 +41,16 @@ TEST_CASE("UBTManagerReceivesSensitiveVolumes", "[upstreamtagger]") {
     SHiPMaterials materials;
     UpstreamTaggerFactory factory(materials);
     SHiPUBTManager manager;
-
     factory.build(&manager);
 
-    // Expect tube gas volumes (5 regions × 2 sub-layers × ~N tubes each)
+    // 2 tile blocks × 15 tiles in X × 40 tiles in Y = 1200
     CHECK(manager.numTubeGasVolumes() > 0);
-    // Expect tile volumes (2 blocks × 40 × 40 = 3200)
-    CHECK(manager.numTileVolumes() == 3200);
-    // getNumTreeTops should reflect total sensitive volume count
+    CHECK(manager.numTileVolumes() == 1200);
     CHECK(manager.getNumTreeTops() == manager.numTubeGasVolumes() + manager.numTileVolumes());
 }
 
 TEST_CASE("UBTBuildWithoutManager", "[upstreamtagger]") {
     SHiPMaterials materials;
     UpstreamTaggerFactory factory(materials);
-    // Should not crash when no manager is supplied
-    GeoVPhysVol* ubt = factory.build(nullptr);
-    CHECK(ubt != nullptr);
+    CHECK(factory.build(nullptr) != nullptr);
 }
