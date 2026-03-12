@@ -1,0 +1,48 @@
+# SPDX-License-Identifier: LGPL-3.0-or-later
+# Copyright (C) CERN for the benefit of the SHiP Collaboration
+
+name: Build and Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: self-hosted
+    container:
+      image: registry.cern.ch/ship/gha-runner:latest
+      volumes:
+        - /cvmfs/sft.cern.ch:/cvmfs/sft.cern.ch
+        - /cvmfs/ship-nightlies.cern.ch:/cvmfs/ship-nightlies.cern.ch
+        - /cvmfs/geant4.cern.ch:/cvmfs/geant4.cern.ch
+
+    env:
+      WORK_DIR: /cvmfs/ship-nightlies.cern.ch/GeoModel/sw/
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure
+        run: |
+          source /cvmfs/sft.cern.ch/lcg/views/LCG_109/x86_64-el9-gcc15-opt/setup.sh
+          source /cvmfs/ship-nightlies.cern.ch/GeoModel/sw/slc9_x86-64/GeoModel/6.24.0-local2/etc/profile.d/init.sh
+          cmake -S . -B build \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DCMAKE_PREFIX_PATH="/cvmfs/ship-nightlies.cern.ch/GeoModel/sw/slc9_x86-64/GeoModel/6.24.0-local2;/cvmfs/sft.cern.ch/lcg/releases/qt6/6.8.3-4d4f0/x86_64-el9-gcc15-opt"
+
+      - name: Build
+        run: |
+          source /cvmfs/sft.cern.ch/lcg/views/LCG_109/x86_64-el9-gcc15-opt/setup.sh
+          source /cvmfs/ship-nightlies.cern.ch/GeoModel/sw/slc9_x86-64/GeoModel/6.24.0-local2/etc/profile.d/init.sh
+          cmake --build build -j$(nproc)
+
+      - name: Test
+        run: |
+          source /cvmfs/sft.cern.ch/lcg/views/LCG_109/x86_64-el9-gcc15-opt/setup.sh
+          source /cvmfs/ship-nightlies.cern.ch/GeoModel/sw/slc9_x86-64/GeoModel/6.24.0-local2/etc/profile.d/init.sh
+          ctest --test-dir build --output-on-failure
