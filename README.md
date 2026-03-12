@@ -1,6 +1,6 @@
 # SHiP Geometry
 
-[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/ShipSoft/Geometry/main.svg)](https://results.pre-commit.ci/latest/github/ShipSoft/Geometry/main)
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/ShipSoft/Geometry/main.svg)](https://results.pre-commit.ci/latest/github/ShipSoft/Geometry/main) [![Build and Test](https://github.com/ShipSoft/Geometry/actions/workflows/build-test.yml/badge.svg)](https://github.com/ShipSoft/Geometry/actions/workflows/build-test.yml)
 
 This repository contains the SHiP experiment geometry implementation using GeoModel.
 
