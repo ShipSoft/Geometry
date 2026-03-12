@@ -19,6 +19,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 find_package(GeoModelCore REQUIRED)
 find_package(GeoModelIO REQUIRED)
 find_package(GeoModelTools REQUIRED)
+find_package(SQLite3 REQUIRED)
 
 # Testing
 include(CTest)
