@@ -81,12 +81,14 @@ All sensitive volumes are `GeoFullPhysVol` and are registered with `SHiPUBTManag
 
 ## Materials
 
+
 | Material | Density | Usage |
 |---|---|---|
 | Mylar | 1.39 g/cm³ | Tube wall (15 µm) |
 | ArCO2 | 1.842×10⁻³ g/cm³ | Drift gas (70% Ar, 30% CO2) |
 | Polystyrene | 1.06 g/cm³ | Scintillator tiles |
 | Air | 1.29×10⁻³ g/cm³ | Envelopes |
+
 
 ## Position in World
 

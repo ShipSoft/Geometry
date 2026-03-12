@@ -25,11 +25,11 @@ TEST_CASE("TimingDetectorWithinEnvelope", "[timingdetector]") {
     CHECK(box->getZHalfLength() <= 250.0);
 }
 
-// GeoModelXML prototype: 3 columns × 148 bars = 444 sensitive volumes
+// GeoModelXML prototype: 3 columns × 110 bars = 330 sensitive volumes
 TEST_CASE("TimingDetectorBarCount", "[timingdetector]") {
     SHiPMaterials materials;
     SHiPGeometry::TimingDetectorFactory factory(materials);
     GeoPhysVol* td = factory.build();
     REQUIRE(td != nullptr);
-    CHECK(factory.barCount() == 444);  // NOLINT(readability/check)
+    CHECK(factory.barCount() == 330);  // NOLINT(readability/check)
 }

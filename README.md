@@ -24,7 +24,7 @@ The SHiP geometry is described using GeoModel and is used by the simulation and 
 | MuonShield | Approximate | 6 stations, box approximations of arb8 shapes |
 | Magnet | Approximate | Iron yoke with box-shaped coils (should be tubes) |
 | DecayVolume | Approximate | Rectangular vessel (should be frustum) |
-| TimingDetector | Complete | 444 scintillator bars via GeoModelXML |
+| TimingDetector | Complete | 330 scintillator bars via GeoModelXML |
 | UpstreamTagger | Approximate | Monolithic slab (needs bar segmentation) |
 | Trackers | Envelope only | 4 empty station boxes |
 | Calorimeter | Envelope only | 3 empty component boxes (ECAL front/back, HCAL) |

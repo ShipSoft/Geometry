@@ -172,9 +172,9 @@ void SHiPMaterials::createMaterials() {
     aluminium->lock();
     m_materials["Aluminium"] = aluminium;
 
-    // Scintillator / polyvinyltoluene (density 1.032 g/cm³): C 91.5%, H 8.5%
+    // Scintillator / polyvinyltoluene (density 1.023 g/cm³): C 91.5%, H 8.5%
     GeoMaterial* scintillator =
-        new GeoMaterial("Scintillator", 1.032 * GeoModelKernelUnits::g / GeoModelKernelUnits::cm3);
+        new GeoMaterial("Scintillator", 1.023 * GeoModelKernelUnits::g / GeoModelKernelUnits::cm3);
     scintillator->add(m_elements["Carbon"], 0.915);
     scintillator->add(m_elements["Hydrogen"], 0.085);
     scintillator->lock();
