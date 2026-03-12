@@ -6,6 +6,7 @@
 #include <GeoModelKernel/GeoFullPhysVol.h>
 #include <GeoModelKernel/GeoVDetectorManager.h>
 #include <GeoModelKernel/GeoVPhysVol.h>
+
 #include <vector>
 
 namespace SHiPGeometry {
@@ -53,14 +54,16 @@ class SHiPUBTManager : public GeoVDetectorManager {
         const auto nTubes = m_tubeGasVolumes.size();
         const auto nTiles = m_tileVolumes.size();
         if (nTubes + nTiles > 0) {
-            if (i < nTubes) return PVConstLink(m_tubeGasVolumes[i]);
-            if (i < nTubes + nTiles) return PVConstLink(m_tileVolumes[i - nTubes]);
+            if (i < nTubes)
+                return PVConstLink(m_tubeGasVolumes[i]);
+            if (i < nTubes + nTiles)
+                return PVConstLink(m_tileVolumes[i - nTubes]);
         }
         return PVConstLink(m_slab);
     }
 
    private:
-    GeoFullPhysVol*              m_slab{nullptr};
+    GeoFullPhysVol* m_slab{nullptr};
     std::vector<GeoFullPhysVol*> m_tubeGasVolumes;
     std::vector<GeoFullPhysVol*> m_tileVolumes;
 };

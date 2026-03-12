@@ -55,17 +55,17 @@ class UpstreamTaggerFactory {
 
     // Envelope half-dimensions (mm) — used by the test to check against CSV limits
     // Envelope half-dimensions match CSV: half_width=750mm, half_height=1600mm
-    static constexpr double s_halfX =  750.0;
+    static constexpr double s_halfX = 750.0;
     static constexpr double s_halfY = 1600.0;
-    static constexpr double s_halfZ =    8.0;
+    static constexpr double s_halfZ = 8.0;
 
    private:
     SHiPMaterials& m_materials;
 
-    static constexpr double s_tubeROuter_mm  =  2.5;
-    static constexpr double s_tubeWall_mm    =  0.015;
+    static constexpr double s_tubeROuter_mm = 2.5;
+    static constexpr double s_tubeWall_mm = 0.015;
     static constexpr double s_tubeHalfLen_mm = 600.0;
-    static constexpr double s_tileSide_mm    =  10.0;
+    static constexpr double s_tileSide_mm = 10.0;
 };
 
 }  // namespace SHiPGeometry

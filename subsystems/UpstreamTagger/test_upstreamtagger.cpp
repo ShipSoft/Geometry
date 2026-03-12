@@ -32,8 +32,8 @@ TEST_CASE("UBTEnvelopeWithinCSVLimits", "[upstreamtagger]") {
 
 TEST_CASE("UBTMaterialsExist", "[upstreamtagger]") {
     SHiPMaterials materials;
-    CHECK(materials.getMaterial("Mylar")       != nullptr);
-    CHECK(materials.getMaterial("ArCO2")       != nullptr);
+    CHECK(materials.getMaterial("Mylar") != nullptr);
+    CHECK(materials.getMaterial("ArCO2") != nullptr);
     CHECK(materials.getMaterial("Polystyrene") != nullptr);
 }
 
