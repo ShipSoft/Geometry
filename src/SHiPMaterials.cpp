@@ -179,6 +179,32 @@ void SHiPMaterials::createMaterials() {
     scintillator->add(m_elements["Hydrogen"], 0.085);
     scintillator->lock();
     m_materials["Scintillator"] = scintillator;
+
+    // Mylar / PET (density 1.39 g/cm³): C10H8O4 → C 62.50%, H 4.20%, O 33.30%
+    GeoMaterial* mylar =
+        new GeoMaterial("Mylar", 1.39 * GeoModelKernelUnits::g / GeoModelKernelUnits::cm3);
+    mylar->add(m_elements["Carbon"], 0.6250);
+    mylar->add(m_elements["Hydrogen"], 0.0420);
+    mylar->add(m_elements["Oxygen"], 0.3330);
+    mylar->lock();
+    m_materials["Mylar"] = mylar;
+
+    // ArCO2 70/30 drift gas (density 1.842e-3 g/cm³): Ar 67.93%, C 8.75%, O 23.32%
+    GeoMaterial* arco2 =
+        new GeoMaterial("ArCO2", 1.842e-3 * GeoModelKernelUnits::g / GeoModelKernelUnits::cm3);
+    arco2->add(m_elements["Argon"], 0.6793);
+    arco2->add(m_elements["Carbon"], 0.0875);
+    arco2->add(m_elements["Oxygen"], 0.2332);
+    arco2->lock();
+    m_materials["ArCO2"] = arco2;
+
+    // Polystyrene (density 1.06 g/cm³): C8H8 → C 92.26%, H 7.74%
+    GeoMaterial* polystyrene =
+        new GeoMaterial("Polystyrene", 1.06 * GeoModelKernelUnits::g / GeoModelKernelUnits::cm3);
+    polystyrene->add(m_elements["Carbon"], 0.9226);
+    polystyrene->add(m_elements["Hydrogen"], 0.0774);
+    polystyrene->lock();
+    m_materials["Polystyrene"] = polystyrene;
 }
 
 }  // namespace SHiPGeometry
