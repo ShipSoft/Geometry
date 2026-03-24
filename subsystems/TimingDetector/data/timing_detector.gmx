@@ -7,7 +7,7 @@
   Bar half-sizes: 700 × 30 × 5 mm (140 × 6 × 1 cm full)
   Total width 4 m with 10 cm overlap (pending final engineering numbers)
   Column X: -1300, 0, +1300 mm; Y from -3220 to +3220 mm (step 6440/109 mm)
-  Z stagger: z = (ir%2)*12 + (ic%2)*24 mm (4 levels: 0, 12, 24, 36 mm)
+  Z stagger: z = (ir%2)*12 + (ic%2)*90 mm (4 levels: 0, 12, 90, 102 mm)
 -->
 
 <geomodel name="SHiP Timing Detector" version="1.0"
@@ -53,9 +53,9 @@
 
   <!-- Array of 3 columns × 110 rows = 330 bars.
        Split each column into even/odd rows to apply Z stagger per-row parity.
-       Z stagger formula: z = (ir%2)*12 + (ic%2)*24 mm
+       Z stagger formula: z = (ir%2)*12 + (ic%2)*90 mm
          col1 (ic=0): even rows z=0,  odd rows z=12
-         col2 (ic=1): even rows z=24, odd rows z=36
+         col2 (ic=1): even rows z=90, odd rows z=102
          col3 (ic=2): even rows z=0,  odd rows z=12 -->
   <assembly name="TimDetArray">
     <replicaXYarrays name="col1_even" n="55" zValue="0.0"  xCoordinates="col1_even_x" yCoordinates="timDety_even">
@@ -64,10 +64,10 @@
     <replicaXYarrays name="col1_odd"  n="55" zValue="12.0" xCoordinates="col1_odd_x"  yCoordinates="timDety_odd">
       <logvolref ref="TimDetBar"/>
     </replicaXYarrays>
-    <replicaXYarrays name="col2_even" n="55" zValue="24.0" xCoordinates="col2_even_x" yCoordinates="timDety_even">
+    <replicaXYarrays name="col2_even" n="55" zValue="90.0" xCoordinates="col2_even_x" yCoordinates="timDety_even">
       <logvolref ref="TimDetBar"/>
     </replicaXYarrays>
-    <replicaXYarrays name="col2_odd"  n="55" zValue="36.0" xCoordinates="col2_odd_x"  yCoordinates="timDety_odd">
+    <replicaXYarrays name="col2_odd"  n="55" zValue="102.0" xCoordinates="col2_odd_x"  yCoordinates="timDety_odd">
       <logvolref ref="TimDetBar"/>
     </replicaXYarrays>
     <replicaXYarrays name="col3_even" n="55" zValue="0.0"  xCoordinates="col3_even_x" yCoordinates="timDety_even">
