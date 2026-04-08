@@ -30,7 +30,7 @@ TEST_CASE("TrackersWithinEnvelope", "[trackers]") {
     SHiPGeometry::TrackersFactory factory(materials);
     GeoPhysVol* tc = factory.build();
     REQUIRE(tc != nullptr);
-    const GeoVPhysVol* st1 = findChild(tc, "TrackerStation_1");
+    const GeoVPhysVol* st1 = findChild(tc, "/SHiP/trackers/station_1");
     INFO("TrackerStation_1 not found");
     REQUIRE(st1 != nullptr);
     auto* box = dynamic_cast<const GeoBox*>(st1->getLogVol()->getShape());

@@ -7,6 +7,7 @@
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoDefinitions.h>
+#include <GeoModelKernel/GeoIdentifierTag.h>
 #include <GeoModelKernel/GeoLogVol.h>
 #include <GeoModelKernel/GeoNameTag.h>
 #include <GeoModelKernel/GeoPhysVol.h>
@@ -23,7 +24,7 @@ GeoPhysVol* TrackersFactory::build() {
 
     // Create container volume that spans all 4 stations
     auto* containerBox = new GeoBox(s_halfX, s_halfY, s_containerHalfZ);
-    auto* containerLog = new GeoLogVol("TrackersContainer", containerBox, air);
+    auto* containerLog = new GeoLogVol("/SHiP/trackers", containerBox, air);
     auto* containerPhys = new GeoPhysVol(containerLog);
 
     // Create and place individual stations
@@ -31,7 +32,7 @@ GeoPhysVol* TrackersFactory::build() {
 
     for (int i = 0; i < 4; ++i) {
         auto* stationBox = new GeoBox(s_halfX, s_halfY, s_halfZ);
-        std::string stationName = "TrackerStation_" + std::to_string(i + 1);
+        std::string stationName = "/SHiP/trackers/station_" + std::to_string(i + 1);
         auto* stationLog = new GeoLogVol(stationName, stationBox, air);
         auto* stationPhys = new GeoPhysVol(stationLog);
 
@@ -40,6 +41,7 @@ GeoPhysVol* TrackersFactory::build() {
         GeoTrf::Transform3D stationTrf = GeoTrf::Translate3D(0.0, 0.0, relativeZ);
 
         containerPhys->add(new GeoNameTag(stationName));
+        containerPhys->add(new GeoIdentifierTag(i));
         containerPhys->add(new GeoTransform(stationTrf));
         containerPhys->add(stationPhys);
     }

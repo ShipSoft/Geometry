@@ -7,6 +7,7 @@
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoDefinitions.h>
+#include <GeoModelKernel/GeoIdentifierTag.h>
 #include <GeoModelKernel/GeoLogVol.h>
 #include <GeoModelKernel/GeoNameTag.h>
 #include <GeoModelKernel/GeoPhysVol.h>
@@ -27,34 +28,38 @@ GeoPhysVol* TargetFactory::build() {
 
     // Create target_vacuum_box (main container)
     auto* vacuumBox = new GeoBox(s_vacuumBoxHalfX, s_vacuumBoxHalfY, s_vacuumBoxHalfZ);
-    auto* vacuumBoxLog = new GeoLogVol("target_vacuum_box", vacuumBox, vacuum);
+    auto* vacuumBoxLog = new GeoLogVol("/SHiP/target", vacuumBox, vacuum);
     auto* vacuumBoxPhys = new GeoPhysVol(vacuumBoxLog);
 
     // Create and place proximity shielding
     auto* proximityShielding = createProximityShielding();
     GeoTrf::Transform3D proxTrf = GeoTrf::Translate3D(0.0, s_proxPosY, 0.0);
-    vacuumBoxPhys->add(new GeoNameTag("proximity_shielding"));
+    vacuumBoxPhys->add(new GeoNameTag("/SHiP/target/proximity_shielding"));
+    vacuumBoxPhys->add(new GeoIdentifierTag(0));
     vacuumBoxPhys->add(new GeoTransform(proxTrf));
     vacuumBoxPhys->add(proximityShielding);
 
     // Create and place top shielding
     auto* topShielding = createTopShielding();
     GeoTrf::Transform3D topTrf = GeoTrf::Translate3D(0.0, s_topShieldPosY, 0.0);
-    vacuumBoxPhys->add(new GeoNameTag("top_shielding"));
+    vacuumBoxPhys->add(new GeoNameTag("/SHiP/target/top_shielding"));
+    vacuumBoxPhys->add(new GeoIdentifierTag(1));
     vacuumBoxPhys->add(new GeoTransform(topTrf));
     vacuumBoxPhys->add(topShielding);
 
     // Create and place bottom shielding
     auto* bottomShielding = createBottomShielding();
     GeoTrf::Transform3D bottomTrf = GeoTrf::Translate3D(0.0, s_bottomShieldPosY, 0.0);
-    vacuumBoxPhys->add(new GeoNameTag("bottom_shielding"));
+    vacuumBoxPhys->add(new GeoNameTag("/SHiP/target/bottom_shielding"));
+    vacuumBoxPhys->add(new GeoIdentifierTag(2));
     vacuumBoxPhys->add(new GeoTransform(bottomTrf));
     vacuumBoxPhys->add(bottomShielding);
 
     // Create and place shielding pedestal
     auto* shieldingPedestal = createShieldingPedestal();
     GeoTrf::Transform3D pedestalTrf = GeoTrf::Translate3D(0.0, s_pedestalPosY, s_pedestalPosZ);
-    vacuumBoxPhys->add(new GeoNameTag("shielding_pedestal"));
+    vacuumBoxPhys->add(new GeoNameTag("/SHiP/target/shielding_pedestal"));
+    vacuumBoxPhys->add(new GeoIdentifierTag(3));
     vacuumBoxPhys->add(new GeoTransform(pedestalTrf));
     vacuumBoxPhys->add(shieldingPedestal);
 
@@ -67,7 +72,8 @@ GeoPhysVol* TargetFactory::build() {
     auto* targetVessel = createTargetVessel();
     GeoTrf::Transform3D vesselTrf =
         GeoTrf::Translate3D(0.0, s_targetAreaPosY, s_targetAreaPosZ + s_vesselPosZ);
-    vacuumBoxPhys->add(new GeoNameTag("TargetVessel"));
+    vacuumBoxPhys->add(new GeoNameTag("/SHiP/target/vessel"));
+    vacuumBoxPhys->add(new GeoIdentifierTag(4));
     vacuumBoxPhys->add(new GeoTransform(vesselTrf));
     vacuumBoxPhys->add(targetVessel);
 
@@ -76,7 +82,8 @@ GeoPhysVol* TargetFactory::build() {
     auto* targetVesselFront = createTargetVesselFront();
     GeoTrf::Transform3D vesselFrontTrf =
         GeoTrf::Translate3D(0.0, s_targetAreaPosY, s_targetAreaPosZ + s_vesselFrontPosZ);
-    vacuumBoxPhys->add(new GeoNameTag("TargetVesselFront"));
+    vacuumBoxPhys->add(new GeoNameTag("/SHiP/target/vessel_front"));
+    vacuumBoxPhys->add(new GeoIdentifierTag(5));
     vacuumBoxPhys->add(new GeoTransform(vesselFrontTrf));
     vacuumBoxPhys->add(targetVesselFront);
 
@@ -85,7 +92,8 @@ GeoPhysVol* TargetFactory::build() {
     auto* targetVesselBack = createTargetVesselBack();
     GeoTrf::Transform3D vesselBackTrf =
         GeoTrf::Translate3D(0.0, s_targetAreaPosY, s_targetAreaPosZ + s_vesselBackPosZ);
-    vacuumBoxPhys->add(new GeoNameTag("TargetVesselBack"));
+    vacuumBoxPhys->add(new GeoNameTag("/SHiP/target/vessel_back"));
+    vacuumBoxPhys->add(new GeoIdentifierTag(6));
     vacuumBoxPhys->add(new GeoTransform(vesselBackTrf));
     vacuumBoxPhys->add(targetVesselBack);
 
@@ -94,7 +102,8 @@ GeoPhysVol* TargetFactory::build() {
     auto* heVolume = createHeVolume();
     GeoTrf::Transform3D heVolumeTrf =
         GeoTrf::Translate3D(0.0, s_targetAreaPosY, s_targetAreaPosZ + s_heVolumePosZ);
-    vacuumBoxPhys->add(new GeoNameTag("HeVolume"));
+    vacuumBoxPhys->add(new GeoNameTag("/SHiP/target/he_volume"));
+    vacuumBoxPhys->add(new GeoIdentifierTag(7));
     vacuumBoxPhys->add(new GeoTransform(heVolumeTrf));
     vacuumBoxPhys->add(heVolume);
 
@@ -119,7 +128,7 @@ GeoPhysVol* TargetFactory::createProximityShielding() {
     GeoTrf::Transform3D holeTrf = GeoTrf::Translate3D(0.0, s_proxHoleOffsetY, s_proxHoleOffsetZ);
     const GeoShape* proxShape = &(shape1->subtract((*hole) << holeTrf));
 
-    auto* proxLog = new GeoLogVol("proximity_shielding", proxShape, copper);
+    auto* proxLog = new GeoLogVol("/SHiP/target/proximity_shielding", proxShape, copper);
     return new GeoPhysVol(proxLog);
 }
 
@@ -127,7 +136,7 @@ GeoPhysVol* TargetFactory::createTopShielding() {
     const GeoMaterial* copper = m_materials.requireMaterial("Copper");
 
     auto* topBox = new GeoBox(s_topShieldHalfX, s_topShieldHalfY, s_topShieldHalfZ);
-    auto* topLog = new GeoLogVol("top_shielding", topBox, copper);
+    auto* topLog = new GeoLogVol("/SHiP/target/top_shielding", topBox, copper);
     return new GeoPhysVol(topLog);
 }
 
@@ -135,7 +144,7 @@ GeoPhysVol* TargetFactory::createBottomShielding() {
     const GeoMaterial* copper = m_materials.requireMaterial("Copper");
 
     auto* bottomBox = new GeoBox(s_bottomShieldHalfX, s_bottomShieldHalfY, s_bottomShieldHalfZ);
-    auto* bottomLog = new GeoLogVol("bottom_shielding", bottomBox, copper);
+    auto* bottomLog = new GeoLogVol("/SHiP/target/bottom_shielding", bottomBox, copper);
     return new GeoPhysVol(bottomLog);
 }
 
@@ -143,7 +152,7 @@ GeoPhysVol* TargetFactory::createShieldingPedestal() {
     const GeoMaterial* iron = m_materials.requireMaterial("Iron");
 
     auto* pedestalBox = new GeoBox(s_pedestalHalfX, s_pedestalHalfY, s_pedestalHalfZ);
-    auto* pedestalLog = new GeoLogVol("shielding_pedestal", pedestalBox, iron);
+    auto* pedestalLog = new GeoLogVol("/SHiP/target/shielding_pedestal", pedestalBox, iron);
     return new GeoPhysVol(pedestalLog);
 }
 
@@ -151,7 +160,7 @@ GeoPhysVol* TargetFactory::createTargetVessel() {
     const GeoMaterial* inconel718 = m_materials.requireMaterial("Inconel718");
 
     auto* vesselTube = new GeoTube(s_vesselRmin, s_vesselRmax, s_vesselHalfZ);
-    auto* vesselLog = new GeoLogVol("TargetVessel", vesselTube, inconel718);
+    auto* vesselLog = new GeoLogVol("/SHiP/target/vessel", vesselTube, inconel718);
     return new GeoPhysVol(vesselLog);
 }
 
@@ -159,7 +168,7 @@ GeoPhysVol* TargetFactory::createTargetVesselFront() {
     const GeoMaterial* inconel718 = m_materials.requireMaterial("Inconel718");
 
     auto* frontDisk = new GeoTube(0.0, s_vesselCapRadius, s_vesselCapHalfZ);
-    auto* frontLog = new GeoLogVol("TargetVesselFront", frontDisk, inconel718);
+    auto* frontLog = new GeoLogVol("/SHiP/target/vessel_front", frontDisk, inconel718);
     return new GeoPhysVol(frontLog);
 }
 
@@ -167,7 +176,7 @@ GeoPhysVol* TargetFactory::createTargetVesselBack() {
     const GeoMaterial* inconel718 = m_materials.requireMaterial("Inconel718");
 
     auto* backDisk = new GeoTube(0.0, s_vesselCapRadius, s_vesselCapHalfZ);
-    auto* backLog = new GeoLogVol("TargetVesselBack", backDisk, inconel718);
+    auto* backLog = new GeoLogVol("/SHiP/target/vessel_back", backDisk, inconel718);
     return new GeoPhysVol(backLog);
 }
 
@@ -178,7 +187,7 @@ GeoPhysVol* TargetFactory::createTargetEnclosure() {
     auto* cutoutBox = new GeoBox(s_enclosureCutoutHalfX, s_enclosureCutoutHalfY, s_enclosureHalfZ);
     const GeoShape* enclosureShape = &(outerTube->subtract(*cutoutBox));
 
-    auto* enclosureLog = new GeoLogVol("target_enclosure", enclosureShape, steel316L);
+    auto* enclosureLog = new GeoLogVol("/SHiP/target/enclosure", enclosureShape, steel316L);
     return new GeoPhysVol(enclosureLog);
 }
 
@@ -189,12 +198,13 @@ GeoPhysVol* TargetFactory::createHeVolume() {
 
     // Create HeVolume container
     auto* heVolumeTube = new GeoTube(0.0, s_heVolumeRadius, s_heVolumeHalfZ);
-    auto* heVolumeLog = new GeoLogVol("HeVolume", heVolumeTube, pressurisedHe90);
+    auto* heVolumeLog = new GeoLogVol("/SHiP/target/he_volume", heVolumeTube, pressurisedHe90);
     auto* heVolumePhys = new GeoPhysVol(heVolumeLog);
 
     // Create and place target enclosure
     auto* targetEnclosure = createTargetEnclosure();
-    heVolumePhys->add(new GeoNameTag("target_enclosure"));
+    heVolumePhys->add(new GeoNameTag("/SHiP/target/enclosure"));
+    heVolumePhys->add(new GeoIdentifierTag(0));
     heVolumePhys->add(new GeoTransform(GeoTrf::Transform3D::Identity()));
     heVolumePhys->add(targetEnclosure);
 
@@ -202,24 +212,26 @@ GeoPhysVol* TargetFactory::createHeVolume() {
     for (int i = 0; i < s_numSlabs; ++i) {
         // Create cladding tube (Tantalum)
         auto* claddingTube = new GeoTube(0.0, s_claddingRadius, s_claddingHalfZ[i]);
-        std::string claddingName = "CladdedTarget_" + std::to_string(i + 1);
+        std::string claddingName = "/SHiP/target/cladding_" + std::to_string(i + 1);
         auto* claddingLog = new GeoLogVol(claddingName, claddingTube, tantalum);
         auto* claddingPhys = new GeoPhysVol(claddingLog);
 
         // Create core tube (Tungsten)
         auto* coreTube = new GeoTube(0.0, s_coreRadius, s_coreHalfZ[i]);
-        std::string coreName = "TargetCore_" + std::to_string(i + 1);
+        std::string coreName = "/SHiP/target/core_" + std::to_string(i + 1);
         auto* coreLog = new GeoLogVol(coreName, coreTube, tungsten);
         auto* corePhys = new GeoPhysVol(coreLog);
 
         // Place core inside cladding (centered)
         claddingPhys->add(new GeoNameTag(coreName));
+        claddingPhys->add(new GeoIdentifierTag(i));
         claddingPhys->add(new GeoTransform(GeoTrf::Transform3D::Identity()));
         claddingPhys->add(corePhys);
 
         // Place cladding in HeVolume
         GeoTrf::Transform3D slabTrf = GeoTrf::Translate3D(0.0, 0.0, s_slabPosZ[i]);
         heVolumePhys->add(new GeoNameTag(claddingName));
+        heVolumePhys->add(new GeoIdentifierTag(i + 1));
         heVolumePhys->add(new GeoTransform(slabTrf));
         heVolumePhys->add(claddingPhys);
     }

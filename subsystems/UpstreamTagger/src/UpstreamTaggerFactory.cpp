@@ -18,7 +18,7 @@ GeoVPhysVol* UpstreamTaggerFactory::build(SHiPUBTManager* manager) {
     const GeoMaterial* scint = m_materials.requireMaterial("Scintillator");
 
     auto* box = new GeoBox(s_halfX, s_halfY, s_halfZ);
-    auto* log = new GeoLogVol("Upstream_Tagger", box, scint);
+    auto* log = new GeoLogVol("/SHiP/upstream_tagger", box, scint);
     auto* fpv = new GeoFullPhysVol(log);
 
     if (manager) {

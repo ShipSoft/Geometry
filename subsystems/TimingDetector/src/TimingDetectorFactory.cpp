@@ -19,7 +19,7 @@ GeoPhysVol* TimingDetectorFactory::build() {
     auto* air = m_materials.requireMaterial("Air");
 
     auto* containerBox = new GeoBox(s_containerHalfX, s_containerHalfY, s_containerHalfZ);
-    auto* containerLog = new GeoLogVol("Timing_Detector", containerBox, air);
+    auto* containerLog = new GeoLogVol("/SHiP/timing_detector", containerBox, air);
     auto* containerPhys = new GeoPhysVol(containerLog);
 
     SHiPTimingDetInterface iface;

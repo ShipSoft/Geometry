@@ -7,6 +7,7 @@
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoDefinitions.h>
+#include <GeoModelKernel/GeoIdentifierTag.h>
 #include <GeoModelKernel/GeoLogVol.h>
 #include <GeoModelKernel/GeoMaterial.h>
 #include <GeoModelKernel/GeoNameTag.h>
@@ -66,12 +67,13 @@ GeoPhysVol* CavernFactory::build() {
     const GeoShape* cavernShape = &(shape4->subtract((*targetPit) << targetPitTrf));
 
     // Create cavern logical and physical volumes
-    auto* cavernLog = new GeoLogVol("Cavern", cavernShape, concrete);
+    auto* cavernLog = new GeoLogVol("/SHiP/cavern", cavernShape, concrete);
     m_cavern = new GeoPhysVol(cavernLog);
 
     // Place cavern in world with name tag
     GeoTrf::Transform3D cavernTrf = GeoTrf::Translate3D(0.0, 0.0, s_cavernPosZ);
-    m_world->add(new GeoNameTag("Cavern"));
+    m_world->add(new GeoNameTag("/SHiP/cavern"));
+    m_world->add(new GeoIdentifierTag(0));
     m_world->add(new GeoTransform(cavernTrf));
     m_world->add(m_cavern);
 

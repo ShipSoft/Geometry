@@ -7,6 +7,7 @@
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoDefinitions.h>
+#include <GeoModelKernel/GeoIdentifierTag.h>
 #include <GeoModelKernel/GeoLogVol.h>
 #include <GeoModelKernel/GeoNameTag.h>
 #include <GeoModelKernel/GeoPhysVol.h>
@@ -21,42 +22,45 @@ GeoPhysVol* CalorimeterFactory::build() {
 
     // Create container volume that spans all calorimeter components
     auto* containerBox = new GeoBox(s_containerHalfX, s_containerHalfY, s_containerHalfZ);
-    auto* containerLog = new GeoLogVol("CalorimeterContainer", containerBox, air);
+    auto* containerLog = new GeoLogVol("/SHiP/calorimeter", containerBox, air);
     auto* containerPhys = new GeoPhysVol(containerLog);
 
     // Create and place ECAL front
     auto* ecalFrontBox = new GeoBox(s_ecalFrontHalfX, s_ecalFrontHalfY, s_ecalFrontHalfZ);
-    auto* ecalFrontLog = new GeoLogVol("ECAL_front", ecalFrontBox, air);
+    auto* ecalFrontLog = new GeoLogVol("/SHiP/calorimeter/ecal_front", ecalFrontBox, air);
     auto* ecalFrontPhys = new GeoPhysVol(ecalFrontLog);
 
     double ecalFrontRelativeZ = s_ecalFrontZ - s_containerCentreZ;
     GeoTrf::Transform3D ecalFrontTrf = GeoTrf::Translate3D(0.0, 0.0, ecalFrontRelativeZ);
 
-    containerPhys->add(new GeoNameTag("ECAL_front"));
+    containerPhys->add(new GeoNameTag("/SHiP/calorimeter/ecal_front"));
+    containerPhys->add(new GeoIdentifierTag(0));
     containerPhys->add(new GeoTransform(ecalFrontTrf));
     containerPhys->add(ecalFrontPhys);
 
     // Create and place ECAL back
     auto* ecalBackBox = new GeoBox(s_ecalBackHalfX, s_ecalBackHalfY, s_ecalBackHalfZ);
-    auto* ecalBackLog = new GeoLogVol("ECAL_back", ecalBackBox, air);
+    auto* ecalBackLog = new GeoLogVol("/SHiP/calorimeter/ecal_back", ecalBackBox, air);
     auto* ecalBackPhys = new GeoPhysVol(ecalBackLog);
 
     double ecalBackRelativeZ = s_ecalBackZ - s_containerCentreZ;
     GeoTrf::Transform3D ecalBackTrf = GeoTrf::Translate3D(0.0, 0.0, ecalBackRelativeZ);
 
-    containerPhys->add(new GeoNameTag("ECAL_back"));
+    containerPhys->add(new GeoNameTag("/SHiP/calorimeter/ecal_back"));
+    containerPhys->add(new GeoIdentifierTag(1));
     containerPhys->add(new GeoTransform(ecalBackTrf));
     containerPhys->add(ecalBackPhys);
 
     // Create and place HCAL
     auto* hcalBox = new GeoBox(s_hcalHalfX, s_hcalHalfY, s_hcalHalfZ);
-    auto* hcalLog = new GeoLogVol("HCAL", hcalBox, air);
+    auto* hcalLog = new GeoLogVol("/SHiP/calorimeter/hcal", hcalBox, air);
     auto* hcalPhys = new GeoPhysVol(hcalLog);
 
     double hcalRelativeZ = s_hcalZ - s_containerCentreZ;
     GeoTrf::Transform3D hcalTrf = GeoTrf::Translate3D(0.0, 0.0, hcalRelativeZ);
 
-    containerPhys->add(new GeoNameTag("HCAL"));
+    containerPhys->add(new GeoNameTag("/SHiP/calorimeter/hcal"));
+    containerPhys->add(new GeoIdentifierTag(2));
     containerPhys->add(new GeoTransform(hcalTrf));
     containerPhys->add(hcalPhys);
 

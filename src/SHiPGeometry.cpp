@@ -16,6 +16,7 @@
 #include "UpstreamTagger/UpstreamTaggerFactory.h"
 
 #include <GeoModelKernel/GeoDefinitions.h>
+#include <GeoModelKernel/GeoIdentifierTag.h>
 #include <GeoModelKernel/GeoNameTag.h>
 #include <GeoModelKernel/GeoPhysVol.h>
 #include <GeoModelKernel/GeoTransform.h>
@@ -42,7 +43,8 @@ GeoPhysVol* SHiPGeometryBuilder::build() {
     // Note: These are relative to the cave origin
     constexpr double cm = GeoModelKernelUnits::cm;
     GeoTrf::Transform3D targetTrf = GeoTrf::Translate3D(0.0, -14.45 * cm, 43.25 * cm);
-    world->add(new GeoNameTag("target_vacuum_box"));
+    world->add(new GeoNameTag("/SHiP/target"));
+    world->add(new GeoIdentifierTag(1));
     world->add(new GeoTransform(targetTrf));
     world->add(target);
 
@@ -51,7 +53,8 @@ GeoPhysVol* SHiPGeometryBuilder::build() {
     MuonShieldFactory muonShieldFactory(materials);
     GeoPhysVol* muonShield = muonShieldFactory.build();
     GeoTrf::Transform3D muonShieldTrf = GeoTrf::Translate3D(0.0, 0.0, 16763.3);
-    world->add(new GeoNameTag("MuonShieldArea"));
+    world->add(new GeoNameTag("/SHiP/muon_shield"));
+    world->add(new GeoIdentifierTag(2));
     world->add(new GeoTransform(muonShieldTrf));
     world->add(muonShield);
 
@@ -61,7 +64,8 @@ GeoPhysVol* SHiPGeometryBuilder::build() {
     UpstreamTaggerFactory upstreamTaggerFactory(materials);
     GeoVPhysVol* upstreamTagger = upstreamTaggerFactory.build(&ubtManager);
     GeoTrf::Transform3D upstreamTaggerTrf = GeoTrf::Translate3D(0.0, 0.0, 32.72 * 1000.0);
-    world->add(new GeoNameTag("Upstream_Tagger"));
+    world->add(new GeoNameTag("/SHiP/upstream_tagger"));
+    world->add(new GeoIdentifierTag(3));
     world->add(new GeoTransform(upstreamTaggerTrf));
     world->add(upstreamTagger);
 
@@ -71,7 +75,8 @@ GeoPhysVol* SHiPGeometryBuilder::build() {
     GeoPhysVol* decayVolume = decayVolumeFactory.build();
     GeoTrf::Transform3D decayVolumeTrf =
         GeoTrf::Translate3D(0.0, 0.0, 58.12 * 1000.0);  // Convert m to mm
-    world->add(new GeoNameTag("DecayVolume"));
+    world->add(new GeoNameTag("/SHiP/decay_volume"));
+    world->add(new GeoIdentifierTag(4));
     world->add(new GeoTransform(decayVolumeTrf));
     world->add(decayVolume);
 
@@ -84,7 +89,8 @@ GeoPhysVol* SHiPGeometryBuilder::build() {
     constexpr double trackersCentreZ =
         (84.07 + 95.07) / 2.0 * 1000.0;  // Average of station 1 and 4 centres
     GeoTrf::Transform3D trackersTrf = GeoTrf::Translate3D(0.0, 0.0, trackersCentreZ);
-    world->add(new GeoNameTag("TrackersContainer"));
+    world->add(new GeoNameTag("/SHiP/trackers"));
+    world->add(new GeoIdentifierTag(5));
     world->add(new GeoTransform(trackersTrf));
     world->add(trackers);
 
@@ -94,7 +100,8 @@ GeoPhysVol* SHiPGeometryBuilder::build() {
     GeoPhysVol* magnet = magnetFactory.build();
     GeoTrf::Transform3D magnetTrf =
         GeoTrf::Translate3D(0.0, 0.0, 89.57 * 1000.0);  // Convert m to mm
-    world->add(new GeoNameTag("Magnet"));
+    world->add(new GeoNameTag("/SHiP/magnet"));
+    world->add(new GeoIdentifierTag(6));
     world->add(new GeoTransform(magnetTrf));
     world->add(magnet);
 
@@ -104,7 +111,8 @@ GeoPhysVol* SHiPGeometryBuilder::build() {
     GeoPhysVol* timingDetector = timingDetectorFactory.build();
     GeoTrf::Transform3D timingDetectorTrf =
         GeoTrf::Translate3D(0.0, 0.0, 95.902 * 1000.0);  // Convert m to mm
-    world->add(new GeoNameTag("TimingDetector"));
+    world->add(new GeoNameTag("/SHiP/timing_detector"));
+    world->add(new GeoIdentifierTag(7));
     world->add(new GeoTransform(timingDetectorTrf));
     world->add(timingDetector);
 
@@ -114,7 +122,8 @@ GeoPhysVol* SHiPGeometryBuilder::build() {
     GeoPhysVol* calorimeter = calorimeterFactory.build();
     GeoTrf::Transform3D calorimeterTrf =
         GeoTrf::Translate3D(0.0, 0.0, 98.32 * 1000.0);  // Convert m to mm
-    world->add(new GeoNameTag("CalorimeterContainer"));
+    world->add(new GeoNameTag("/SHiP/calorimeter"));
+    world->add(new GeoIdentifierTag(8));
     world->add(new GeoTransform(calorimeterTrf));
     world->add(calorimeter);
 

@@ -7,6 +7,7 @@
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoDefinitions.h>
+#include <GeoModelKernel/GeoIdentifierTag.h>
 #include <GeoModelKernel/GeoLogVol.h>
 #include <GeoModelKernel/GeoNameTag.h>
 #include <GeoModelKernel/GeoPhysVol.h>
@@ -22,16 +23,17 @@ GeoPhysVol* DecayVolumeFactory::build() {
 
     // Outer aluminium vessel
     auto* outerBox = new GeoBox(s_halfX, s_halfY, s_halfZ);
-    auto* outerLog = new GeoLogVol("DecayVolume", outerBox, aluminium);
+    auto* outerLog = new GeoLogVol("/SHiP/decay_volume", outerBox, aluminium);
     auto* outerPhys = new GeoPhysVol(outerLog);
 
     // Inner helium atmosphere
     auto* innerBox = new GeoBox(s_innerHalfX, s_innerHalfY, s_innerHalfZ);
-    auto* innerLog = new GeoLogVol("DecayVacuum", innerBox, helium);
+    auto* innerLog = new GeoLogVol("/SHiP/decay_volume/vacuum", innerBox, helium);
     auto* innerPhys = new GeoPhysVol(innerLog);
 
     // Place inner at centre of outer
-    outerPhys->add(new GeoNameTag("DecayVacuum"));
+    outerPhys->add(new GeoNameTag("/SHiP/decay_volume/vacuum"));
+    outerPhys->add(new GeoIdentifierTag(0));
     outerPhys->add(new GeoTransform(GeoTrf::TranslateZ3D(0.0)));
     outerPhys->add(innerPhys);
 
