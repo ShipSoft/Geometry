@@ -14,6 +14,13 @@ target_link_libraries(
 )
 catch_discover_tests(test_materials)
 
+add_executable(test_consistency test_consistency.cpp)
+target_link_libraries(
+    test_consistency
+    PRIVATE SHiPGeometry Catch2::Catch2WithMain
+)
+catch_discover_tests(test_consistency)
+
 # Integration test: build geometry into SQLite then run overlap check
 add_test(
     NAME OverlapCheck
