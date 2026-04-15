@@ -116,12 +116,13 @@ GeoPhysVol* SHiPGeometryBuilder::build() {
     world->add(new GeoTransform(timingDetectorTrf));
     world->add(timingDetector);
 
-    // Build and place Calorimeter (container with ECAL front, ECAL back, HCAL)
-    // Full calorimeter spans Z: 96.87 to 99.77 m → centre: 98.32 m
+    // Build and place Calorimeter (ECAL + HCAL).
+    // The layer structure is driven by calo.cfg; the outer container dimensions
+    // and placement are fixed to match the SHiP subsystem envelope.
     CalorimeterFactory calorimeterFactory(materials);
     GeoPhysVol* calorimeter = calorimeterFactory.build();
     GeoTrf::Transform3D calorimeterTrf =
-        GeoTrf::Translate3D(0.0, 0.0, 98.32 * 1000.0);  // Convert m to mm
+        GeoTrf::Translate3D(0.0, 0.0, 98.32 * 1000.0);  // 98.32 m, fixed envelope centre
     world->add(new GeoNameTag("/SHiP/calorimeter"));
     world->add(new GeoIdentifierTag(8));
     world->add(new GeoTransform(calorimeterTrf));
