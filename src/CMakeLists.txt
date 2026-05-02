@@ -21,6 +21,7 @@ target_link_libraries(
         Target
         MuonShield
         DecayVolume
+        SBT
         UpstreamTagger
         Trackers
         Magnet

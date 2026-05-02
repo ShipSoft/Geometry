@@ -8,6 +8,7 @@
 #include "DecayVolume/DecayVolumeFactory.h"
 #include "Magnet/MagnetFactory.h"
 #include "MuonShield/MuonShieldFactory.h"
+#include "SBT/SBTFactory.h"
 #include "SHiPGeometry/SHiPMaterials.h"
 #include "Target/TargetFactory.h"
 #include "TimingDetector/TimingDetectorFactory.h"
@@ -79,6 +80,18 @@ GeoPhysVol* SHiPGeometryBuilder::build() {
     world->add(new GeoIdentifierTag(4));
     world->add(new GeoTransform(decayVolumeTrf));
     world->add(decayVolume);
+
+    // Build and place SBT (Surround Background Tagger).
+    // Wraps the decay volume — same Z range and centre (z = 32.92 to 83.32 m,
+    // centre 58.12 m). The intentional overlap with the DecayVolume is
+    // whitelisted in test_consistency.
+    SBTFactory sbtFactory(materials);
+    GeoPhysVol* sbt = sbtFactory.build();
+    GeoTrf::Transform3D sbtTrf = GeoTrf::Translate3D(0.0, 0.0, 58.12 * 1000.0);
+    world->add(new GeoNameTag("/SHiP/sbt"));
+    world->add(new GeoIdentifierTag(9));
+    world->add(new GeoTransform(sbtTrf));
+    world->add(sbt);
 
     // Build and place Trackers (container with 4 stations)
     // Container spans stations 1-4, centred appropriately

@@ -58,6 +58,7 @@ install(
         MuonShield
         Magnet
         DecayVolume
+        SBT
         Trackers
         Calorimeter
         UpstreamTagger
@@ -78,6 +79,7 @@ foreach(
     MuonShield
     Magnet
     DecayVolume
+    SBT
     Trackers
     Calorimeter
     UpstreamTagger

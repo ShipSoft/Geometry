@@ -76,9 +76,9 @@ TEST_CASE("ConsistencyTest.ExpectedSubsystemCount", "[consistency]") {
     REQUIRE(world != nullptr);
 
     auto subsystems = collectSubsystems(world);
-    // 8 subsystems: target, muon_shield, upstream_tagger, decay_volume,
+    // 9 subsystems: target, muon_shield, upstream_tagger, decay_volume, sbt,
     // trackers, magnet, timing_detector, calorimeter
-    CHECK(subsystems.size() == 8u);  // NOLINT(readability/check)
+    CHECK(subsystems.size() == 9u);  // NOLINT(readability/check)
 }
 
 TEST_CASE("ConsistencyTest.SubsystemsGenerallyInZOrder", "[consistency]") {
@@ -110,9 +110,12 @@ TEST_CASE("ConsistencyTest.NoUnexpectedZOverlaps", "[consistency]") {
 
     // The trackers container intentionally spans across the magnet
     // (stations 1-2 before, stations 3-4 after), so that pair is allowed to overlap.
+    // The SBT wraps the decay volume (same Z range by design), so they also overlap.
     auto isAllowedOverlap = [](const std::string& a, const std::string& b) {
         return (a == "/SHiP/trackers" && b == "/SHiP/magnet") ||
-               (a == "/SHiP/magnet" && b == "/SHiP/trackers");
+               (a == "/SHiP/magnet" && b == "/SHiP/trackers") ||
+               (a == "/SHiP/sbt" && b == "/SHiP/decay_volume") ||
+               (a == "/SHiP/decay_volume" && b == "/SHiP/sbt");
     };
 
     // Sort by Z centre

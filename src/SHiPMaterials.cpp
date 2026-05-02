@@ -251,6 +251,20 @@ void SHiPMaterials::createMaterials() {
         arco2->lock();
         m_materials["ArCO2_70_30"] = arco2;
     }
+
+    // LAB / Linear Alkylbenzene liquid scintillator (density 0.867 g/cm³).
+    // Representative formula C17.7H30.4 (n ≈ 12 in C6H5-CnH2n+1).
+    // Mass fractions:
+    //   C: 17.7 * 12.011 / (17.7*12.011 + 30.4*1.008) = 212.59 / 243.23 = 0.8741
+    //   H: 30.4 * 1.008  / 243.23                                       = 0.1260
+    {
+        GeoMaterial* lab =
+            new GeoMaterial("LAB", 0.867 * GeoModelKernelUnits::g / GeoModelKernelUnits::cm3);
+        lab->add(m_elements["Carbon"],   0.8741);
+        lab->add(m_elements["Hydrogen"], 0.1260);
+        lab->lock();
+        m_materials["LAB"] = lab;
+    }
 }
 
 }  // namespace SHiPGeometry
