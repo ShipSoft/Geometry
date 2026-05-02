@@ -218,6 +218,39 @@ void SHiPMaterials::createMaterials() {
         polystyrene->lock();
         m_materials["Polystyrene"] = polystyrene;
     }
+
+    // Mylar / PET (density 1.39 g/cm³): C10H8O4, used for straw tube walls.
+    // MW = 10*12.011 + 8*1.008 + 4*15.999 = 120.11 + 8.064 + 63.996 = 192.170 g/mol
+    {
+        const double awC = 12.011;
+        const double awH =  1.008;
+        const double awO = 15.999;
+        const double mw  = 10.0 * awC + 8.0 * awH + 4.0 * awO;
+        GeoMaterial* mylar =
+            new GeoMaterial("Mylar", 1.39 * GeoModelKernelUnits::g / GeoModelKernelUnits::cm3);
+        mylar->add(m_elements["Carbon"],   10.0 * awC / mw);
+        mylar->add(m_elements["Hydrogen"],  8.0 * awH / mw);
+        mylar->add(m_elements["Oxygen"],    4.0 * awO / mw);
+        mylar->lock();
+        m_materials["Mylar"] = mylar;
+    }
+
+    // Ar/CO2 70/30 by mass (density 1.56e-3 g/cm³), straw tube fill gas.
+    // CO2 mass-fraction is split into C and O by stoichiometry of the molecule.
+    {
+        const double awC      = 12.011;
+        const double awO      = 15.999;
+        const double mwCO2    = awC + 2.0 * awO;
+        const double fracAr   = 0.70;
+        const double fracCO2  = 0.30;
+        GeoMaterial* arco2    = new GeoMaterial(
+            "ArCO2_70_30", 1.56e-3 * GeoModelKernelUnits::g / GeoModelKernelUnits::cm3);
+        arco2->add(m_elements["Argon"],  fracAr);
+        arco2->add(m_elements["Carbon"], fracCO2 * awC       / mwCO2);
+        arco2->add(m_elements["Oxygen"], fracCO2 * 2.0 * awO / mwCO2);
+        arco2->lock();
+        m_materials["ArCO2_70_30"] = arco2;
+    }
 }
 
 }  // namespace SHiPGeometry
