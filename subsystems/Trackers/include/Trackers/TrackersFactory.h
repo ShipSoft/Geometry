@@ -60,20 +60,19 @@ class TrackersFactory {
     static constexpr double s_containerCentreZ = (s_station1Z + s_station4Z) / 2.0;
 
     // ── Straw geometry (mm, deg) ─────────────────────────────────────────────
-    static constexpr int    s_nStations    = 4;
-    static constexpr int    s_nLayers      = 4;     // stereo views per station
-    static constexpr int    s_nSubLayers   = 2;     // staggered pair per layer
-    static constexpr double s_strawRadius  = 10.0;  // 1 cm radius
-    static constexpr double s_strawLength  = 4000.0;
-    static constexpr double s_wallThick    = 0.030; // 30 um Mylar
-    static constexpr double s_apertureX    = 4000.0;
-    static constexpr double s_apertureY    = 6000.0;
-    static constexpr int    s_nStraws      =
-        static_cast<int>(s_apertureY / (2.0 * s_strawRadius));      // 300
+    static constexpr int s_nStations = 4;
+    static constexpr int s_nLayers = 4;            // stereo views per station
+    static constexpr int s_nSubLayers = 2;         // staggered pair per layer
+    static constexpr double s_strawRadius = 10.0;  // 1 cm radius
+    static constexpr double s_strawLength = 4000.0;
+    static constexpr double s_wallThick = 0.030;  // 30 um Mylar
+    static constexpr double s_apertureX = 4000.0;
+    static constexpr double s_apertureY = 6000.0;
+    static constexpr int s_nStraws = static_cast<int>(s_apertureY / (2.0 * s_strawRadius));  // 300
     static constexpr double s_stereoAngleDeg = 2.3;
-    static constexpr double s_frameWidthX  = 100.0;
-    static constexpr double s_frameWidthY  = 100.0;
-    static constexpr double s_frameHalfZ   = 22.0;
+    static constexpr double s_frameWidthX = 100.0;
+    static constexpr double s_frameWidthY = 100.0;
+    static constexpr double s_frameHalfZ = 22.0;
 
    private:
     SHiPMaterials& m_materials;
@@ -81,12 +80,12 @@ class TrackersFactory {
     // Cached LogVols built once per build() and reused across all placements
     // (one wall + one gas LogVol covers all 9600 straws, one shared LogVol per
     // sub-layer variant, etc. — keeps the in-memory tree small).
-    GeoLogVol* m_strawWallLog     = nullptr;
-    GeoLogVol* m_strawGasLog      = nullptr;
-    GeoLogVol* m_subLayerNominal  = nullptr;
-    GeoLogVol* m_subLayerShifted  = nullptr;
-    GeoLogVol* m_layerLog         = nullptr;
-    GeoLogVol* m_frameLog         = nullptr;
+    GeoLogVol* m_strawWallLog = nullptr;
+    GeoLogVol* m_strawGasLog = nullptr;
+    GeoLogVol* m_subLayerNominal = nullptr;
+    GeoLogVol* m_subLayerShifted = nullptr;
+    GeoLogVol* m_layerLog = nullptr;
+    GeoLogVol* m_frameLog = nullptr;
 
     // ── Internal builders ────────────────────────────────────────────────────
     /** Build the LogVols that are shared across stations (straws, sub-layers,

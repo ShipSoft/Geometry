@@ -78,8 +78,8 @@ void SHiPMaterials::createElements() {
         "Aluminium", "Al", 13.0, 26.982 * GeoModelKernelUnits::g / GeoModelKernelUnits::mole);
 
     // Lead
-    m_elements["Lead"] = new GeoElement(
-        "Lead", "Pb", 82.0, 207.2 * GeoModelKernelUnits::g / GeoModelKernelUnits::mole);
+    m_elements["Lead"] = new GeoElement("Lead", "Pb", 82.0,
+                                        207.2 * GeoModelKernelUnits::g / GeoModelKernelUnits::mole);
 }
 
 void SHiPMaterials::createMaterials() {
@@ -194,12 +194,12 @@ void SHiPMaterials::createMaterials() {
     // PVT / polyvinyltoluene (density 1.032 g/cm³): C9H10
     // MW = 9*12.011 + 10*1.008 = 108.099 + 10.080 = 118.179 g/mol
     {
-        const double awC  = 12.011;
-        const double awH  =  1.008;
-        const double mw   = 9.0 * awC + 10.0 * awH;
-        GeoMaterial* pvt  =
+        const double awC = 12.011;
+        const double awH = 1.008;
+        const double mw = 9.0 * awC + 10.0 * awH;
+        GeoMaterial* pvt =
             new GeoMaterial("PVT", 1.032 * GeoModelKernelUnits::g / GeoModelKernelUnits::cm3);
-        pvt->add(m_elements["Carbon"],   9.0 * awC / mw);
+        pvt->add(m_elements["Carbon"], 9.0 * awC / mw);
         pvt->add(m_elements["Hydrogen"], 10.0 * awH / mw);
         pvt->lock();
         m_materials["PVT"] = pvt;
@@ -208,12 +208,12 @@ void SHiPMaterials::createMaterials() {
     // Polystyrene (density 1.05 g/cm³): C8H8
     // MW = 8*12.011 + 8*1.008 = 96.088 + 8.064 = 104.152 g/mol
     {
-        const double awC        = 12.011;
-        const double awH        =  1.008;
-        const double mw         = 8.0 * awC + 8.0 * awH;
-        GeoMaterial* polystyrene =
-            new GeoMaterial("Polystyrene", 1.05 * GeoModelKernelUnits::g / GeoModelKernelUnits::cm3);
-        polystyrene->add(m_elements["Carbon"],   8.0 * awC / mw);
+        const double awC = 12.011;
+        const double awH = 1.008;
+        const double mw = 8.0 * awC + 8.0 * awH;
+        GeoMaterial* polystyrene = new GeoMaterial(
+            "Polystyrene", 1.05 * GeoModelKernelUnits::g / GeoModelKernelUnits::cm3);
+        polystyrene->add(m_elements["Carbon"], 8.0 * awC / mw);
         polystyrene->add(m_elements["Hydrogen"], 8.0 * awH / mw);
         polystyrene->lock();
         m_materials["Polystyrene"] = polystyrene;
@@ -223,14 +223,14 @@ void SHiPMaterials::createMaterials() {
     // MW = 10*12.011 + 8*1.008 + 4*15.999 = 120.11 + 8.064 + 63.996 = 192.170 g/mol
     {
         const double awC = 12.011;
-        const double awH =  1.008;
+        const double awH = 1.008;
         const double awO = 15.999;
-        const double mw  = 10.0 * awC + 8.0 * awH + 4.0 * awO;
+        const double mw = 10.0 * awC + 8.0 * awH + 4.0 * awO;
         GeoMaterial* mylar =
             new GeoMaterial("Mylar", 1.39 * GeoModelKernelUnits::g / GeoModelKernelUnits::cm3);
-        mylar->add(m_elements["Carbon"],   10.0 * awC / mw);
-        mylar->add(m_elements["Hydrogen"],  8.0 * awH / mw);
-        mylar->add(m_elements["Oxygen"],    4.0 * awO / mw);
+        mylar->add(m_elements["Carbon"], 10.0 * awC / mw);
+        mylar->add(m_elements["Hydrogen"], 8.0 * awH / mw);
+        mylar->add(m_elements["Oxygen"], 4.0 * awO / mw);
         mylar->lock();
         m_materials["Mylar"] = mylar;
     }
@@ -238,15 +238,15 @@ void SHiPMaterials::createMaterials() {
     // Ar/CO2 70/30 by mass (density 1.56e-3 g/cm³), straw tube fill gas.
     // CO2 mass-fraction is split into C and O by stoichiometry of the molecule.
     {
-        const double awC      = 12.011;
-        const double awO      = 15.999;
-        const double mwCO2    = awC + 2.0 * awO;
-        const double fracAr   = 0.70;
-        const double fracCO2  = 0.30;
-        GeoMaterial* arco2    = new GeoMaterial(
+        const double awC = 12.011;
+        const double awO = 15.999;
+        const double mwCO2 = awC + 2.0 * awO;
+        const double fracAr = 0.70;
+        const double fracCO2 = 0.30;
+        GeoMaterial* arco2 = new GeoMaterial(
             "ArCO2_70_30", 1.56e-3 * GeoModelKernelUnits::g / GeoModelKernelUnits::cm3);
-        arco2->add(m_elements["Argon"],  fracAr);
-        arco2->add(m_elements["Carbon"], fracCO2 * awC       / mwCO2);
+        arco2->add(m_elements["Argon"], fracAr);
+        arco2->add(m_elements["Carbon"], fracCO2 * awC / mwCO2);
         arco2->add(m_elements["Oxygen"], fracCO2 * 2.0 * awO / mwCO2);
         arco2->lock();
         m_materials["ArCO2_70_30"] = arco2;
@@ -260,7 +260,7 @@ void SHiPMaterials::createMaterials() {
     {
         GeoMaterial* lab =
             new GeoMaterial("LAB", 0.867 * GeoModelKernelUnits::g / GeoModelKernelUnits::cm3);
-        lab->add(m_elements["Carbon"],   0.8741);
+        lab->add(m_elements["Carbon"], 0.8741);
         lab->add(m_elements["Hydrogen"], 0.1260);
         lab->lock();
         m_materials["LAB"] = lab;

@@ -19,18 +19,10 @@ namespace SHiPGeometry {
  */
 class CaloFibreHPLayer {
    public:
-    static void build(GeoVPhysVol*       mother,
-                      GeoMaterial*       aluminiumMat,
-                      GeoMaterial*       fibreMat,
-                      const std::string& layerTag,
-                      double             zCenter_mm,
-                      int                layerIndex,
-                      double             casingXY_mm,
-                      double             casingZ_mm,
-                      double             fiberDiam_mm,
-                      double             fiberCoreDiam_mm,
-                      bool               fibresAlongY,
-                      const std::string& nameSuffix);
+    static void build(GeoVPhysVol* mother, GeoMaterial* aluminiumMat, GeoMaterial* fibreMat,
+                      const std::string& layerTag, double zCenter_mm, int layerIndex,
+                      double casingXY_mm, double casingZ_mm, double fiberDiam_mm,
+                      double fiberCoreDiam_mm, bool fibresAlongY, const std::string& nameSuffix);
 };
 
 }  // namespace SHiPGeometry

@@ -8,13 +8,14 @@
 #include "DecayVolume/DecayVolumeFactory.h"
 #include "Magnet/MagnetFactory.h"
 #include "MuonShield/MuonShieldFactory.h"
-#include "SBT/SBTFactory.h"
 #include "SHiPGeometry/SHiPMaterials.h"
 #include "Target/TargetFactory.h"
 #include "TimingDetector/TimingDetectorFactory.h"
 #include "Trackers/TrackersFactory.h"
 #include "UpstreamTagger/SHiPUBTManager.h"
 #include "UpstreamTagger/UpstreamTaggerFactory.h"
+
+#include "SBT/SBTFactory.h"
 
 #include <GeoModelKernel/GeoDefinitions.h>
 #include <GeoModelKernel/GeoIdentifierTag.h>

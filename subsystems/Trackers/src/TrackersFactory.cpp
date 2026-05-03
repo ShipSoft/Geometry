@@ -46,29 +46,29 @@ constexpr double kEnvClearance = 5.0;
 constexpr double kSubLayerZSlack = 0.55;
 
 // Frame aperture (inner hole) half-sizes in mm.
-constexpr double kApHalfX = TrackersFactory::s_apertureX / 2.0 + kApClearX;   // 2005
-constexpr double kApHalfY = TrackersFactory::s_apertureY / 2.0 + kApClearY;   // 3015
+constexpr double kApHalfX = TrackersFactory::s_apertureX / 2.0 + kApClearX;  // 2005
+constexpr double kApHalfY = TrackersFactory::s_apertureY / 2.0 + kApClearY;  // 3015
 
 // Frame outer half-sizes in mm.
-constexpr double kFrHalfX = kApHalfX + TrackersFactory::s_frameWidthX;        // 2105
-constexpr double kFrHalfY = kApHalfY + TrackersFactory::s_frameWidthY;        // 3115
+constexpr double kFrHalfX = kApHalfX + TrackersFactory::s_frameWidthX;  // 2105
+constexpr double kFrHalfY = kApHalfY + TrackersFactory::s_frameWidthY;  // 3115
 
 // Layer envelope half-sizes in mm.
-constexpr double kLayHalfX = kFrHalfX + kEnvClearance;                        // 2110
-constexpr double kLayHalfY = kFrHalfY + kEnvClearance;                        // 3120
-constexpr double kLayHalfZ = TrackersFactory::s_frameHalfZ + kEnvClearance;   //   27
+constexpr double kLayHalfX = kFrHalfX + kEnvClearance;                       // 2110
+constexpr double kLayHalfY = kFrHalfY + kEnvClearance;                       // 3120
+constexpr double kLayHalfZ = TrackersFactory::s_frameHalfZ + kEnvClearance;  //   27
 
 // Sub-layer envelope half-sizes in mm. Slightly smaller than the aperture so
 // it sits cleanly inside the frame; thick enough in Z to wrap one straw.
 constexpr double kFrameClearance = 0.5;
-constexpr double kSlHalfX = kApHalfX - kFrameClearance;                       // 2004.5
-constexpr double kSlHalfY = kApHalfY - kFrameClearance;                       // 3014.5
-constexpr double kSlHalfZ = TrackersFactory::s_strawRadius + 0.5;             //   10.5
+constexpr double kSlHalfX = kApHalfX - kFrameClearance;            // 2004.5
+constexpr double kSlHalfY = kApHalfY - kFrameClearance;            // 3014.5
+constexpr double kSlHalfZ = TrackersFactory::s_strawRadius + 0.5;  //   10.5
 
 // Z stack of layers within a station: kNLayers air slabs of half-thickness
 // kLayHalfZ separated by a small gap.
-constexpr double kLayerGap   = 5.0;
-constexpr double kLayerPitch = 2.0 * kLayHalfZ + kLayerGap;                   // 59
+constexpr double kLayerGap = 5.0;
+constexpr double kLayerPitch = 2.0 * kLayHalfZ + kLayerGap;  // 59
 
 double signedStereoDeg(int layerIndex) {
     // Layers 0,2 -> +angle (u view); layers 1,3 -> -angle (v view).
@@ -77,8 +77,7 @@ double signedStereoDeg(int layerIndex) {
 
 double layerZInStation(int layerIndex) {
     // Centre the 4-layer stack on z = 0 within the station envelope.
-    return -0.5 * (TrackersFactory::s_nLayers - 1) * kLayerPitch
-           + layerIndex * kLayerPitch;
+    return -0.5 * (TrackersFactory::s_nLayers - 1) * kLayerPitch + layerIndex * kLayerPitch;
 }
 
 }  // namespace
@@ -95,18 +94,17 @@ GeoPhysVol* TrackersFactory::build() {
 
     // Tracker container that spans all 4 stations. Half-Z is large enough to
     // include the most upstream and downstream station envelopes.
-    auto* containerBox  = new GeoBox(s_halfX, s_halfY, s_containerHalfZ);
-    auto* containerLog  = new GeoLogVol("/SHiP/trackers", containerBox, air);
+    auto* containerBox = new GeoBox(s_halfX, s_halfY, s_containerHalfZ);
+    auto* containerLog = new GeoLogVol("/SHiP/trackers", containerBox, air);
     auto* containerPhys = new GeoPhysVol(containerLog);
 
-    constexpr std::array<double, 4> stationZ = {s_station1Z, s_station2Z,
-                                                s_station3Z, s_station4Z};
+    constexpr std::array<double, 4> stationZ = {s_station1Z, s_station2Z, s_station3Z, s_station4Z};
 
     for (int i = 0; i < s_nStations; ++i) {
         GeoPhysVol* stationPhys = buildStation(i);
 
         const std::string stationName = "/SHiP/trackers/station_" + std::to_string(i + 1);
-        const double      relativeZ   = stationZ[i] - s_containerCentreZ;
+        const double relativeZ = stationZ[i] - s_containerCentreZ;
 
         containerPhys->add(new GeoNameTag(stationName));
         containerPhys->add(new GeoIdentifierTag(i + 1));
@@ -125,40 +123,40 @@ GeoPhysVol* TrackersFactory::build() {
 // individuation is done with GeoNameTag and GeoIdentifierTag.
 // ─────────────────────────────────────────────────────────────────────────────
 void TrackersFactory::buildSharedLogVols() {
-    const GeoMaterial* air      = m_materials.requireMaterial("Air");
-    const GeoMaterial* mylar    = m_materials.requireMaterial("Mylar");
+    const GeoMaterial* air = m_materials.requireMaterial("Air");
+    const GeoMaterial* mylar = m_materials.requireMaterial("Mylar");
     const GeoMaterial* gasArCO2 = m_materials.requireMaterial("ArCO2_70_30");
-    const GeoMaterial* alu      = m_materials.requireMaterial("Aluminium");
+    const GeoMaterial* alu = m_materials.requireMaterial("Aluminium");
 
     // ── Straw wall + gas (one pair shared by every straw in every layer) ────
     // The wall is built as a SOLID Mylar tube; the gas tube sits inside it as
     // a daughter and physics-wise replaces the wall material in its volume.
     // This avoids the mother/daughter overlap that the (rMin, rMax) hollow
     // tube + gas-cylinder combination triggers in Geant4's overlap checker.
-    const double rGas  = s_strawRadius - s_wallThick;
+    const double rGas = s_strawRadius - s_wallThick;
     const double rWall = s_strawRadius;
-    const double half  = 0.5 * s_strawLength;
+    const double half = 0.5 * s_strawLength;
 
     auto* wallTube = new GeoTube(0.0, rWall, half);
     m_strawWallLog = new GeoLogVol("StrawWall", wallTube, mylar);
 
-    auto* gasTube  = new GeoTube(0.0, rGas, half);
-    m_strawGasLog  = new GeoLogVol("StrawGas", gasTube, gasArCO2);
+    auto* gasTube = new GeoTube(0.0, rGas, half);
+    m_strawGasLog = new GeoLogVol("StrawGas", gasTube, gasArCO2);
 
     // ── Sub-layer envelopes (nominal + shifted) ─────────────────────────────
-    auto* slBox        = new GeoBox(kSlHalfX, kSlHalfY, kSlHalfZ);
-    m_subLayerNominal  = new GeoLogVol("StrawSubLayer_nominal", slBox, air);
-    m_subLayerShifted  = new GeoLogVol("StrawSubLayer_shifted", slBox, air);
+    auto* slBox = new GeoBox(kSlHalfX, kSlHalfY, kSlHalfZ);
+    m_subLayerNominal = new GeoLogVol("StrawSubLayer_nominal", slBox, air);
+    m_subLayerShifted = new GeoLogVol("StrawSubLayer_shifted", slBox, air);
 
     // ── Layer envelope (one shape, reused for all 16 placements) ────────────
     auto* layBox = new GeoBox(kLayHalfX, kLayHalfY, kLayHalfZ);
-    m_layerLog   = new GeoLogVol("StrawLayer", layBox, air);
+    m_layerLog = new GeoLogVol("StrawLayer", layBox, air);
 
     // ── Material frame: outer rectangle minus inner aperture ────────────────
-    auto* outerBox   = new GeoBox(kFrHalfX, kFrHalfY, s_frameHalfZ);
-    auto* innerBox   = new GeoBox(kApHalfX, kApHalfY, s_frameHalfZ + 1.0);
+    auto* outerBox = new GeoBox(kFrHalfX, kFrHalfY, s_frameHalfZ);
+    auto* innerBox = new GeoBox(kApHalfX, kApHalfY, s_frameHalfZ + 1.0);
     auto* frameShape = new GeoShapeSubtraction(outerBox, innerBox);
-    m_frameLog       = new GeoLogVol("StrawFrame", frameShape, alu);
+    m_frameLog = new GeoLogVol("StrawFrame", frameShape, alu);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -172,11 +170,10 @@ GeoPhysVol* TrackersFactory::buildStation(int stationIndex) {
     // the 500 mm half-Z envelope — leaving room for service material later.
     // The station LogVol name is unique per station so test_trackers' lookup
     // by /SHiP/trackers/station_<n> continues to work.
-    const std::string stationName =
-        "/SHiP/trackers/station_" + std::to_string(stationIndex + 1);
+    const std::string stationName = "/SHiP/trackers/station_" + std::to_string(stationIndex + 1);
 
-    auto* stationBox  = new GeoBox(s_halfX, s_halfY, s_halfZ);
-    auto* stationLog  = new GeoLogVol(stationName, stationBox, air);
+    auto* stationBox = new GeoBox(s_halfX, s_halfY, s_halfZ);
+    auto* stationLog = new GeoLogVol(stationName, stationBox, air);
     auto* stationPhys = new GeoPhysVol(stationLog);
 
     for (int j = 0; j < s_nLayers; ++j) {
@@ -188,8 +185,7 @@ GeoPhysVol* TrackersFactory::buildStation(int stationIndex) {
 // ─────────────────────────────────────────────────────────────────────────────
 // placeLayer()
 // ─────────────────────────────────────────────────────────────────────────────
-void TrackersFactory::placeLayer(GeoPhysVol* station, int layerIndex,
-                                 double signedAngleDeg) const {
+void TrackersFactory::placeLayer(GeoPhysVol* station, int layerIndex, double signedAngleDeg) const {
     auto* layerPhys = new GeoPhysVol(m_layerLog);
 
     // ── 1. Frame at z = 0 (rotates with the view) ───────────────────────────
@@ -221,10 +217,9 @@ void TrackersFactory::placeLayer(GeoPhysVol* station, int layerIndex,
 
     // ── 3. Place the (now populated) layer envelope inside the station ─────
     const double angleRad = signedAngleDeg * std::numbers::pi / 180.0;
-    const double zLay     = layerZInStation(layerIndex);
+    const double zLay = layerZInStation(layerIndex);
 
-    GeoTrf::Transform3D xfLayer =
-        GeoTrf::TranslateZ3D(zLay) * GeoTrf::RotateZ3D(angleRad);
+    GeoTrf::Transform3D xfLayer = GeoTrf::TranslateZ3D(zLay) * GeoTrf::RotateZ3D(angleRad);
 
     station->add(new GeoNameTag("Layer_" + std::to_string(layerIndex)));
     station->add(new GeoIdentifierTag(layerIndex));
@@ -242,7 +237,7 @@ void TrackersFactory::placeLayer(GeoPhysVol* station, int layerIndex,
 // Z axis).
 // ─────────────────────────────────────────────────────────────────────────────
 void TrackersFactory::placeSubLayer(GeoPhysVol* layer, bool shifted) const {
-    const double pitch  = 2.0 * s_strawRadius;
+    const double pitch = 2.0 * s_strawRadius;
     const double yStart = -(s_nStraws - 1) * 0.5 * pitch;
     const double yShift = shifted ? s_strawRadius : 0.0;
 

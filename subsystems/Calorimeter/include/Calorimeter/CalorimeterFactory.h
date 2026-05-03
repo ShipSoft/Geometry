@@ -27,8 +27,7 @@ struct CalorimeterConfig;
  */
 class CalorimeterFactory {
    public:
-    explicit CalorimeterFactory(SHiPMaterials& materials,
-                                std::string    configPath = "calo.cfg");
+    explicit CalorimeterFactory(SHiPMaterials& materials, std::string configPath = "calo.cfg");
     ~CalorimeterFactory() = default;
 
     /** Build and return the calorimeter container volume. */
@@ -47,11 +46,11 @@ class CalorimeterFactory {
 
    private:
     SHiPMaterials& m_materials;
-    std::string    m_configPath;
+    std::string m_configPath;
 
     /** Place one NX×NY tiled stack of layers inside @p container. */
-    void buildStack(GeoPhysVol* container, const CalorimeterConfig& cfg,
-                    int mx, int my, double offsetX, double offsetY) const;
+    void buildStack(GeoPhysVol* container, const CalorimeterConfig& cfg, int mx, int my,
+                    double offsetX, double offsetY) const;
 
     // ── Fixed container dimensions (mm) ─────────────────────────────────
     // These match the SHiP subsystem envelope from subsystem_envelopes.csv

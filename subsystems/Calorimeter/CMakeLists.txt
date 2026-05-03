@@ -14,7 +14,8 @@ configure_file(
     COPYONLY
 )
 
-add_library(Calorimeter
+add_library(
+    Calorimeter
     src/CalorimeterFactory.cpp
     src/CalorimeterConfig.cpp
     src/CaloBarLayer.cpp
@@ -33,7 +34,8 @@ target_link_libraries(Calorimeter PUBLIC GeoModelCore::GeoModelKernel)
 
 # Bake the absolute source-tree path as a compile-time fallback so the factory
 # can always find calo.cfg even when CWD doesn't contain it.
-target_compile_definitions(Calorimeter
+target_compile_definitions(
+    Calorimeter
     PRIVATE
         # Source-tree fallback (always valid during development and CI builds).
         CALO_CFG_DEFAULT_PATH="${CMAKE_CURRENT_SOURCE_DIR}/calo.cfg"
@@ -42,7 +44,8 @@ target_compile_definitions(Calorimeter
         CALO_CFG_INSTALL_PATH="${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/SHiPGeometry/calo.cfg"
 )
 
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/calo.cfg
+install(
+    FILES ${CMAKE_CURRENT_SOURCE_DIR}/calo.cfg
     DESTINATION ${CMAKE_INSTALL_DATADIR}/SHiPGeometry
 )
 
