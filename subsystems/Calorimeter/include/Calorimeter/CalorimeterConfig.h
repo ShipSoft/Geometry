@@ -11,7 +11,7 @@ namespace SHiPGeometry {
 /**
  * @brief Configuration for the SHiP calorimeter geometry.
  *
- * Populated by readCaloConfig() from a calo.cfg key=value file.
+ * Populated by readCaloConfig() from a calo.toml file.
  *
  * Layer codes (layers / layers2 vectors):
  *   1 = WidePVT bar layer, bars along X  (H orientation)
@@ -34,7 +34,6 @@ struct CalorimeterConfig {
     double plate_xy_mm         = 2160.0;
     double lead_thickness_mm   = 3.0;
     double scint_thickness_mm  = 10.0;
-    double pvt_thickness_mm    = 10.0;
     double hpl_thickness_mm    = 10.0;
     double fiber_diameter_mm   = 1.2;
     double fiber_core_diameter_mm = -1.0;  // <0 → use fiber_diameter_mm
@@ -68,9 +67,14 @@ struct CalorimeterConfig {
 };
 
 /**
- * @brief Parse a calo.cfg file and return a CalorimeterConfig.
- * @throws std::runtime_error if the file cannot be opened or is missing
- *         mandatory fields.
+ * @brief Parse a calo.toml file and return a CalorimeterConfig.
+ *
+ * Uses toml++ for parsing. Unknown top-level keys are reported via stderr
+ * (helpful when a stale or mistyped key would otherwise be silently
+ * ignored), but do not cause the parse to fail.
+ *
+ * @throws std::runtime_error if the file cannot be opened, contains
+ *         malformed TOML, or is missing the mandatory `layers` field.
  */
 CalorimeterConfig readCaloConfig(const std::string& path);
 

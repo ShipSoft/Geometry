@@ -17,18 +17,18 @@ struct CalorimeterConfig;
  *
  * Creates a fixed-size container volume matching the SHiP envelope
  * (3.00 × 3.50 × 1.45 m half-sizes, centred at Z = 98 320 mm) and fills
- * it with the real layer-by-layer geometry driven by calo.cfg.
+ * it with the real layer-by-layer geometry driven by calo.toml.
  *
  * The config file is resolved at build() time:
- *   1. "calo.cfg" relative to the current working directory (works when
+ *   1. "calo.toml" relative to the current working directory (works when
  *      running from the build directory, where CMake stages the file).
  *   2. The absolute source-tree path baked in at compile time via
- *      CALO_CFG_DEFAULT_PATH (always valid during development).
+ *      CALO_TOML_DEFAULT_PATH (always valid during development).
  */
 class CalorimeterFactory {
    public:
     explicit CalorimeterFactory(SHiPMaterials& materials,
-                                std::string    configPath = "calo.cfg");
+                                std::string    configPath = "calo.toml");
     ~CalorimeterFactory() = default;
 
     /** Build and return the calorimeter container volume. */

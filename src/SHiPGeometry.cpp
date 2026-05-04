@@ -117,7 +117,7 @@ GeoPhysVol* SHiPGeometryBuilder::build() {
     world->add(timingDetector);
 
     // Build and place Calorimeter (ECAL + HCAL).
-    // The layer structure is driven by calo.cfg; the outer container dimensions
+    // The layer structure is driven by calo.toml; the outer container dimensions
     // and placement are fixed to match the SHiP subsystem envelope.
     CalorimeterFactory calorimeterFactory(materials);
     GeoPhysVol* calorimeter = calorimeterFactory.build();

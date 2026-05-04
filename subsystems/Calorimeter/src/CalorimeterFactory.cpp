@@ -22,13 +22,13 @@
 #include <string>
 
 // Absolute fallback path baked in by CMake so out-of-source builds always
-// find calo.cfg even when the CWD doesn't contain a copy of it.
-#ifndef CALO_CFG_DEFAULT_PATH
-#  define CALO_CFG_DEFAULT_PATH "calo.cfg"
+// find calo.toml even when the CWD doesn't contain a copy of it.
+#ifndef CALO_TOML_DEFAULT_PATH
+#  define CALO_TOML_DEFAULT_PATH "calo.toml"
 #endif
 // Install-time data directory path, set by CMake during install configuration.
-#ifndef CALO_CFG_INSTALL_PATH
-#  define CALO_CFG_INSTALL_PATH ""
+#ifndef CALO_TOML_INSTALL_PATH
+#  define CALO_TOML_INSTALL_PATH ""
 #endif
 
 namespace SHiPGeometry {
@@ -37,12 +37,12 @@ using namespace GeoModelKernelUnits;
 
 // ── file-scope helper ────────────────────────────────────────────────────────
 
-static std::string resolveCfgPath(const std::string& path) {
+static std::string resolveTomlPath(const std::string& path) {
     if (!path.empty() && path[0] == '/') return path;          // already absolute
     if (std::ifstream(path).good())      return path;          // found relative to CWD
-    const std::string srcFallback = CALO_CFG_DEFAULT_PATH;
+    const std::string srcFallback = CALO_TOML_DEFAULT_PATH;
     if (std::ifstream(srcFallback).good()) return srcFallback; // source-tree fallback
-    const std::string installFallback = CALO_CFG_INSTALL_PATH;
+    const std::string installFallback = CALO_TOML_INSTALL_PATH;
     if (!installFallback.empty() && std::ifstream(installFallback).good())
         return installFallback;                                 // installed data dir
     return path;  // give up — readCaloConfig will emit the error
@@ -55,7 +55,7 @@ CalorimeterFactory::CalorimeterFactory(SHiPMaterials& materials,
     : m_materials(materials), m_configPath(std::move(configPath)) {}
 
 std::string CalorimeterFactory::resolvedConfigPath() const {
-    return resolveCfgPath(m_configPath);
+    return resolveTomlPath(m_configPath);
 }
 
 // ── totalStackZ ──────────────────────────────────────────────────────────────
@@ -87,7 +87,7 @@ double CalorimeterFactory::totalStackZ(const CalorimeterConfig& cfg) {
 // ── build ────────────────────────────────────────────────────────────────────
 
 GeoPhysVol* CalorimeterFactory::build() {
-    const CalorimeterConfig cfg = readCaloConfig(resolveCfgPath(m_configPath));
+    const CalorimeterConfig cfg = readCaloConfig(resolveTomlPath(m_configPath));
 
     GeoMaterial* air = m_materials.requireMaterial("Air");
 
@@ -109,17 +109,17 @@ GeoPhysVol* CalorimeterFactory::build() {
     const double maxHalfY = 0.5 * cfg.plate_xy_mm + 0.5 * (cfg.module_ny - 1) * pitchY;
     if (stackZ > 2.0 * s_containerHalfZ)
         throw std::runtime_error(
-            "CalorimeterFactory: calo.cfg total stack Z (" + std::to_string(stackZ)
+            "CalorimeterFactory: calo.toml total stack Z (" + std::to_string(stackZ)
             + " mm) exceeds container half-Z*2 (" + std::to_string(2.0 * s_containerHalfZ)
             + " mm). Reduce layer thicknesses or number of layers.");
     if (maxHalfX > s_containerHalfX)
         throw std::runtime_error(
-            "CalorimeterFactory: calo.cfg module array half-X (" + std::to_string(maxHalfX)
+            "CalorimeterFactory: calo.toml module array half-X (" + std::to_string(maxHalfX)
             + " mm) exceeds container half-X (" + std::to_string(s_containerHalfX)
             + " mm). Reduce plate_xy_mm, module_nx, or module_pitch_x_mm.");
     if (maxHalfY > s_containerHalfY)
         throw std::runtime_error(
-            "CalorimeterFactory: calo.cfg module array half-Y (" + std::to_string(maxHalfY)
+            "CalorimeterFactory: calo.toml module array half-Y (" + std::to_string(maxHalfY)
             + " mm) exceeds container half-Y (" + std::to_string(s_containerHalfY)
             + " mm). Reduce plate_xy_mm, module_ny, or module_pitch_y_mm.");
 

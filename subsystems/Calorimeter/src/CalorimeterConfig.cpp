@@ -1,11 +1,35 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
+//
+// Calorimeter configuration parser. Reads a calo.toml file and populates
+// a CalorimeterConfig struct. Built on toml++
+// (https://github.com/marzer/tomlplusplus, single-header MIT, fetched via
+// CMake FetchContent), so the file format is standard TOML — no bespoke
+// scanner, no semicolon quirks.
+//
+// Behaviour notes
+// ===============
+// * Unknown top-level keys are NOT silently ignored. Each one is reported
+//   on stderr at parse time. This catches typos and stale keys that the
+//   previous bespoke parser would have swallowed (this was a code-review
+//   request on PR #11).
+//
+// * Both array-style (TOML native) and the legacy "1,2,3" comma-string
+//   form are accepted for `layers` and `layers2`. The legacy form is
+//   read by treating the value as a string and splitting on commas.
+//   This avoids a flag day where every existing calo.toml file out there
+//   has to be rewritten.
+//
+// * The previously-defined `pvt_thickness_mm` key is dropped: it duplicated
+//   `scint_thickness_mm` and was never read by the factory. Files that
+//   still mention it will trigger the unknown-key warning.
 
 #include "Calorimeter/CalorimeterConfig.h"
 
-#include <algorithm>
-#include <cctype>
-#include <fstream>
+#include <toml++/toml.hpp>
+
+#include <iostream>
+#include <set>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -14,35 +38,57 @@ namespace SHiPGeometry {
 
 namespace {
 
-std::string trim(std::string s) {
-    auto notSpace = [](unsigned char c) { return !std::isspace(c); };
-    s.erase(s.begin(), std::find_if(s.begin(), s.end(), notSpace));
-    s.erase(std::find_if(s.rbegin(), s.rend(), notSpace).base(), s.end());
-    return s;
-}
+// Recognised top-level keys. Anything outside this set triggers a warning.
+const std::set<std::string> kKnownKeys = {
+    "layers", "layers2",
+    "plate_xy_mm", "lead_thickness_mm", "scint_thickness_mm",
+    "hpl_thickness_mm", "fiber_diameter_mm", "fiber_core_diameter_mm",
+    "airgap_mm", "iron_thickness_mm", "gap_ecal_hcal_mm",
+    "module_nx", "module_ny",
+    "module_pitch_x_mm", "module_pitch_y_mm",
+    "tol_x_mm", "tol_y_mm", "tol_z_mm",
+    "detector_offset_x_mm", "detector_offset_y_mm", "detector_offset_z_mm",
+    "center_stack",
+};
 
-std::vector<int> parseIntList(const std::string& s) {
+// Read an integer-list value: either a TOML array of ints, or a string
+// of comma-separated ints (legacy form).
+std::vector<int> readIntList(const toml::node_view<toml::node>& node,
+                             const std::string& key) {
     std::vector<int> out;
-    std::stringstream ss(s);
-    std::string token;
-    while (std::getline(ss, token, ',')) {
-        token = trim(token);
-        // strip trailing semicolons (calo.cfg has e.g. "gap_ecal_hcal_mm = 100;")
-        if (!token.empty() && token.back() == ';') token.pop_back();
-        if (!token.empty()) out.push_back(std::stoi(token));
+    if (node.is_array()) {
+        for (const auto& v : *node.as_array()) {
+            if (auto i = v.value<int64_t>(); i)
+                out.push_back(static_cast<int>(*i));
+            else
+                throw std::runtime_error(
+                    "CalorimeterConfig: '" + key + "' contains a non-integer value");
+        }
+    } else if (auto s = node.value<std::string>(); s) {
+        std::stringstream ss(*s);
+        std::string token;
+        while (std::getline(ss, token, ',')) {
+            // strip whitespace
+            auto first = token.find_first_not_of(" \t\r\n");
+            auto last  = token.find_last_not_of(" \t\r\n;");
+            if (first == std::string::npos) continue;
+            out.push_back(std::stoi(token.substr(first, last - first + 1)));
+        }
+    } else {
+        throw std::runtime_error(
+            "CalorimeterConfig: '" + key + "' must be an array of integers");
     }
     return out;
 }
 
-double toDouble(std::string v) {
-    // strip optional trailing semicolon
-    if (!v.empty() && v.back() == ';') v.pop_back();
-    return std::stod(v);
-}
-
-int toInt(std::string v) {
-    if (!v.empty() && v.back() == ';') v.pop_back();
-    return std::stoi(v);
+// Read a double or integer as a double — TOML distinguishes them at the
+// type level, but we treat the calorimeter parameters uniformly.
+double readNumeric(const toml::node_view<toml::node>& node,
+                   const std::string& key) {
+    if (auto d = node.value<double>(); d) return *d;
+    if (auto i = node.value<int64_t>(); i) return static_cast<double>(*i);
+    throw std::runtime_error(
+        "CalorimeterConfig: '" + key + "' must be a number");
 }
 
 }  // namespace
@@ -50,51 +96,62 @@ int toInt(std::string v) {
 CalorimeterConfig readCaloConfig(const std::string& path) {
     CalorimeterConfig cfg;
 
-    std::ifstream in(path);
-    if (!in) throw std::runtime_error("CalorimeterConfig: cannot open: " + path);
+    toml::table table;
+    try {
+        table = toml::parse_file(path);
+    } catch (const toml::parse_error& e) {
+        throw std::runtime_error(
+            "CalorimeterConfig: failed to parse " + path + ": " +
+            std::string(e.description()));
+    }
 
-    std::string line;
-    while (std::getline(in, line)) {
-        // strip comments
-        auto hash = line.find('#');
-        if (hash != std::string::npos) line = line.substr(0, hash);
-        line = trim(line);
-        if (line.empty()) continue;
+    // First pass: warn about unknown keys.
+    for (const auto& [k, _] : table) {
+        const std::string key{k};
+        if (!kKnownKeys.count(key)) {
+            std::cerr << "CalorimeterConfig: warning: unknown key '" << key
+                      << "' in " << path
+                      << " (typo? stale field? — value will be ignored)\n";
+        }
+    }
 
-        auto eq = line.find('=');
-        if (eq == std::string::npos) continue;
+    // Second pass: read each known key if present.
+    if (auto n = table["layers"];     n) cfg.layers           = readIntList(n, "layers");
+    if (auto n = table["layers2"];    n) cfg.layers2          = readIntList(n, "layers2");
 
-        auto key = trim(line.substr(0, eq));
-        auto val = trim(line.substr(eq + 1));
+    if (auto n = table["plate_xy_mm"];        n) cfg.plate_xy_mm        = readNumeric(n, "plate_xy_mm");
+    if (auto n = table["lead_thickness_mm"];  n) cfg.lead_thickness_mm  = readNumeric(n, "lead_thickness_mm");
+    if (auto n = table["scint_thickness_mm"]; n) cfg.scint_thickness_mm = readNumeric(n, "scint_thickness_mm");
+    if (auto n = table["hpl_thickness_mm"];   n) cfg.hpl_thickness_mm   = readNumeric(n, "hpl_thickness_mm");
+    if (auto n = table["fiber_diameter_mm"];  n) cfg.fiber_diameter_mm  = readNumeric(n, "fiber_diameter_mm");
+    if (auto n = table["fiber_core_diameter_mm"]; n)
+        cfg.fiber_core_diameter_mm = readNumeric(n, "fiber_core_diameter_mm");
+    if (auto n = table["airgap_mm"];          n) cfg.airgap_mm          = readNumeric(n, "airgap_mm");
+    if (auto n = table["iron_thickness_mm"];  n) cfg.iron_thickness_mm  = readNumeric(n, "iron_thickness_mm");
+    if (auto n = table["gap_ecal_hcal_mm"];   n) cfg.gap_ecal_hcal_mm   = readNumeric(n, "gap_ecal_hcal_mm");
 
-        if      (key == "layers")                  cfg.layers = parseIntList(val);
-        else if (key == "layers2")                 cfg.layers2 = parseIntList(val);
-        else if (key == "plate_xy_mm")             cfg.plate_xy_mm = toDouble(val);
-        else if (key == "lead_thickness_mm")       cfg.lead_thickness_mm = toDouble(val);
-        else if (key == "scint_thickness_mm")      cfg.scint_thickness_mm = toDouble(val);
-        else if (key == "pvt_thickness_mm")        cfg.pvt_thickness_mm = toDouble(val);
-        else if (key == "hpl_thickness_mm")        cfg.hpl_thickness_mm = toDouble(val);
-        else if (key == "fiber_diameter_mm")       cfg.fiber_diameter_mm = toDouble(val);
-        else if (key == "fiber_core_diameter_mm")  cfg.fiber_core_diameter_mm = toDouble(val);
-        else if (key == "airgap_mm")               cfg.airgap_mm = toDouble(val);
-        else if (key == "iron_thickness_mm")       cfg.iron_thickness_mm = toDouble(val);
-        else if (key == "gap_ecal_hcal_mm")        cfg.gap_ecal_hcal_mm = toDouble(val);
-        else if (key == "module_nx")               cfg.module_nx = toInt(val);
-        else if (key == "module_ny")               cfg.module_ny = toInt(val);
-        else if (key == "module_pitch_x_mm")       cfg.module_pitch_x_mm = toDouble(val);
-        else if (key == "module_pitch_y_mm")       cfg.module_pitch_y_mm = toDouble(val);
-        else if (key == "tol_x_mm")                cfg.tol_x_mm = toDouble(val);
-        else if (key == "tol_y_mm")                cfg.tol_y_mm = toDouble(val);
-        else if (key == "tol_z_mm")                cfg.tol_z_mm = toDouble(val);
-        else if (key == "detector_offset_x_mm")    cfg.detector_offset_x_mm = toDouble(val);
-        else if (key == "detector_offset_y_mm")    cfg.detector_offset_y_mm = toDouble(val);
-        else if (key == "detector_offset_z_mm")    cfg.detector_offset_z_mm = toDouble(val);
-        else if (key == "center_stack") {
-            std::string v = val;
-            std::transform(v.begin(), v.end(), v.begin(), ::tolower);
+    if (auto n = table["module_nx"];          n) cfg.module_nx          = static_cast<int>(readNumeric(n, "module_nx"));
+    if (auto n = table["module_ny"];          n) cfg.module_ny          = static_cast<int>(readNumeric(n, "module_ny"));
+    if (auto n = table["module_pitch_x_mm"];  n) cfg.module_pitch_x_mm  = readNumeric(n, "module_pitch_x_mm");
+    if (auto n = table["module_pitch_y_mm"];  n) cfg.module_pitch_y_mm  = readNumeric(n, "module_pitch_y_mm");
+
+    if (auto n = table["tol_x_mm"];           n) cfg.tol_x_mm           = readNumeric(n, "tol_x_mm");
+    if (auto n = table["tol_y_mm"];           n) cfg.tol_y_mm           = readNumeric(n, "tol_y_mm");
+    if (auto n = table["tol_z_mm"];           n) cfg.tol_z_mm           = readNumeric(n, "tol_z_mm");
+
+    if (auto n = table["detector_offset_x_mm"]; n) cfg.detector_offset_x_mm = readNumeric(n, "detector_offset_x_mm");
+    if (auto n = table["detector_offset_y_mm"]; n) cfg.detector_offset_y_mm = readNumeric(n, "detector_offset_y_mm");
+    if (auto n = table["detector_offset_z_mm"]; n) cfg.detector_offset_z_mm = readNumeric(n, "detector_offset_z_mm");
+
+    if (auto n = table["center_stack"]; n) {
+        if (auto b = n.value<bool>(); b) {
+            cfg.center_stack = *b;
+        } else if (auto i = n.value<int64_t>(); i) {
+            cfg.center_stack = (*i != 0);
+        } else if (auto s = n.value<std::string>(); s) {
+            const std::string& v = *s;
             cfg.center_stack = (v == "1" || v == "true" || v == "yes" || v == "on");
         }
-        // unknown keys are silently ignored to allow forward-compatibility
     }
 
     if (cfg.layers.empty())
