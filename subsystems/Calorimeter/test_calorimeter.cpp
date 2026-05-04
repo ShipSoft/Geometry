@@ -35,7 +35,7 @@ TEST_CASE("CalorimeterHasChildren", "[calorimeter]") {
     GeoPhysVol* calo = factory.build();
     REQUIRE(calo != nullptr);
     // The container must have at least one child (ECAL layers + HCAL layers)
-    CHECK(calo->getNChildVols() >= 1u);
+    CHECK(calo->getNChildVols() >= 1u);  // NOLINT(readability/check)
 }
 
 TEST_CASE("TotalStackZPositive", "[calorimeter]") {
