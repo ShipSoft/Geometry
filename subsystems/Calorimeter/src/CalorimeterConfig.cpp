@@ -130,8 +130,19 @@ CalorimeterConfig readCaloConfig(const std::string& path) {
     if (auto n = table["iron_thickness_mm"];  n) cfg.iron_thickness_mm  = readNumeric(n, "iron_thickness_mm");
     if (auto n = table["gap_ecal_hcal_mm"];   n) cfg.gap_ecal_hcal_mm   = readNumeric(n, "gap_ecal_hcal_mm");
 
-    if (auto n = table["module_nx"];          n) cfg.module_nx          = static_cast<int>(readNumeric(n, "module_nx"));
-    if (auto n = table["module_ny"];          n) cfg.module_ny          = static_cast<int>(readNumeric(n, "module_ny"));
+    if (auto n = table["module_nx"]; n) {
+        auto i = n.value<int64_t>();
+        if (!i || *i <= 0 || *i > std::numeric_limits<int>::max())
+            throw std::runtime_error("CalorimeterConfig: 'module_nx' must be a positive integer");
+        cfg.module_nx = static_cast<int>(*i);
+    }
+    if (auto n = table["module_ny"]; n) {
+        auto i = n.value<int64_t>();
+        if (!i || *i <= 0 || *i > std::numeric_limits<int>::max())
+            throw std::runtime_error("CalorimeterConfig: 'module_ny' must be a positive integer");
+        cfg.module_ny = static_cast<int>(*i);
+    }
+
     if (auto n = table["module_pitch_x_mm"];  n) cfg.module_pitch_x_mm  = readNumeric(n, "module_pitch_x_mm");
     if (auto n = table["module_pitch_y_mm"];  n) cfg.module_pitch_y_mm  = readNumeric(n, "module_pitch_y_mm");
 
