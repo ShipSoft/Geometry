@@ -5,10 +5,11 @@
 # Pulled in via FetchContent so we don't vendor a 7000-line single header.
 # Pinned to a release tag so subsequent fetches are reproducible.
 include(FetchContent)
-FetchContent_Declare(tomlplusplus
+FetchContent_Declare(
+    tomlplusplus
     GIT_REPOSITORY https://github.com/marzer/tomlplusplus.git
-    GIT_TAG        v3.4.0
-    GIT_SHALLOW    TRUE
+    GIT_TAG v3.4.0
+    GIT_SHALLOW TRUE
 )
 FetchContent_MakeAvailable(tomlplusplus)
 
@@ -25,7 +26,8 @@ configure_file(
     COPYONLY
 )
 
-add_library(Calorimeter
+add_library(
+    Calorimeter
     src/CalorimeterFactory.cpp
     src/CalorimeterConfig.cpp
     src/CaloBarLayer.cpp
@@ -40,9 +42,9 @@ target_include_directories(
         $<INSTALL_INTERFACE:include>
 )
 
-target_link_libraries(Calorimeter
-    PUBLIC
-        GeoModelCore::GeoModelKernel
+target_link_libraries(
+    Calorimeter
+    PUBLIC GeoModelCore::GeoModelKernel
     PRIVATE
         # toml++ is a build-time-only dependency: it's used by
         # CalorimeterConfig.cpp's parser internals and never appears in any
@@ -54,7 +56,8 @@ target_link_libraries(Calorimeter
 
 # Bake the absolute source-tree path as a compile-time fallback so the factory
 # can always find calo.toml even when CWD doesn't contain it.
-target_compile_definitions(Calorimeter
+target_compile_definitions(
+    Calorimeter
     PRIVATE
         # Source-tree fallback (always valid during development and CI builds).
         CALO_TOML_DEFAULT_PATH="${CMAKE_CURRENT_SOURCE_DIR}/calo.toml"
@@ -63,7 +66,8 @@ target_compile_definitions(Calorimeter
         CALO_TOML_INSTALL_PATH="${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATADIR}/SHiPGeometry/calo.toml"
 )
 
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/calo.toml
+install(
+    FILES ${CMAKE_CURRENT_SOURCE_DIR}/calo.toml
     DESTINATION ${CMAKE_INSTALL_DATADIR}/SHiPGeometry
 )
 

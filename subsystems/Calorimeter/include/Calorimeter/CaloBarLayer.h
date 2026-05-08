@@ -22,14 +22,8 @@ enum class BarAxis { AlongX, AlongY };
  */
 class CaloBarLayer {
    public:
-    static void place(GeoVPhysVol*       mother,
-                      GeoLogVol*         barLog,
-                      double             pitch_mm,
-                      int                nBars,
-                      double             zCenter_mm,
-                      const char*        tagPrefix,
-                      int                layerIndex,
-                      BarAxis            axis,
+    static void place(GeoVPhysVol* mother, GeoLogVol* barLog, double pitch_mm, int nBars,
+                      double zCenter_mm, const char* tagPrefix, int layerIndex, BarAxis axis,
                       const std::string& nameSuffix = "");
 };
 
