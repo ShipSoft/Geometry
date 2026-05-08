@@ -1,0 +1,59 @@
+# SPDX-License-Identifier: LGPL-3.0-or-later
+# Copyright (C) CERN for the benefit of the SHiP Collaboration
+#
+# Calorimeter geometry parameters (TOML).
+#
+# Layer codes (used in the layers / layers2 arrays):
+#   1 = WidePVT bar layer, bars along X (H orientation)
+#   2 = WidePVT bar layer, bars along Y (V orientation)
+#   3 = ThinPS  bar layer, bars along X (H orientation)
+#   4 = ThinPS  bar layer, bars along Y (V orientation)
+#   5 = HPL fibre layer, fibres along Y
+#   6 = HPL fibre layer, fibres along X
+#   7 = absorber plate (Lead in ECAL section, Iron in HCAL section)
+#   8 = air gap (no volume placed, just advances the z cursor)
+
+# ── Module geometry ──────────────────────────────────────────────────────
+plate_xy_mm        = 2160
+lead_thickness_mm  = 3
+scint_thickness_mm = 10
+
+# How many calo modules in the x and y directions?
+module_nx = 2
+module_ny = 3
+
+module_pitch_x_mm = 0.0
+module_pitch_y_mm = 0.0
+
+# Envelope padding around the active stack (mm)
+tol_x_mm = 10
+tol_y_mm = 10
+tol_z_mm = 10
+
+# ── ECAL ─────────────────────────────────────────────────────────────────
+layers = [
+    7, 1, 7, 2, 7, 3, 7, 4, 7, 1, 7, 2, 7, 3, 7, 4, 7, 1, 7, 2,
+    5, 6, 8, 7, 3, 7, 4, 7, 1, 7, 2, 5, 6, 7, 3, 7, 4, 7, 1, 7, 2,
+    5, 6, 7, 3, 7, 4, 7, 1, 7, 2, 5, 6, 7, 3, 7, 4, 7, 1, 7, 2,
+    7, 3, 7, 4, 7, 1, 7, 2, 7, 3, 7, 4, 7, 1, 7, 2, 7, 3, 7, 4,
+    7, 1, 7, 2, 7, 3, 7, 4
+]
+
+# HPL fibre details
+hpl_thickness_mm        = 10
+fiber_diameter_mm       = 1.2
+fiber_core_diameter_mm  = 1.0
+
+# Air gap between ECAL and HCAL stacks (mm)
+airgap_mm = 1000
+
+# ── HCAL ─────────────────────────────────────────────────────────────────
+# Layer codes are identical to ECAL; 7 here means iron rather than lead.
+gap_ecal_hcal_mm  = 100
+layers2           = [7, 1, 7, 2, 7, 1, 7, 2, 7, 1]
+iron_thickness_mm = 170
+
+# ── Detector placement (world coordinates, mm) ───────────────────────────
+detector_offset_x_mm = 0.0
+detector_offset_y_mm = 0.0
+detector_offset_z_mm = 96970.0
