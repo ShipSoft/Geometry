@@ -8,6 +8,18 @@
 
 namespace SHiPGeometry {
 
+/// Layer type codes used in the ECAL/HCAL layer sequences.
+enum class LayerCode : int {
+    WidePVT_H = 1,   ///< Wide PVT bar layer, bars along X (H orientation)
+    WidePVT_V = 2,   ///< Wide PVT bar layer, bars along Y (V orientation)
+    ThinPS_H = 3,    ///< Thin PS bar layer, bars along X (H orientation)
+    ThinPS_V = 4,    ///< Thin PS bar layer, bars along Y (V orientation)
+    FibreHPL_Y = 5,  ///< HPL fibre layer, fibres along Y
+    FibreHPL_X = 6,  ///< HPL fibre layer, fibres along X
+    Absorber = 7,    ///< Absorber plate (Lead in ECAL, Iron in HCAL)
+    AirGap = 8,      ///< Air gap (no volume, just advances z cursor)
+};
+
 /**
  * @brief Configuration for the SHiP calorimeter geometry.
  *

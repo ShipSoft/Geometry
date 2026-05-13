@@ -10,8 +10,8 @@ project(
     LANGUAGES CXX
 )
 
-# Set C++20 standard
-set(CMAKE_CXX_STANDARD 20)
+# C++23: required by Phlex
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 

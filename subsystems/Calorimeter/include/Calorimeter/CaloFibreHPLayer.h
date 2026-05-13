@@ -17,12 +17,13 @@ namespace SHiPGeometry {
  * cylindrical fibres (cladding + core). Fibres run along Y when
  * @p fibresAlongY is true, along X otherwise.
  */
-class CaloFibreHPLayer {
-   public:
-    static void build(GeoVPhysVol* mother, GeoMaterial* aluminiumMat, GeoMaterial* fibreMat,
-                      const std::string& layerTag, double zCenter_mm, int layerIndex,
-                      double casingXY_mm, double casingZ_mm, double fiberDiam_mm,
-                      double fiberCoreDiam_mm, bool fibresAlongY, const std::string& nameSuffix);
-};
+namespace CaloFibreHP {
+
+void buildLayer(GeoVPhysVol* mother, GeoMaterial* aluminiumMat, GeoMaterial* fibreMat,
+                const std::string& layerTag, double zCenter_mm, int layerIndex, double casingXY_mm,
+                double casingZ_mm, double fiberDiam_mm, double fiberCoreDiam_mm, bool fibresAlongY,
+                const std::string& nameSuffix);
+
+}  // namespace CaloFibreHP
 
 }  // namespace SHiPGeometry

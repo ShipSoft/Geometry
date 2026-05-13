@@ -13,6 +13,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <format>
 #include <stdexcept>
 #include <string>
 
@@ -20,7 +21,7 @@ namespace SHiPGeometry {
 
 using namespace GeoModelKernelUnits;
 
-void CaloFibreHPLayer::build(GeoVPhysVol* mother, GeoMaterial* aluminiumMat, GeoMaterial* fibreMat,
+void CaloFibreHP::buildLayer(GeoVPhysVol* mother, GeoMaterial* aluminiumMat, GeoMaterial* fibreMat,
                              const std::string& layerTag, double zCenter_mm, int layerIndex,
                              double casingXY_mm, double casingZ_mm, double fiberDiam_mm,
                              double fiberCoreDiam_mm, bool fibresAlongY,
@@ -43,7 +44,7 @@ void CaloFibreHPLayer::build(GeoVPhysVol* mother, GeoMaterial* aluminiumMat, Geo
 
     if (rCore <= 0.0 || rCore > rOuter)
         throw std::runtime_error(
-            "CaloFibreHPLayer: invalid core diameter "
+            "CaloFibreHP::buildLayer: invalid core diameter "
             "(must be >0 and <= outer diameter)");
 
     // GeoTube axis is Z; rotate so fibres run along Y or X
@@ -70,25 +71,24 @@ void CaloFibreHPLayer::build(GeoVPhysVol* mother, GeoMaterial* aluminiumMat, Geo
 
     const std::string orient = fibresAlongY ? "V_L" : "H_L";
 
-    for (int s = 0; s < 3; ++s) {
+    for (int sublayer = 0; sublayer < 3; ++sublayer) {
         for (int i = 0; i < nFib; ++i) {
-            const double pack = x0 + i * pitch + dx[s];
-            const double zl = zLocal[s];
+            const double fibrePosition = x0 + i * pitch + dx[sublayer];
+            const double sublayerZ = zLocal[sublayer];
 
-            const std::string baseName = layerTag + "_HPL_" + orient + std::to_string(layerIndex) +
-                                         "_S" + std::to_string(s) + "_F" + std::to_string(i) +
-                                         nameSuffix;
+            const auto baseName = std::format("{}_HPL_{}{}_S{}_F{}{}", layerTag, orient, layerIndex,
+                                              sublayer, i, nameSuffix);
 
             // cladding physical volume; core is a child of it
             auto* cladPhys = new GeoPhysVol(cladLog);
-            cladPhys->add(new GeoNameTag((baseName + "_Core").c_str()));
+            cladPhys->add(new GeoNameTag(std::format("{}_Core", baseName).c_str()));
             cladPhys->add(new GeoPhysVol(coreLog));
 
-            const double xPos = fibresAlongY ? pack : 0.0;
-            const double yPos = fibresAlongY ? 0.0 : pack;
+            const double xPos = fibresAlongY ? fibrePosition : 0.0;
+            const double yPos = fibresAlongY ? 0.0 : fibrePosition;
 
-            casingPhys->add(new GeoNameTag((baseName + "_Clad").c_str()));
-            casingPhys->add(new GeoTransform(GeoTrf::Translate3D(xPos, yPos, zl) * rotAxis));
+            casingPhys->add(new GeoNameTag(std::format("{}_Clad", baseName).c_str()));
+            casingPhys->add(new GeoTransform(GeoTrf::Translate3D(xPos, yPos, sublayerZ) * rotAxis));
             casingPhys->add(cladPhys);
         }
     }

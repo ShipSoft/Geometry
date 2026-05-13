@@ -26,41 +26,72 @@
 
 #include "Calorimeter/CalorimeterConfig.h"
 
+#include <algorithm>
+#include <array>
 #include <iostream>
-#include <set>
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <toml++/toml.hpp>
 
 namespace SHiPGeometry {
 
 namespace {
 
-// Recognised top-level keys. Anything outside this set triggers a warning.
-const std::set<std::string> kKnownKeys = {
-    "layers",
-    "layers2",
-    "plate_xy_mm",
-    "lead_thickness_mm",
-    "scint_thickness_mm",
-    "hpl_thickness_mm",
-    "fiber_diameter_mm",
-    "fiber_core_diameter_mm",
-    "airgap_mm",
-    "iron_thickness_mm",
-    "gap_ecal_hcal_mm",
-    "module_nx",
-    "module_ny",
-    "module_pitch_x_mm",
-    "module_pitch_y_mm",
-    "tol_x_mm",
-    "tol_y_mm",
-    "tol_z_mm",
-    "detector_offset_x_mm",
-    "detector_offset_y_mm",
-    "detector_offset_z_mm",
-    "center_stack",
+using namespace std::string_view_literals;
+
+// Recognised top-level keys (sorted for binary search). Anything outside this
+// set triggers a warning.
+static constexpr std::array kKnownKeys = {
+    "airgap_mm"sv,
+    "center_stack"sv,
+    "detector_offset_x_mm"sv,
+    "detector_offset_y_mm"sv,
+    "detector_offset_z_mm"sv,
+    "fiber_core_diameter_mm"sv,
+    "fiber_diameter_mm"sv,
+    "gap_ecal_hcal_mm"sv,
+    "hpl_thickness_mm"sv,
+    "iron_thickness_mm"sv,
+    "layers"sv,
+    "layers2"sv,
+    "lead_thickness_mm"sv,
+    "module_nx"sv,
+    "module_ny"sv,
+    "module_pitch_x_mm"sv,
+    "module_pitch_y_mm"sv,
+    "plate_xy_mm"sv,
+    "scint_thickness_mm"sv,
+    "tol_x_mm"sv,
+    "tol_y_mm"sv,
+    "tol_z_mm"sv,
+};
+
+// Mapping from TOML key name to CalorimeterConfig double member pointer.
+struct NumericField {
+    const char* key;
+    double CalorimeterConfig::* member;
+};
+
+static constexpr NumericField kNumericFields[] = {
+    {"plate_xy_mm", &CalorimeterConfig::plate_xy_mm},
+    {"lead_thickness_mm", &CalorimeterConfig::lead_thickness_mm},
+    {"scint_thickness_mm", &CalorimeterConfig::scint_thickness_mm},
+    {"hpl_thickness_mm", &CalorimeterConfig::hpl_thickness_mm},
+    {"fiber_diameter_mm", &CalorimeterConfig::fiber_diameter_mm},
+    {"fiber_core_diameter_mm", &CalorimeterConfig::fiber_core_diameter_mm},
+    {"airgap_mm", &CalorimeterConfig::airgap_mm},
+    {"iron_thickness_mm", &CalorimeterConfig::iron_thickness_mm},
+    {"gap_ecal_hcal_mm", &CalorimeterConfig::gap_ecal_hcal_mm},
+    {"module_pitch_x_mm", &CalorimeterConfig::module_pitch_x_mm},
+    {"module_pitch_y_mm", &CalorimeterConfig::module_pitch_y_mm},
+    {"tol_x_mm", &CalorimeterConfig::tol_x_mm},
+    {"tol_y_mm", &CalorimeterConfig::tol_y_mm},
+    {"tol_z_mm", &CalorimeterConfig::tol_z_mm},
+    {"detector_offset_x_mm", &CalorimeterConfig::detector_offset_x_mm},
+    {"detector_offset_y_mm", &CalorimeterConfig::detector_offset_y_mm},
+    {"detector_offset_z_mm", &CalorimeterConfig::detector_offset_z_mm},
 };
 
 // Read an integer-list value: either a TOML array of ints, or a string
@@ -79,7 +110,6 @@ std::vector<int> readIntList(const toml::node_view<toml::node>& node, const std:
         std::stringstream ss(*s);
         std::string token;
         while (std::getline(ss, token, ',')) {
-            // strip whitespace
             auto first = token.find_first_not_of(" \t\r\n");
             auto last = token.find_last_not_of(" \t\r\n;");
             if (first == std::string::npos)
@@ -102,6 +132,15 @@ double readNumeric(const toml::node_view<toml::node>& node, const std::string& k
     throw std::runtime_error("CalorimeterConfig: '" + key + "' must be a number");
 }
 
+// Read a positive integer from TOML, validating range.
+int readPositiveInt(const toml::node_view<toml::node>& node, const char* key) {
+    auto i = node.value<int64_t>();
+    if (!i || *i <= 0 || *i > std::numeric_limits<int>::max())
+        throw std::runtime_error(std::string("CalorimeterConfig: '") + key +
+                                 "' must be a positive integer");
+    return static_cast<int>(*i);
+}
+
 }  // namespace
 
 CalorimeterConfig readCaloConfig(const std::string& path) {
@@ -117,79 +156,35 @@ CalorimeterConfig readCaloConfig(const std::string& path) {
 
     // First pass: warn about unknown keys.
     for (const auto& [k, _] : table) {
-        const std::string key{k};
-        if (!kKnownKeys.count(key)) {
-            std::cerr << "CalorimeterConfig: warning: unknown key '" << key << "' in " << path
+        if (!std::ranges::binary_search(kKnownKeys, std::string_view{k})) {
+            std::cerr << "CalorimeterConfig: warning: unknown key '" << k << "' in " << path
                       << " (typo? stale field? — value will be ignored)\n";
         }
     }
 
-    // Second pass: read each known key if present.
+    // Read layer sequences.
     if (auto n = table["layers"]; n)
         cfg.layers = readIntList(n, "layers");
     if (auto n = table["layers2"]; n)
         cfg.layers2 = readIntList(n, "layers2");
 
-    if (auto n = table["plate_xy_mm"]; n)
-        cfg.plate_xy_mm = readNumeric(n, "plate_xy_mm");
-    if (auto n = table["lead_thickness_mm"]; n)
-        cfg.lead_thickness_mm = readNumeric(n, "lead_thickness_mm");
-    if (auto n = table["scint_thickness_mm"]; n)
-        cfg.scint_thickness_mm = readNumeric(n, "scint_thickness_mm");
-    if (auto n = table["hpl_thickness_mm"]; n)
-        cfg.hpl_thickness_mm = readNumeric(n, "hpl_thickness_mm");
-    if (auto n = table["fiber_diameter_mm"]; n)
-        cfg.fiber_diameter_mm = readNumeric(n, "fiber_diameter_mm");
-    if (auto n = table["fiber_core_diameter_mm"]; n)
-        cfg.fiber_core_diameter_mm = readNumeric(n, "fiber_core_diameter_mm");
-    if (auto n = table["airgap_mm"]; n)
-        cfg.airgap_mm = readNumeric(n, "airgap_mm");
-    if (auto n = table["iron_thickness_mm"]; n)
-        cfg.iron_thickness_mm = readNumeric(n, "iron_thickness_mm");
-    if (auto n = table["gap_ecal_hcal_mm"]; n)
-        cfg.gap_ecal_hcal_mm = readNumeric(n, "gap_ecal_hcal_mm");
+    // Read all numeric (double) fields via pointer-to-member table.
+    for (const auto& [key, member] : kNumericFields)
+        if (auto n = table[key]; n)
+            cfg.*member = readNumeric(n, key);
 
-    if (auto n = table["module_nx"]; n) {
-        auto i = n.value<int64_t>();
-        if (!i || *i <= 0 || *i > std::numeric_limits<int>::max())
-            throw std::runtime_error("CalorimeterConfig: 'module_nx' must be a positive integer");
-        cfg.module_nx = static_cast<int>(*i);
-    }
-    if (auto n = table["module_ny"]; n) {
-        auto i = n.value<int64_t>();
-        if (!i || *i <= 0 || *i > std::numeric_limits<int>::max())
-            throw std::runtime_error("CalorimeterConfig: 'module_ny' must be a positive integer");
-        cfg.module_ny = static_cast<int>(*i);
-    }
+    // Integer fields requiring positive-value validation.
+    if (auto n = table["module_nx"]; n)
+        cfg.module_nx = readPositiveInt(n, "module_nx");
+    if (auto n = table["module_ny"]; n)
+        cfg.module_ny = readPositiveInt(n, "module_ny");
 
-    if (auto n = table["module_pitch_x_mm"]; n)
-        cfg.module_pitch_x_mm = readNumeric(n, "module_pitch_x_mm");
-    if (auto n = table["module_pitch_y_mm"]; n)
-        cfg.module_pitch_y_mm = readNumeric(n, "module_pitch_y_mm");
-
-    if (auto n = table["tol_x_mm"]; n)
-        cfg.tol_x_mm = readNumeric(n, "tol_x_mm");
-    if (auto n = table["tol_y_mm"]; n)
-        cfg.tol_y_mm = readNumeric(n, "tol_y_mm");
-    if (auto n = table["tol_z_mm"]; n)
-        cfg.tol_z_mm = readNumeric(n, "tol_z_mm");
-
-    if (auto n = table["detector_offset_x_mm"]; n)
-        cfg.detector_offset_x_mm = readNumeric(n, "detector_offset_x_mm");
-    if (auto n = table["detector_offset_y_mm"]; n)
-        cfg.detector_offset_y_mm = readNumeric(n, "detector_offset_y_mm");
-    if (auto n = table["detector_offset_z_mm"]; n)
-        cfg.detector_offset_z_mm = readNumeric(n, "detector_offset_z_mm");
-
+    // Boolean field — TOML native bool or integer fallback.
     if (auto n = table["center_stack"]; n) {
-        if (auto b = n.value<bool>(); b) {
+        if (auto b = n.value<bool>(); b)
             cfg.center_stack = *b;
-        } else if (auto i = n.value<int64_t>(); i) {
+        else if (auto i = n.value<int64_t>(); i)
             cfg.center_stack = (*i != 0);
-        } else if (auto s = n.value<std::string>(); s) {
-            const std::string& v = *s;
-            cfg.center_stack = (v == "1" || v == "true" || v == "yes" || v == "on");
-        }
     }
 
     if (cfg.layers.empty())

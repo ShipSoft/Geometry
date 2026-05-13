@@ -49,7 +49,7 @@ class CalorimeterFactory {
     std::string m_configPath;
 
     /** Place one NX×NY tiled stack of layers inside @p container. */
-    void buildStack(GeoPhysVol* container, const CalorimeterConfig& cfg, int mx, int my,
+    void buildStack(GeoPhysVol* container, const CalorimeterConfig& cfg, int moduleX, int moduleY,
                     double offsetX, double offsetY) const;
 
     // ── Fixed container dimensions (mm) ─────────────────────────────────
