@@ -42,8 +42,8 @@ constexpr double kFrameHalfX = kApertureHalfX + TrackersFactory::s_frameBarX;  /
 constexpr double kFrameHalfY = kApertureHalfY + TrackersFactory::s_frameBarY;  // 3115
 
 // View envelope half-sizes.
-constexpr double kViewHalfX = kFrameHalfX + kEnvClearance;                 // 2110
-constexpr double kViewHalfY = kFrameHalfY + kEnvClearance;                 // 3120
+constexpr double kViewHalfX = kFrameHalfX + kEnvClearance;                    // 2110
+constexpr double kViewHalfY = kFrameHalfY + kEnvClearance;                    // 3120
 constexpr double kViewHalfZ = TrackersFactory::s_frameHalfZ + kEnvClearance;  // 27
 
 // Small gap between the frame aperture and the sub-layer envelope.
@@ -210,16 +210,16 @@ GeoPhysVol* TrackersFactory::buildSubLayer(int stationIndex, int viewIndex, bool
     // the half-pitch Y stagger is applied here, per straw, via `shifted`.
     const GeoMaterial* air = m_materials.requireMaterial("Air");
 
-    const double pitch = 2.0 * s_strawRadius;                 // 20 mm
-    const double yStagger = shifted ? s_strawRadius : 0.0;    // +10 mm if shifted
+    const double pitch = 2.0 * s_strawRadius;               // 20 mm
+    const double yStagger = shifted ? s_strawRadius : 0.0;  // +10 mm if shifted
 
     const double subHalfX = kApertureHalfX - kFrameClearance;
     const double subHalfY = kApertureHalfY - kFrameClearance;
     const double subHalfZ = s_strawRadius + 0.5;
 
     const std::string subName = "/SHiP/trackers/station_" + std::to_string(stationIndex + 1) +
-                                 "/view_" + std::to_string(viewIndex) + "/sublayer_" +
-                                 (shifted ? "1" : "0") + "_body";
+                                "/view_" + std::to_string(viewIndex) + "/sublayer_" +
+                                (shifted ? "1" : "0") + "_body";
     auto* subBox = new GeoBox(subHalfX, subHalfY, subHalfZ);
     auto* subLog = new GeoLogVol(subName, subBox, air);
     auto* subPhys = new GeoPhysVol(subLog);
@@ -263,13 +263,12 @@ GeoPhysVol* TrackersFactory::buildStraw(int uid) {
     const double halfLength = s_strawLength / 2.0;
 
     auto* wallTube = new GeoTube(0.0, rWall, halfLength);
-    auto* wallLog = new GeoLogVol("/SHiP/trackers/straw_wall_" + std::to_string(uid), wallTube,
-                                  mylar);
+    auto* wallLog =
+        new GeoLogVol("/SHiP/trackers/straw_wall_" + std::to_string(uid), wallTube, mylar);
     auto* wallPhys = new GeoPhysVol(wallLog);
 
     auto* gasTube = new GeoTube(0.0, rGas, halfLength);
-    auto* gasLog =
-        new GeoLogVol("/SHiP/trackers/straw_gas_" + std::to_string(uid), gasTube, gas);
+    auto* gasLog = new GeoLogVol("/SHiP/trackers/straw_gas_" + std::to_string(uid), gasTube, gas);
     auto* gasPhys = new GeoPhysVol(gasLog);
 
     wallPhys->add(new GeoNameTag("/SHiP/trackers/straw_gas"));

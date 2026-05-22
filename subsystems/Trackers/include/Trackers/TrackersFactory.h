@@ -46,12 +46,12 @@ class TrackersFactory {
 
     // ── Straw / view geometry constants (mm) ────────────────────────────
     static constexpr int s_nStations = 4;
-    static constexpr int s_nViews = 4;       ///< stereo views per station
-    static constexpr int s_nSubLayers = 2;   ///< staggered straw layers per view
+    static constexpr int s_nViews = 4;      ///< stereo views per station
+    static constexpr int s_nSubLayers = 2;  ///< staggered straw layers per view
 
-    static constexpr double s_strawRadius = 10.0;    ///< 1 cm radius (2 cm diam)
-    static constexpr double s_strawLength = 4000.0;  ///< 4 m, along X
-    static constexpr double s_wallThickness = 0.030; ///< 30 µm Mylar wall
+    static constexpr double s_strawRadius = 10.0;     ///< 1 cm radius (2 cm diam)
+    static constexpr double s_strawLength = 4000.0;   ///< 4 m, along X
+    static constexpr double s_wallThickness = 0.030;  ///< 30 µm Mylar wall
 
     /// Active aperture inside a view frame (X = straw length region, Y = pitch).
     static constexpr double s_apertureX = 4000.0;
@@ -63,9 +63,9 @@ class TrackersFactory {
     static constexpr double s_stereoAngleDeg = 2.3;  ///< |stereo angle| per view
 
     // View frame (FairShip-style hollow rectangle).
-    static constexpr double s_frameBarX = 100.0;   ///< frame bar width in X
-    static constexpr double s_frameBarY = 100.0;   ///< frame bar width in Y
-    static constexpr double s_frameHalfZ = 22.0;   ///< frame half-thickness in Z
+    static constexpr double s_frameBarX = 100.0;  ///< frame bar width in X
+    static constexpr double s_frameBarY = 100.0;  ///< frame bar width in Y
+    static constexpr double s_frameHalfZ = 22.0;  ///< frame half-thickness in Z
 
     // ── Tracker magnet ──────────────────────────────────────────────────
     // An inert, air-filled marker volume named "TrackerMagnet", placed in
@@ -78,8 +78,8 @@ class TrackersFactory {
     // there. It exists so the tracker magnet has a named placeholder in the
     // geometry; simulation/field code can locate it by the name
     // "/SHiP/trackers/tracker_magnet".
-    static constexpr double s_trackerMagnetZ = 86820.0;     ///< centre, mm
-    static constexpr double s_trackerMagnetHalfZ = 230.0;   ///< half-depth, mm
+    static constexpr double s_trackerMagnetZ = 86820.0;    ///< centre, mm
+    static constexpr double s_trackerMagnetHalfZ = 230.0;  ///< half-depth, mm
 
    private:
     SHiPMaterials& m_materials;

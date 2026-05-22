@@ -77,8 +77,7 @@ TEST_CASE("TrackersViewHasFrameAndSubLayers", "[trackers]") {
     REQUIRE(view0 != nullptr);
     // 1 frame + 2 sub-layers
     CHECK(view0->getNChildVols() == 3u);
-    const GeoVPhysVol* sub0 =
-        findChild(view0, "/SHiP/trackers/station_1/view_0/sublayer_0_body");
+    const GeoVPhysVol* sub0 = findChild(view0, "/SHiP/trackers/station_1/view_0/sublayer_0_body");
     REQUIRE(sub0 != nullptr);
     // Each sub-layer carries the full straw count.
     CHECK(sub0->getNChildVols() == static_cast<unsigned>(TrackersFactory::s_nStraws));
