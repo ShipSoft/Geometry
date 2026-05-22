@@ -26,7 +26,7 @@ The SHiP geometry is described using GeoModel and is used by the simulation and 
 | DecayVolume | Approximate | Rectangular vessel (should be frustum) |
 | TimingDetector | Complete | 330 scintillator bars via GeoModelXML |
 | UpstreamTagger | Approximate | Monolithic slab (needs bar segmentation) |
-| Trackers | Envelope only | 4 empty station boxes |
+| Trackers | Complete | 4 stations, 4 stereo views each, 9600 straw tubes |
 | Calorimeter | Simulation-ready | ECAL + HCAL sampling layers driven by `calo.toml` (Pb/PVT/HPL + Fe/PVT) |
 
 ## Building
