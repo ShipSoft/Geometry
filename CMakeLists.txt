@@ -2,6 +2,7 @@
 # Copyright (C) CERN for the benefit of the SHiP Collaboration
 
 cmake_minimum_required(VERSION 3.16)
+include(GNUInstallDirs)
 
 project(
     SHiPGeometry
