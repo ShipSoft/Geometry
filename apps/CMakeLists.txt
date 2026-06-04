@@ -13,3 +13,9 @@ target_link_libraries(
 
 add_executable(validate_geometry validate_geometry.cpp)
 target_link_libraries(validate_geometry PRIVATE SQLite::SQLite3)
+
+include(GNUInstallDirs)
+install(
+    TARGETS build_geometry validate_geometry
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
