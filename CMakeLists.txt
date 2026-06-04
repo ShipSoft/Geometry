@@ -16,6 +16,8 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+option(BUILD_SHARED_LIBS "Build shared libraries by default" ON)
+
 # Find GeoModel packages
 find_package(GeoModelCore REQUIRED)
 find_package(GeoModelIO REQUIRED)
