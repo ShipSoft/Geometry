@@ -1,17 +1,9 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 # Copyright (C) CERN for the benefit of the SHiP Collaboration
 
-# ── toml++ (header-only TOML parser) ──────────────────────────────────────────
-# Pulled in via FetchContent so we don't vendor a 7000-line single header.
-# Pinned to a release tag so subsequent fetches are reproducible.
-include(FetchContent)
-FetchContent_Declare(
-    tomlplusplus
-    GIT_REPOSITORY https://github.com/marzer/tomlplusplus.git
-    GIT_TAG v3.4.0
-    GIT_SHALLOW TRUE
-)
-FetchContent_MakeAvailable(tomlplusplus)
+# toml++ — header-only TOML parser used by CalorimeterConfig's parsing
+# internals. Available on conda-forge (`tomlplusplus`) and in most distros.
+find_package(tomlplusplus REQUIRED)
 
 # Stage calo.toml into the build directory so tests running from there find it.
 configure_file(
