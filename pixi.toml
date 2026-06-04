@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: LGPL-3.0-or-later
+# Copyright (C) CERN for the benefit of the SHiP Collaboration
+
+[workspace]
+name = "shipgeometry"
+description = "SHiP detector geometry implementation using GeoModel"
+channels = ["https://prefix.dev/ship", "conda-forge"]
+platforms = ["linux-64"]
+
+[dependencies]
+cxx-compiler = "*"
+cmake = ">=3.16"
+make = "*"
+ninja = "*"
+git = "*"
+sqlite = "*"
+geomodel = ">=6.22"
+
+[tasks]
+configure = "cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo"
+build = { cmd = "cmake --build build -j", depends-on = ["configure"] }
+test = { cmd = "ctest --test-dir build --output-on-failure", depends-on = ["build"] }
