@@ -2,7 +2,6 @@
 # Copyright (C) CERN for the benefit of the SHiP Collaboration
 
 cmake_minimum_required(VERSION 3.16)
-include(GNUInstallDirs)
 
 project(
     SHiPGeometry
@@ -23,6 +22,13 @@ find_package(GeoModelCore REQUIRED)
 find_package(GeoModelIO REQUIRED)
 find_package(GeoModelTools REQUIRED)
 find_package(SQLite3 REQUIRED)
+# Compatibility shim recommended by CMake's FindSQLite3 docs: older CMake
+# (< 4.3) only defines SQLite::SQLite3; newer CMake defines SQLite3::SQLite3
+# and marks the old name deprecated. Adding the alias lets us use the new
+# canonical name unconditionally.
+if(NOT TARGET SQLite3::SQLite3)
+    add_library(SQLite3::SQLite3 ALIAS SQLite::SQLite3)
+endif()
 
 # Testing
 include(CTest)

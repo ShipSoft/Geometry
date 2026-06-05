@@ -12,7 +12,7 @@ target_link_libraries(
 )
 
 add_executable(validate_geometry validate_geometry.cpp)
-target_link_libraries(validate_geometry PRIVATE SQLite::SQLite3)
+target_link_libraries(validate_geometry PRIVATE SQLite3::SQLite3)
 
 include(GNUInstallDirs)
 install(
