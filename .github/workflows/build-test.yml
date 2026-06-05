@@ -12,13 +12,6 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-
-      - uses: prefix-dev/setup-pixi@v0.9.6
-        with:
-          cache: true
-
-      - name: Build and test
-        run: pixi run test
+    uses: ShipSoft/.github/.github/workflows/pixi-cmake-build.yml@main
+    with:
+      tasks: '["test"]'
