@@ -182,7 +182,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/python_abi-3.14-8_cp314.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/sysroot_linux-64-2.28-h4ee821c_9.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/tzdata-2025c-hc9c84f9_1.conda
-      - conda: https://prefix.dev/ship/linux-64/geomodel-6.27.0-hb0f4dca_1.conda
+      - conda: https://prefix.dev/ship/linux-64/geomodel-6.27.0-hb0f4dca_3.conda
 packages:
 - conda: https://conda.anaconda.org/conda-forge/linux-64/_openmp_mutex-4.5-20_gnu.conda
   build_number: 20
@@ -2246,9 +2246,9 @@ packages:
   license: LicenseRef-Public-Domain
   size: 119135
   timestamp: 1767016325805
-- conda: https://prefix.dev/ship/linux-64/geomodel-6.27.0-hb0f4dca_1.conda
-  sha256: b8e6202767f4333701f0ae5a131c1f5287ec0658c3c11f42106aa321fbc88083
-  md5: 393ab759cf71d89e78f48f82863d122f
+- conda: https://prefix.dev/ship/linux-64/geomodel-6.27.0-hb0f4dca_3.conda
+  sha256: eaf428531652fcd70b9d6914dfa837f9eff952dc867304122a10d510667249fc
+  md5: 3123c0128f48a8a091edff1062dfa8b5
   depends:
   - sqlite
   - xerces-c
@@ -2257,9 +2257,9 @@ packages:
   - geant4
   - libstdcxx >=15
   - libgcc >=15
-  - geant4 >=11.3.2,<11.3.3.0a0
   - libsqlite >=3.53.2,<4.0a0
   - xerces-c >=3.3.0,<3.4.0a0
+  - geant4 >=11.3.2,<11.3.3.0a0
   run_exports: {}
-  size: 3691092
-  timestamp: 1780654527053
+  size: 3963537
+  timestamp: 1780660963328
