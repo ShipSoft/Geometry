@@ -15,6 +15,7 @@ ninja = "*"
 git = "*"
 sqlite = "*"
 geomodel = ">=6.22"
+gdb = ">=17.2,<18"
 
 [tasks]
 configure = "cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo"

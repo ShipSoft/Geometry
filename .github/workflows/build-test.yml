@@ -22,3 +22,18 @@ jobs:
 
       - name: Build and test
         run: pixi run test
+
+      - name: GDB backtrace of build_geometry on failure
+        if: failure()
+        continue-on-error: true
+        run: |
+          pixi run -- bash -c '
+            cd build
+            rm -f ship_test_overlap.db
+            gdb --batch \
+              --ex "set pagination off" \
+              --ex "set print frame-arguments all" \
+              --ex run \
+              --ex "thread apply all bt full" \
+              --args apps/build_geometry ship_test_overlap.db
+          '
