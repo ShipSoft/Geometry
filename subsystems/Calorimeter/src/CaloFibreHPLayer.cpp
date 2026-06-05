@@ -13,7 +13,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <format>
 #include <stdexcept>
 #include <string>
 
@@ -76,18 +75,19 @@ void CaloFibreHP::buildLayer(GeoVPhysVol* mother, GeoMaterial* aluminiumMat, Geo
             const double fibrePosition = x0 + i * pitch + dx[sublayer];
             const double sublayerZ = zLocal[sublayer];
 
-            const auto baseName = std::format("{}_HPL_{}{}_S{}_F{}{}", layerTag, orient, layerIndex,
-                                              sublayer, i, nameSuffix);
+            const std::string baseName = layerTag + "_HPL_" + orient + std::to_string(layerIndex) +
+                                         "_S" + std::to_string(sublayer) + "_F" +
+                                         std::to_string(i) + nameSuffix;
 
             // cladding physical volume; core is a child of it
             auto* cladPhys = new GeoPhysVol(cladLog);
-            cladPhys->add(new GeoNameTag(std::format("{}_Core", baseName).c_str()));
+            cladPhys->add(new GeoNameTag((baseName + "_Core").c_str()));
             cladPhys->add(new GeoPhysVol(coreLog));
 
             const double xPos = fibresAlongY ? fibrePosition : 0.0;
             const double yPos = fibresAlongY ? 0.0 : fibrePosition;
 
-            casingPhys->add(new GeoNameTag(std::format("{}_Clad", baseName).c_str()));
+            casingPhys->add(new GeoNameTag((baseName + "_Clad").c_str()));
             casingPhys->add(new GeoTransform(GeoTrf::Translate3D(xPos, yPos, sublayerZ) * rotAxis));
             casingPhys->add(cladPhys);
         }

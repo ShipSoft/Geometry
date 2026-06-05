@@ -9,7 +9,6 @@
 #include <GeoModelKernel/GeoTransform.h>
 #include <GeoModelKernel/Units.h>
 
-#include <format>
 #include <string>
 
 namespace SHiPGeometry {
@@ -31,7 +30,8 @@ void CaloBar::placeLayer(GeoVPhysVol* mother, GeoLogVol* barLog, double pitch_mm
         else
             y = barCenter;
 
-        const auto name = std::format("{}_L{}_B{}{}", tagPrefix, layerIndex, i, nameSuffix);
+        const std::string name = std::string(tagPrefix) + "_L" + std::to_string(layerIndex) +
+                                 "_B" + std::to_string(i) + nameSuffix;
 
         auto* barPhys = new GeoPhysVol(barLog);
         mother->add(new GeoNameTag(name.c_str()));

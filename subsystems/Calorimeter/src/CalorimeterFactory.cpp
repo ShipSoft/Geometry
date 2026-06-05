@@ -19,7 +19,6 @@
 
 #include <cmath>
 #include <filesystem>
-#include <format>
 #include <stdexcept>
 #include <string>
 
@@ -91,7 +90,7 @@ double CalorimeterFactory::totalStackZ(const CalorimeterConfig& cfg) {
                     break;
                 default:
                     throw std::runtime_error(
-                        std::format("CalorimeterFactory: unknown layer code: {}", code));
+                        "CalorimeterFactory: unknown layer code: " + std::to_string(code));
             }
         }
         return z;
@@ -122,20 +121,20 @@ GeoPhysVol* CalorimeterFactory::build() {
     const double maxHalfX = 0.5 * cfg.plate_xy_mm + 0.5 * (cfg.module_nx - 1) * pitchX;
     const double maxHalfY = 0.5 * cfg.plate_xy_mm + 0.5 * (cfg.module_ny - 1) * pitchY;
     if (stackZ > 2.0 * s_containerHalfZ)
-        throw std::runtime_error(std::format(
-            "CalorimeterFactory: calo.toml total stack Z ({} mm) exceeds container Z ({} mm). "
-            "Reduce layer thicknesses or number of layers.",
-            stackZ, 2.0 * s_containerHalfZ));
+        throw std::runtime_error(
+            "CalorimeterFactory: calo.toml total stack Z (" + std::to_string(stackZ) +
+            " mm) exceeds container Z (" + std::to_string(2.0 * s_containerHalfZ) +
+            " mm). Reduce layer thicknesses or number of layers.");
     if (maxHalfX > s_containerHalfX)
-        throw std::runtime_error(std::format(
-            "CalorimeterFactory: calo.toml module array half-X ({} mm) exceeds container half-X "
-            "({} mm). Reduce plate_xy_mm, module_nx, or module_pitch_x_mm.",
-            maxHalfX, s_containerHalfX));
+        throw std::runtime_error(
+            "CalorimeterFactory: calo.toml module array half-X (" + std::to_string(maxHalfX) +
+            " mm) exceeds container half-X (" + std::to_string(s_containerHalfX) +
+            " mm). Reduce plate_xy_mm, module_nx, or module_pitch_x_mm.");
     if (maxHalfY > s_containerHalfY)
-        throw std::runtime_error(std::format(
-            "CalorimeterFactory: calo.toml module array half-Y ({} mm) exceeds container half-Y "
-            "({} mm). Reduce plate_xy_mm, module_ny, or module_pitch_y_mm.",
-            maxHalfY, s_containerHalfY));
+        throw std::runtime_error(
+            "CalorimeterFactory: calo.toml module array half-Y (" + std::to_string(maxHalfY) +
+            " mm) exceeds container half-Y (" + std::to_string(s_containerHalfY) +
+            " mm). Reduce plate_xy_mm, module_ny, or module_pitch_y_mm.");
 
     const double x0 = -0.5 * (cfg.module_nx - 1) * pitchX;
     const double y0 = -0.5 * (cfg.module_ny - 1) * pitchY;
@@ -154,13 +153,15 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, const CalorimeterConf
                                     double offsetY) const {
     // Compute bar counts from configurable plate size
     if (std::fmod(cfg.plate_xy_mm, kWidePVTBarPitch_mm) != 0.0)
-        throw std::runtime_error(std::format(
-            "CalorimeterFactory: plate_xy_mm ({}) is not divisible by wide PVT bar pitch ({} mm)",
-            cfg.plate_xy_mm, kWidePVTBarPitch_mm));
+        throw std::runtime_error("CalorimeterFactory: plate_xy_mm (" +
+                                 std::to_string(cfg.plate_xy_mm) +
+                                 ") is not divisible by wide PVT bar pitch (" +
+                                 std::to_string(kWidePVTBarPitch_mm) + " mm)");
     if (std::fmod(cfg.plate_xy_mm, kThinPSBarPitch_mm) != 0.0)
-        throw std::runtime_error(std::format(
-            "CalorimeterFactory: plate_xy_mm ({}) is not divisible by thin PS bar pitch ({} mm)",
-            cfg.plate_xy_mm, kThinPSBarPitch_mm));
+        throw std::runtime_error("CalorimeterFactory: plate_xy_mm (" +
+                                 std::to_string(cfg.plate_xy_mm) +
+                                 ") is not divisible by thin PS bar pitch (" +
+                                 std::to_string(kThinPSBarPitch_mm) + " mm)");
     const int widePVTBarCount = static_cast<int>(cfg.plate_xy_mm / kWidePVTBarPitch_mm);
     const int thinPSBarCount = static_cast<int>(cfg.plate_xy_mm / kThinPSBarPitch_mm);
 
@@ -181,7 +182,8 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, const CalorimeterConf
     const double wideW = kWidePVTBarPitch_mm * mm;
     const double thinW = kThinPSBarPitch_mm * mm;
 
-    const std::string moduleTag = std::format("_MX{}Y{}", moduleX, moduleY);
+    const std::string moduleTag =
+        "_MX" + std::to_string(moduleX) + "Y" + std::to_string(moduleY);
 
     // Reusable LogVols — GeoModel shares them across GeoPhysVol instances
     auto* leadLog = new GeoLogVol("/SHiP/calorimeter/lead_plate" + moduleTag,
@@ -233,13 +235,13 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, const CalorimeterConf
         int absorberIdx = 0;
 
         for (int code : sec.layerCodes) {
-            const auto basePath =
-                std::format("/SHiP/calorimeter/{}/gl{}", sec.prefix, globalLayerIdx);
+            const std::string basePath = "/SHiP/calorimeter/" + std::string(sec.prefix) + "/gl" +
+                                         std::to_string(globalLayerIdx);
 
             switch (static_cast<LayerCode>(code)) {
                 case LayerCode::Absorber: {
                     if (sec.absorberNeedsEnvelope) {
-                        const auto volumeName = std::format("{}_lead{}", basePath, moduleTag);
+                        const std::string volumeName = basePath + "_lead" + moduleTag;
                         auto* env =
                             makeEnv(volumeName, sec.absorberHalfZ, zCursor + sec.absorberHalfZ);
                         env->add(new GeoNameTag(volumeName.c_str()));
@@ -247,8 +249,8 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, const CalorimeterConf
                         env->add(new GeoTransform(GeoTrf::Translate3D(0, 0, 0)));
                         env->add(new GeoPhysVol(sec.absorberLog));
                     } else {
-                        const auto volumeName =
-                            std::format("{}_iron_{}{}", basePath, absorberIdx, moduleTag);
+                        const std::string volumeName =
+                            basePath + "_iron_" + std::to_string(absorberIdx) + moduleTag;
                         container->add(new GeoNameTag(volumeName.c_str()));
                         container->add(new GeoIdentifierTag(layerId++));
                         container->add(new GeoTransform(
@@ -261,8 +263,9 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, const CalorimeterConf
                     break;
                 }
                 case LayerCode::WidePVT_H: {
-                    const auto volumeName =
-                        std::format("{}_sl{}_wide_pvt_h{}", basePath, scintLayerIdx, moduleTag);
+                    const std::string volumeName = basePath + "_sl" +
+                                                   std::to_string(scintLayerIdx) +
+                                                   "_wide_pvt_h" + moduleTag;
                     auto* env = makeEnv(volumeName, 0.5 * scintZ, zCursor + 0.5 * scintZ);
                     CaloBar::placeLayer(env, wideHLog, kWidePVTBarPitch_mm, widePVTBarCount, 0.0,
                                         volumeName.c_str(), iWideH, BarAxis::AlongY, moduleTag);
@@ -273,8 +276,9 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, const CalorimeterConf
                     break;
                 }
                 case LayerCode::WidePVT_V: {
-                    const auto volumeName =
-                        std::format("{}_sl{}_wide_pvt_v{}", basePath, scintLayerIdx, moduleTag);
+                    const std::string volumeName = basePath + "_sl" +
+                                                   std::to_string(scintLayerIdx) +
+                                                   "_wide_pvt_v" + moduleTag;
                     auto* env = makeEnv(volumeName, 0.5 * scintZ, zCursor + 0.5 * scintZ);
                     CaloBar::placeLayer(env, wideVLog, kWidePVTBarPitch_mm, widePVTBarCount, 0.0,
                                         volumeName.c_str(), iWideV, BarAxis::AlongX, moduleTag);
@@ -285,8 +289,9 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, const CalorimeterConf
                     break;
                 }
                 case LayerCode::ThinPS_H: {
-                    const auto volumeName =
-                        std::format("{}_sl{}_thin_ps_h{}", basePath, scintLayerIdx, moduleTag);
+                    const std::string volumeName = basePath + "_sl" +
+                                                   std::to_string(scintLayerIdx) +
+                                                   "_thin_ps_h" + moduleTag;
                     auto* env = makeEnv(volumeName, 0.5 * scintZ, zCursor + 0.5 * scintZ);
                     CaloBar::placeLayer(env, thinHLog, kThinPSBarPitch_mm, thinPSBarCount, 0.0,
                                         volumeName.c_str(), iThinH, BarAxis::AlongY, moduleTag);
@@ -297,8 +302,9 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, const CalorimeterConf
                     break;
                 }
                 case LayerCode::ThinPS_V: {
-                    const auto volumeName =
-                        std::format("{}_sl{}_thin_ps_v{}", basePath, scintLayerIdx, moduleTag);
+                    const std::string volumeName = basePath + "_sl" +
+                                                   std::to_string(scintLayerIdx) +
+                                                   "_thin_ps_v" + moduleTag;
                     auto* env = makeEnv(volumeName, 0.5 * scintZ, zCursor + 0.5 * scintZ);
                     CaloBar::placeLayer(env, thinVLog, kThinPSBarPitch_mm, thinPSBarCount, 0.0,
                                         volumeName.c_str(), iThinV, BarAxis::AlongX, moduleTag);
@@ -309,8 +315,8 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, const CalorimeterConf
                     break;
                 }
                 case LayerCode::FibreHPL_Y: {
-                    const auto volumeName =
-                        std::format("{}_sl{}_hpl_y{}", basePath, scintLayerIdx, moduleTag);
+                    const std::string volumeName =
+                        basePath + "_sl" + std::to_string(scintLayerIdx) + "_hpl_y" + moduleTag;
                     auto* env = makeEnv(volumeName, 0.5 * hplZ, zCursor + 0.5 * hplZ);
                     CaloFibreHP::buildLayer(env, alMat, psMat, volumeName, 0.0, iHPL,
                                             cfg.plate_xy_mm, cfg.hpl_thickness_mm,
@@ -323,8 +329,8 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, const CalorimeterConf
                     break;
                 }
                 case LayerCode::FibreHPL_X: {
-                    const auto volumeName =
-                        std::format("{}_sl{}_hpl_x{}", basePath, scintLayerIdx, moduleTag);
+                    const std::string volumeName =
+                        basePath + "_sl" + std::to_string(scintLayerIdx) + "_hpl_x" + moduleTag;
                     auto* env = makeEnv(volumeName, 0.5 * hplZ, zCursor + 0.5 * hplZ);
                     CaloFibreHP::buildLayer(env, alMat, psMat, volumeName, 0.0, iHPL,
                                             cfg.plate_xy_mm, cfg.hpl_thickness_mm,
@@ -343,7 +349,7 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, const CalorimeterConf
                     break;
                 default:
                     throw std::runtime_error(
-                        std::format("CalorimeterFactory: unknown layer code: {}", code));
+                        "CalorimeterFactory: unknown layer code: " + std::to_string(code));
             }
         }
     };
