@@ -33,7 +33,7 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
-#include <toml++/toml.hpp>
+#include <toml++/toml.h>
 
 namespace SHiPGeometry {
 
