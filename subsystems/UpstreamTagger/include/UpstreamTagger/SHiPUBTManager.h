@@ -12,8 +12,11 @@ namespace SHiPGeometry {
 /**
  * @brief Detector manager for the Upstream Background Tagger (UBT).
  *
- * Stores the single GeoFullPhysVol sensitive slab and satisfies the
- * GeoVDetectorManager interface for downstream Geant4 integration.
+ * Stores the GeoFullPhysVol tile-plane container as the single sensitive
+ * tree-top and satisfies the GeoVDetectorManager interface for downstream
+ * Geant4 integration. (The setter/getter names are retained for source
+ * compatibility; the stored volume is the tile-plane container rather than
+ * the former monolithic slab.)
  */
 class SHiPUBTManager : public GeoVDetectorManager {
    public:
