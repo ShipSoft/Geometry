@@ -28,7 +28,7 @@ namespace {
 
 // Small navigator margin so tiles never touch the region-envelope faces in Z
 // (coincident faces trigger GeomNav stuck-track warnings).
-constexpr double kEnvZMargin = 0.1;  // mm
+constexpr double s_env_z_margin = 0.1;  // mm
 
 // Create an air region envelope, place it in @p container at (xc, yc, zc),
 // and return it so its tile grid can be added. All inputs in GeoModel units.
@@ -84,7 +84,7 @@ GeoVPhysVol* UpstreamTaggerFactory::build(SHiPUBTManager* manager) {
 
     // Container: a GeoFullPhysVol so the tagger keeps a sensitive tree-top for
     // SHiPUBTManager. Dimensions are unchanged from the previous slab.
-    auto* containerBox = new GeoBox(s_halfX, s_halfY, s_halfZ);
+    auto* containerBox = new GeoBox(s_halfX * mm, s_halfY * mm, s_halfZ * mm);
     auto* containerLog = new GeoLogVol("/SHiP/upstream_tagger", containerBox, air);
     auto* containerPhys = new GeoFullPhysVol(containerLog);
 
@@ -92,7 +92,7 @@ GeoVPhysVol* UpstreamTaggerFactory::build(SHiPUBTManager* manager) {
     const double tileHalfZ = 0.5 * s_tileThickness * mm;
     const double finePitch = s_fineFace * mm;
     const double coarsePitch = s_coarseFace * mm;
-    const double envHalfZ = tileHalfZ + kEnvZMargin * mm;
+    const double envHalfZ = tileHalfZ + s_env_z_margin * mm;
 
     // One reusable GeoLogVol per granularity, shared across all regions
     // (the GeoModel idiom used by the calorimeter bar layers).
@@ -135,7 +135,7 @@ GeoVPhysVol* UpstreamTaggerFactory::build(SHiPUBTManager* manager) {
     }
 
     if (manager) {
-        manager->setSlabVolume(containerPhys);
+        manager->setContainerVolume(containerPhys);
     }
 
     return containerPhys;
