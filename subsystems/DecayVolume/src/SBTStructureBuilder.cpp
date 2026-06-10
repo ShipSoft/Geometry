@@ -277,8 +277,11 @@ void SBTStructureBuilder::build(GeoVPhysVol* mother, const GeoMaterial* steel, c
         }
     }
 
-    //  (C)  TOP/BOTTOM LONGITUDINAL BEAMS — 1 beam/face for sub-frustums 0-4,
-    //  2 beams/face for 5-9. Web omitted (negligible, avoids sibling overlap).
+    //  (C)  TOP/BOTTOM LONGITUDINAL BEAMS — 1 beam/face for the narrow first
+    //  half of the frustum, 2 beams/face for the wider second half. Web
+    //  omitted (negligible, avoids sibling overlap). The split point tracks
+    //  the configured sub-frustum count instead of assuming 10.
+    const int mid = nSubFrustrum / 2;
     for (int s = 0; s < nSubFrustrum; ++s) {
         const double zLo_mm = zEntrance_mm + s * subLength;
         const double zHi_mm = zEntrance_mm + (s + 1) * subLength;
@@ -368,7 +371,7 @@ void SBTStructureBuilder::build(GeoVPhysVol* mother, const GeoMaterial* steel, c
             const double xL0 = xLo + (xHi - xLo) * fr0;
             const double xL1 = xLo + (xHi - xLo) * fr1;
 
-            if (s < 5) {
+            if (s < mid) {
                 placeLongBeam(fTag + "_C0", 0.0, yb0 * mm, zb0_mm * mm, 0.0, yb1 * mm, zb1_mm * mm);
             } else {
                 placeLongBeam(fTag + "_C0", +(1.0 / 3.0) * xL0 * mm, yb0 * mm, zb0_mm * mm,

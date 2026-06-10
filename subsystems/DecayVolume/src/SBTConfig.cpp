@@ -147,6 +147,30 @@ SBTConfig readSBTConfig(const std::string& path) {
     if (auto n = table["n_cells"]; n)
         cfg.n_cells = readPositiveInt(n, "n_cells");
 
+    // Domain checks: catch geometrically invalid configs here so downstream
+    // builders cannot hit a division-by-zero or build a negative-size shape.
+    // (n_sub_frustum and n_cells are already guaranteed positive above.)
+    auto requirePositive = [](double value, const char* key) {
+        if (value <= 0.0)
+            throw std::runtime_error(std::string("SBTConfig: '") + key + "' must be > 0");
+    };
+    requirePositive(cfg.total_length_mm, "total_length_mm");  // denominator in x/yHalfAtZ
+    requirePositive(cfg.x_half_entrance_mm, "x_half_entrance_mm");
+    requirePositive(cfg.y_half_entrance_mm, "y_half_entrance_mm");
+    requirePositive(cfg.x_half_exit_mm, "x_half_exit_mm");
+    requirePositive(cfg.y_half_exit_mm, "y_half_exit_mm");
+    requirePositive(cfg.hbeam_flange_width_mm, "hbeam_flange_width_mm");
+    requirePositive(cfg.hbeam_flange_thickness_mm, "hbeam_flange_thickness_mm");
+    requirePositive(cfg.hbeam_web_thickness_mm, "hbeam_web_thickness_mm");
+    requirePositive(cfg.container_thickness_mm, "container_thickness_mm");
+    requirePositive(cfg.wall_thickness_mm, "wall_thickness_mm");
+    // Web half-height (= height/2 - flange_thickness) is used as a GeoBox
+    // half-dimension, so the flanges must not consume the whole beam.
+    if (cfg.hbeam_height_mm <= 2.0 * cfg.hbeam_flange_thickness_mm)
+        throw std::runtime_error(
+            "SBTConfig: 'hbeam_height_mm' must exceed 2 * 'hbeam_flange_thickness_mm' "
+            "(otherwise the H-beam web height is non-positive)");
+
     return cfg;
 }
 
