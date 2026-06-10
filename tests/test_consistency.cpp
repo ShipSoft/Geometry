@@ -76,9 +76,9 @@ TEST_CASE("ConsistencyTest.ExpectedSubsystemCount", "[consistency]") {
     REQUIRE(world != nullptr);
 
     auto subsystems = collectSubsystems(world);
-    // 8 subsystems: target, muon_shield, upstream_tagger, decay_volume,
-    // trackers, magnet, timing_detector, calorimeter
-    CHECK(subsystems.size() == 8u);  // NOLINT(readability/check)
+    // 9 subsystems: target, muon_shield, neutrino_detector, upstream_tagger,
+    // decay_volume, trackers, magnet, timing_detector, calorimeter
+    CHECK(subsystems.size() == 9u);  // NOLINT(readability/check)
 }
 
 TEST_CASE("ConsistencyTest.SubsystemsGenerallyInZOrder", "[consistency]") {
@@ -110,9 +110,13 @@ TEST_CASE("ConsistencyTest.NoUnexpectedZOverlaps", "[consistency]") {
 
     // The trackers container intentionally spans across the magnet
     // (stations 1-2 before, stations 3-4 after), so that pair is allowed to overlap.
+    // The SND sits inside the downstream end of the muon-shield region, so the
+    // muon_shield / neutrino_detector pair is also an intentional overlap.
     auto isAllowedOverlap = [](const std::string& a, const std::string& b) {
         return (a == "/SHiP/trackers" && b == "/SHiP/magnet") ||
-               (a == "/SHiP/magnet" && b == "/SHiP/trackers");
+               (a == "/SHiP/magnet" && b == "/SHiP/trackers") ||
+               (a == "/SHiP/muon_shield" && b == "/SHiP/neutrino_detector") ||
+               (a == "/SHiP/neutrino_detector" && b == "/SHiP/muon_shield");
     };
 
     // Sort by Z centre

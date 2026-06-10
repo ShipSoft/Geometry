@@ -22,6 +22,7 @@ The SHiP geometry is described using GeoModel and is used by the simulation and 
 | [Cavern](subsystems/Cavern/README.md) | Complete | World volume with subtracted rock cavities |
 | [Target](subsystems/Target/README.md) | Complete | 19 W slabs with Ta cladding in Inconel vessel |
 | [MuonShield](subsystems/MuonShield/README.md) | Approximate | 6 stations, box approximations of arb8 shapes |
+| [NeutrinoDetector](subsystems/NeutrinoDetector/README.md) | Approximate | Veto + Si/W target + HCAL; homogenised fibre planes |
 | [Magnet](subsystems/Magnet/README.md) | Approximate | Iron yoke with box-shaped coils (should be tubes) |
 | [DecayVolume](subsystems/DecayVolume/README.md) | Approximate | Rectangular vessel (should be frustum) |
 | [TimingDetector](subsystems/TimingDetector/README.md) | Complete | 330 scintillator bars via GeoModelXML |

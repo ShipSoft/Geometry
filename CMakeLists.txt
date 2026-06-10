@@ -65,6 +65,7 @@ install(
         Cavern
         Target
         MuonShield
+        NeutrinoDetector
         Magnet
         DecayVolume
         Trackers
@@ -90,6 +91,7 @@ foreach(
     Cavern
     Target
     MuonShield
+    NeutrinoDetector
     Magnet
     DecayVolume
     Trackers

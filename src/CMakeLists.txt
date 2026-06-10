@@ -20,6 +20,7 @@ target_link_libraries(
         Cavern
         Target
         MuonShield
+        NeutrinoDetector
         DecayVolume
         UpstreamTagger
         Trackers

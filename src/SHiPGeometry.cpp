@@ -15,6 +15,8 @@
 #include "UpstreamTagger/SHiPUBTManager.h"
 #include "UpstreamTagger/UpstreamTaggerFactory.h"
 
+#include "NeutrinoDetector/NeutrinoDetectorFactory.h"
+
 #include <GeoModelKernel/GeoDefinitions.h>
 #include <GeoModelKernel/GeoIdentifierTag.h>
 #include <GeoModelKernel/GeoNameTag.h>
@@ -57,6 +59,18 @@ GeoPhysVol* SHiPGeometryBuilder::build() {
     world->add(new GeoIdentifierTag(2));
     world->add(new GeoTransform(muonShieldTrf));
     world->add(muonShield);
+
+    // Build and place the Scattering and Neutrino Detector (SND).
+    // Z: 26.40 to 31.50 m (WARM muon-shield configuration) → centre 28.95 m.
+    // The SND sits within the downstream end of the muon-shield region, so its
+    // envelope overlaps the muon-shield container by design (see test_consistency).
+    NeutrinoDetectorFactory neutrinoDetectorFactory(materials);
+    GeoPhysVol* neutrinoDetector = neutrinoDetectorFactory.build();
+    GeoTrf::Transform3D neutrinoDetectorTrf = GeoTrf::Translate3D(0.0, 0.0, 28.95 * 1000.0);
+    world->add(new GeoNameTag("/SHiP/neutrino_detector"));
+    world->add(new GeoIdentifierTag(9));
+    world->add(new GeoTransform(neutrinoDetectorTrf));
+    world->add(neutrinoDetector);
 
     // Build and place UpstreamTagger (sensitive scintillator slab)
     // Z: 32.52 to 32.92 m → centre: 32.72 m

@@ -5,6 +5,7 @@
 add_subdirectory(Cavern)
 add_subdirectory(Target)
 add_subdirectory(MuonShield)
+add_subdirectory(NeutrinoDetector)
 add_subdirectory(Magnet)
 add_subdirectory(DecayVolume)
 add_subdirectory(Trackers)

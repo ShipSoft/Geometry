@@ -124,6 +124,13 @@ void SHiPMaterials::createMaterials() {
     tungsten->lock();
     m_materials["Tungsten"] = tungsten;
 
+    // Silicon (density 2.33 g/cm³): pure Si (neutrino-target tracking planes)
+    GeoMaterial* silicon =
+        new GeoMaterial("Silicon", 2.33 * GeoModelKernelUnits::g / GeoModelKernelUnits::cm3);
+    silicon->add(m_elements["Silicon"], 1.0);
+    silicon->lock();
+    m_materials["Silicon"] = silicon;
+
     // Tantalum (density 16.65 g/cm³): pure Ta
     GeoMaterial* tantalum =
         new GeoMaterial("Tantalum", 16.65 * GeoModelKernelUnits::g / GeoModelKernelUnits::cm3);
