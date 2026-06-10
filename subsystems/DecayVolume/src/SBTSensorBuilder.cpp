@@ -256,8 +256,11 @@ void SBTSensorBuilder::build(GeoVPhysVol* mother, const GeoMaterial* alMat,
         }
     }
 
-    //  (B)  TOP / BOTTOM CONTAINERS  (±Y faces) — 2 per face (s<5), 3 (s>=5),
-    //  Z-split at the column front-flange outer edge like the side containers.
+    //  (B)  TOP / BOTTOM CONTAINERS  (±Y faces) — 2 per face in the narrow
+    //  first half of the frustum, 3 in the wider second half; split point
+    //  ties to n_sub_frustum/2 to match SBTStructureBuilder. Z-split at the
+    //  column front-flange outer edge like the side containers.
+    const int threshold = nSub / 2;
     for (int s = 0; s < nSub; ++s) {
         const double zLo_mm = zEntrance_mm + s * subLen;
         const double zHi_mm = zEntrance_mm + (s + 1) * subLen;
@@ -272,7 +275,7 @@ void SBTSensorBuilder::build(GeoVPhysVol* mother, const GeoMaterial* alMat,
 
         const double dx = (0.5 * contThick - sensorClear) * mm;
 
-        const int nCont = (s < 5) ? 2 : 3;
+        const int nCont = (s < threshold) ? 2 : 3;
 
         const double z_split_rel = 0.5 * hBeamH + 0.5 * hBeamTf;  // column front-flange outer edge
         const double z_split_mm = zLo_mm + z_split_rel;

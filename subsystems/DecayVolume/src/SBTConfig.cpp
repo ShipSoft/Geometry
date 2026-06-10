@@ -164,6 +164,11 @@ SBTConfig readSBTConfig(const std::string& path) {
     requirePositive(cfg.hbeam_web_thickness_mm, "hbeam_web_thickness_mm");
     requirePositive(cfg.container_thickness_mm, "container_thickness_mm");
     requirePositive(cfg.wall_thickness_mm, "wall_thickness_mm");
+    // Clearances are insets/gaps; a non-positive value collapses the gap and
+    // can overlap geometry (helium_clearance_mm feeds the helium inset =
+    // container_thickness_mm + helium_clearance_mm in DecayVolumeFactory).
+    requirePositive(cfg.sensor_clearance_mm, "sensor_clearance_mm");
+    requirePositive(cfg.helium_clearance_mm, "helium_clearance_mm");
     // Web half-height (= height/2 - flange_thickness) is used as a GeoBox
     // half-dimension, so the flanges must not consume the whole beam.
     if (cfg.hbeam_height_mm <= 2.0 * cfg.hbeam_flange_thickness_mm)
