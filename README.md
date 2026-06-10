@@ -22,9 +22,9 @@ The SHiP geometry is described using GeoModel and is used by the simulation and 
 | [Cavern](subsystems/Cavern/README.md) | Complete | World volume with subtracted rock cavities |
 | [Target](subsystems/Target/README.md) | Complete | 19 W slabs with Ta cladding in Inconel vessel |
 | [MuonShield](subsystems/MuonShield/README.md) | Approximate | 6 stations, box approximations of arb8 shapes |
-| [NeutrinoDetector](subsystems/NeutrinoDetector/README.md) | Approximate | Veto + Si/W target + HCAL; homogenised fibre planes |
+| [NeutrinoDetector](subsystems/NeutrinoDetector/README.md) | Approximate | Veto + Si/W target + HCAL with individual scintillating fibres |
 | [Magnet](subsystems/Magnet/README.md) | Approximate | Iron yoke with box-shaped coils (should be tubes) |
-| [DecayVolume](subsystems/DecayVolume/README.md) | Approximate | Rectangular vessel (should be frustum) |
+| [DecayVolume](subsystems/DecayVolume/README.md) | Implemented | Frustum: SBT steel structure + LAB sensors + helium centre |
 | [TimingDetector](subsystems/TimingDetector/README.md) | Complete | 330 scintillator bars via GeoModelXML |
 | [UpstreamTagger](subsystems/UpstreamTagger/README.md) | Simulation-ready | Segmented tile plane, 16300 polystyrene tiles (fine 20 mm + coarse 40 mm) |
 | [Trackers](subsystems/Trackers/README.md) | Complete | 4 stations, 4 stereo views each, 9600 straw tubes |

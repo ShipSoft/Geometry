@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <string>
+
 class GeoPhysVol;
 
 namespace SHiPGeometry {
@@ -10,39 +12,37 @@ namespace SHiPGeometry {
 class SHiPMaterials;
 
 /**
- * @brief Factory for the DecayVolume (decay vessel and veto system) geometry
+ * @brief Factory for the DecayVolume subsystem (decay region + SBT).
  *
- * Two-volume nested structure: aluminium vacuum vessel with helium atmosphere.
- * Outer Aluminium shell: full envelope dimensions from CSV.
- * Inner PressurisedHe90 volume: envelope minus wall thicknesses.
- * Z: 32.92 to 83.32 m → centre: 58.12 m, half-length: 25.20 m
+ * Builds an air container holding the Surround Background Tagger — a steel
+ * H-beam supporting structure and LAB scintillator sensor cells forming a
+ * 50 m rectangular frustum — wrapped around a central helium decay volume.
+ * The SBT geometry is driven by sbt.toml (parsed into an SBTConfig).
+ *
+ * The helium frustum is sized strictly inside the innermost sensor faces, so
+ * it does not overlap the structure or the sensors.
+ *
+ * Z: 32.92 to 83.32 m -> centre 58.12 m; placement handled by SHiPGeometry.
  */
 class DecayVolumeFactory {
    public:
-    explicit DecayVolumeFactory(SHiPMaterials& materials);
+    explicit DecayVolumeFactory(SHiPMaterials& materials, std::string configPath = "sbt.toml");
     ~DecayVolumeFactory() = default;
 
-    /**
-     * @brief Build the DecayVolume geometry
-     * @return Pointer to the outer Aluminium vessel physical volume
-     */
+    /// Build the DecayVolume geometry; returns the air container.
     GeoPhysVol* build();
+
+    /// The sbt.toml path actually used after fallback resolution.
+    std::string resolvedConfigPath() const;
 
    private:
     SHiPMaterials& m_materials;
+    std::string m_configPath;
 
-    // Wall thickness of the aluminium vessel (mm)
-    static constexpr double s_wallThickness = 20.0;
-
-    // Outer envelope dimensions from CSV (mm)
-    static constexpr double s_halfX = 1450.0;   // 1.45 m (average)
-    static constexpr double s_halfY = 2375.0;   // 2.375 m (average)
-    static constexpr double s_halfZ = 25200.0;  // 25.20 m
-
-    // Inner helium volume (envelope minus wall thickness per axis)
-    static constexpr double s_innerHalfX = s_halfX - s_wallThickness;
-    static constexpr double s_innerHalfY = s_halfY - s_wallThickness;
-    static constexpr double s_innerHalfZ = s_halfZ - s_wallThickness;
+    // Air container enclosing the SBT structure + sensors and helium (mm).
+    static constexpr double s_halfX = 2200.0;
+    static constexpr double s_halfY = 3300.0;
+    static constexpr double s_halfZ = 25200.0;
 };
 
 }  // namespace SHiPGeometry

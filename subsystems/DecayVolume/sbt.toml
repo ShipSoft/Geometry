@@ -1,0 +1,57 @@
+# SPDX-License-Identifier: LGPL-3.0-or-later
+# Copyright (C) CERN for the benefit of the SHiP Collaboration
+#
+# Surround Background Tagger (SBT) geometry parameters (TOML).
+#
+# The SBT is a 50 m rectangular frustum that wraps the decay volume: a steel
+# H-beam supporting structure plus LAB liquid-scintillator sensor cells in
+# aluminium containers. The decay region itself is a helium volume in the
+# centre. All lengths are millimetres.
+
+# ── Frustum envelope ─────────────────────────────────────────────────────
+# Rectangular cross-section expanding linearly along Z (the beam axis).
+x_half_entrance_mm = 1000.0
+y_half_entrance_mm = 1500.0
+x_half_exit_mm     = 2000.0
+y_half_exit_mm     = 3000.0
+total_length_mm    = 50000.0
+n_sub_frustum      = 10
+
+# Absolute Y of the structural floor the vertical columns descend to.
+y_floor_mm = -3000.0
+
+# Entrance face Z in the DecayVolume local frame. -25000 centres the 50 m
+# structure on the container origin (and on the helium volume).
+z_entrance_mm = -25000.0
+
+# ── H-beam cross-section (European HEA 260 approximation) ────────────────
+# Each H-beam is modelled as three GeoBox siblings (top flange, web, bottom
+# flange). Flanges face ±X; web in the local Y-Z plane.
+hbeam_height_mm           = 250.0
+hbeam_flange_width_mm     = 260.0
+hbeam_flange_thickness_mm = 12.5
+hbeam_web_thickness_mm    = 7.5
+
+# ── Sensor containers / cells ───────────────────────────────────────────
+# Each container is a GeoTrap holding nWalls aluminium walls and n_cells LAB
+# cells stacked along Z. container_thickness equals the clear web height
+# (hbeam_height - 2*flange_thickness = 225 mm).
+container_thickness_mm = 225.0
+wall_thickness_mm      = 5.0
+n_cells                = 6
+# Per-face assembly clearance between a scintillator container and the
+# surrounding steel (the flat geometry has no containment hierarchy).
+sensor_clearance_mm = 1.0
+
+# ── Helium decay region ─────────────────────────────────────────────────
+# The central helium volume is a frustum sized strictly inside the innermost
+# sensor faces (x_half - container_thickness, y_half - container_thickness)
+# minus this clearance, so it cannot overlap the structure or sensors.
+helium_clearance_mm = 10.0
+
+# ── Materials (resolved from the central SHiPMaterials catalogue) ────────
+material_steel   = "Iron"
+material_wall    = "Aluminium"
+material_cell    = "LAB"
+material_helium  = "PressurisedHe90"
+material_air     = "Air"
