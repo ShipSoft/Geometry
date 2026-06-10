@@ -28,6 +28,7 @@
 
 #include <Eigen/Geometry>
 #include <cmath>
+#include <numbers>
 #include <string>
 
 namespace SHiPGeometry {
@@ -70,7 +71,7 @@ void placeSideContainer(GeoVPhysVol* mother, const GeoMaterial* alMat, const Geo
 
     const double dx = 0.5 * contThick * mm;
 
-    const double z_split_rel = 0.5 * hBeamH + 0.5 * hBeamTf;  // 131.25 mm
+    const double z_split_rel = 0.5 * hBeamH + 0.5 * hBeamTf;  // column front-flange outer edge
     const double z_split_mm = zLo_mm + z_split_rel;
 
     // ---- Piece 1: z in [zLo, z_split] — flat outer face, Y shear only ----
@@ -89,7 +90,7 @@ void placeSideContainer(GeoVPhysVol* mother, const GeoMaterial* alMat, const Geo
         const double dY1 = yC2 - yC1;
         const double shear1 = std::abs(dY1);
         const double theta1 = std::atan2(shear1, 2.0 * dz1);
-        const double phi1 = (dY1 >= 0.0) ? M_PI_2 : -M_PI_2;
+        const double phi1 = (dY1 >= 0.0) ? std::numbers::pi / 2.0 : -std::numbers::pi / 2.0;
 
         const GeoTrf::Transform3D trf1 = GeoTrf::Translate3D(xCtr_flat, 0.5 * (yC1 + yC2), zMid1);
 
@@ -273,7 +274,7 @@ void SBTSensorBuilder::build(GeoVPhysVol* mother, const GeoMaterial* alMat,
 
         const int nCont = (s < 5) ? 2 : 3;
 
-        const double z_split_rel = 0.5 * hBeamH + 0.5 * hBeamTf;  // 131.25 mm
+        const double z_split_rel = 0.5 * hBeamH + 0.5 * hBeamTf;  // column front-flange outer edge
         const double z_split_mm = zLo_mm + z_split_rel;
         const double frac_split = z_split_rel / (zHi_mm - zLo_mm);
 
@@ -281,7 +282,7 @@ void SBTSensorBuilder::build(GeoVPhysVol* mother, const GeoMaterial* alMat,
             const double yFaceCtr1 = (face == 0) ? yFaceTop_Lo : yFaceBot_Lo;
             const double yFaceCtr2 = (face == 0) ? yFaceTop_Hi : yFaceBot_Hi;
 
-            const double rotAngle = (face == 0) ? -M_PI / 2.0 : +M_PI / 2.0;
+            const double rotAngle = (face == 0) ? -std::numbers::pi / 2.0 : std::numbers::pi / 2.0;
             const GeoTrf::RotationMatrix3D rotZ =
                 Eigen::AngleAxisd(rotAngle, Eigen::Vector3d::UnitZ()).toRotationMatrix();
 

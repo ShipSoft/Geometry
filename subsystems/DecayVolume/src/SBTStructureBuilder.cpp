@@ -49,6 +49,11 @@ using namespace GeoModelKernelUnits;
 
 namespace {
 
+// Standoff (mm) by which a beam end stops short of the transverse row of
+// beams it would otherwise cross, so the flat-placed sibling volumes do not
+// overlap. Applied at both ends of the corner and longitudinal beams.
+constexpr double s_beam_end_standoff_mm = 12.0;
+
 // placeBox — add a single GeoBox as a physical-volume child of `parent`.
 void placeBox(GeoVPhysVol* parent, const GeoMaterial* mat, const std::string& name, double hx,
               double hy, double hz, const GeoTrf::Transform3D& trf) {
@@ -252,8 +257,8 @@ void SBTStructureBuilder::build(GeoVPhysVol* mother, const GeoMaterial* steel, c
         const double sx = corners[ci].first;
         const double sy = corners[ci].second;
 
-        const double cbShift = sy * 0.5 * hBeamTf;    // outward Tf/2 shift
-        const double cbEndGap = 0.5 * hBeamH + 12.0;  // standoff from row
+        const double cbShift = sy * 0.5 * hBeamTf;  // outward Tf/2 shift
+        const double cbEndGap = 0.5 * hBeamH + s_beam_end_standoff_mm;
 
         for (int s = 0; s < nSubFrustrum; ++s) {
             const double zA_mm = zEntrance_mm + s * subLength + cbEndGap;
@@ -353,7 +358,7 @@ void SBTStructureBuilder::build(GeoVPhysVol* mother, const GeoMaterial* steel, c
                 }
             };
 
-            const double lbEndGap = 0.5 * hBeamW + 12.0;
+            const double lbEndGap = 0.5 * hBeamW + s_beam_end_standoff_mm;
             const double zb0_mm = zLo_mm + lbEndGap;
             const double zb1_mm = zHi_mm - lbEndGap;
             const double fr0 = (zb0_mm - zLo_mm) / (zHi_mm - zLo_mm);

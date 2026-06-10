@@ -64,7 +64,7 @@ column front-flange edge for clash avoidance. Each piece is 7 aluminium walls +
 | LAB             | 0.867 g/cm³  | Scintillator cells (new)       |
 | PressurisedHe90 | 2.12 mg/cm³  | Central decay region           |
 
-`LAB` (linear alkylbenzene, C 87.41% / H 12.60% by mass) was added to the
+`LAB` (linear alkylbenzene, C 87.41% / H 12.59% by mass) was added to the
 central `SHiPMaterials` catalogue for the SBT cells.
 
 ## Configuration

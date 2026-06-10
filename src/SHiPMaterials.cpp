@@ -184,11 +184,11 @@ void SHiPMaterials::createMaterials() {
     m_materials["Aluminium"] = aluminium;
 
     // LAB — linear alkylbenzene liquid scintillator (density 0.867 g/cm³):
-    // C 87.41%, H 12.60% by mass. Used in the Surround Background Tagger cells.
+    // C 87.41%, H 12.59% by mass. Used in the Surround Background Tagger cells.
     GeoMaterial* lab =
         new GeoMaterial("LAB", 0.867 * GeoModelKernelUnits::g / GeoModelKernelUnits::cm3);
     lab->add(m_elements["Carbon"], 0.8741);
-    lab->add(m_elements["Hydrogen"], 0.1260);
+    lab->add(m_elements["Hydrogen"], 0.1259);
     lab->lock();
     m_materials["LAB"] = lab;
 
