@@ -19,7 +19,7 @@ class SHiPMaterials;
  *                  seven bars (two horizontal, staggered in Y; one vertical).
  *   2. NuTarget  — a silicon/tungsten sampling target: 120 layers, each a
  *                  tungsten absorber plate followed by an X and a Y silicon
- *                  tracking plane (440 mm reference plate, 11.3 mm pitch).
+ *                  tracking plane (400 mm reference plate, 11.3 mm pitch).
  *   3. HCAL      — a hadronic calorimeter: three transverse sections
  *                  (40/50/60 cm), 14 layers each; every layer is an iron
  *                  absorber, an X and a Y scintillating-fibre plane, and a
