@@ -43,6 +43,11 @@ if(BUILD_TESTING)
     list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
 endif()
 
+# Installation directory layout. Included before add_subdirectory(...) so
+# subsystem CMakeLists can reference CMAKE_INSTALL_DATADIR / _BINDIR /
+# _LIBDIR / _INCLUDEDIR in their own install() rules.
+include(GNUInstallDirs)
+
 # Add subdirectories
 add_subdirectory(src)
 add_subdirectory(subsystems)
@@ -55,7 +60,6 @@ endif()
 # Installation
 # ----------------------------------------------------------------------------
 
-include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
 # Export all targets (main library + subsystem libraries)
