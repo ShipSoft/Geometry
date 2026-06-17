@@ -44,11 +44,6 @@ fi
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "${REPO_ROOT}"
 
-if ! command -v git-cliff >/dev/null 2>&1 && ! command -v git >/dev/null 2>&1; then
-    echo "error: git not found on PATH" >&2
-    exit 69
-fi
-
 if ! git cliff --version >/dev/null 2>&1; then
     echo "error: 'git cliff' not available; install git-cliff (https://git-cliff.org/)" >&2
     exit 69
