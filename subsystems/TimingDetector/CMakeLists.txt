@@ -40,11 +40,30 @@ else()
     )
 endif()
 
-# Embed the build-time GMX path as a compile-time string constant
+# Bake the build-tree GMX path as a compile-time fallback so out-of-source
+# builds always find timing_detector.gmx even when the CWD doesn't contain it.
 target_compile_definitions(
     TimingDetector
-    PRIVATE TIMING_DETECTOR_GMX="${GMX_OUT_DIR}/timing_detector.gmx"
+    PRIVATE
+        # Build-tree fallback (always valid during development and CI builds).
+        TIMING_DETECTOR_GMX_DEFAULT_PATH="${GMX_OUT_DIR}/timing_detector.gmx"
+        # Install-time fallback: set to the installed data directory so that
+        # deployed builds (where the build tree is absent) can find the GMX.
+        TIMING_DETECTOR_GMX_INSTALL_PATH="${CMAKE_INSTALL_FULL_DATADIR}/SHiPGeometry/TimingDetector/timing_detector.gmx"
 )
+
+# Install the GMX (and the co-located geomodel.dtd that Xerces will resolve
+# against it) into the data directory so installed deployments find them.
+install(
+    FILES ${CMAKE_CURRENT_SOURCE_DIR}/data/timing_detector.gmx
+    DESTINATION ${CMAKE_INSTALL_DATADIR}/SHiPGeometry/TimingDetector
+)
+if(EXISTS "${_geomodel_dtd}")
+    install(
+        FILES "${_geomodel_dtd}"
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/SHiPGeometry/TimingDetector
+    )
+endif()
 
 if(BUILD_TESTING)
     include(Catch)
