@@ -34,10 +34,16 @@ set(_geomodel_dtd "${_gt_prefix}/share/GeoModelXml/geomodel.dtd")
 if(EXISTS "${_geomodel_dtd}")
     configure_file("${_geomodel_dtd}" "${GMX_OUT_DIR}/geomodel.dtd" COPYONLY)
 else()
-    message(
-        WARNING
-        "geomodel.dtd not found at ${_geomodel_dtd}; TimingDetector GMX parsing may fail"
-    )
+    get_filename_component(_gt_prefix "${GeoModelTools_DIR}/../../../.." ABSOLUTE)
+    set(_geomodel_dtd "${_gt_prefix}/share/GeoModelXml/geomodel.dtd")
+    if(EXISTS "${_geomodel_dtd}")
+        configure_file("${_geomodel_dtd}" "${GMX_OUT_DIR}/geomodel.dtd" COPYONLY)
+    else()
+        message(
+            WARNING
+            "geomodel.dtd not found at ${_geomodel_dtd}; TimingDetector GMX parsing may fail"
+        )
+    endif()
 endif()
 
 # Bake the build-tree GMX path as a compile-time fallback so out-of-source

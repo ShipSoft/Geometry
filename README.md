@@ -37,6 +37,7 @@ The SHiP geometry is described using GeoModel and is used by the simulation and 
 - CMake 3.16 or later
 - C++20 compatible compiler
 - GeoModel libraries (GeoModelCore, GeoModelIO, GeoModelTools) version 6.22+
+- tomlplusplus (https://marzer.github.io/tomlplusplus/)
 
 ### Build Instructions
 

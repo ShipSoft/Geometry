@@ -8,7 +8,7 @@ All notable changes to this project will be documented in this file.
 
 - *(build)* Include GNUInstallDirs before add_subdirectory(subsystems)
 - *(timing)* Install GMX data file and resolve path at runtime
-
+- *(build)* Locate GeoModelXml folder in ubuntu24
 ### Miscellaneous
 
 - Use shared release workflow from ShipSoft/.github
