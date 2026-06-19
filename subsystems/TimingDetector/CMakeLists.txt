@@ -34,10 +34,18 @@ set(_geomodel_dtd "${_gt_prefix}/share/GeoModelXml/geomodel.dtd")
 if(EXISTS "${_geomodel_dtd}")
     configure_file("${_geomodel_dtd}" "${GMX_OUT_DIR}/geomodel.dtd" COPYONLY)
 else()
-    get_filename_component(_gt_prefix "${GeoModelTools_DIR}/../../../.." ABSOLUTE)
+    get_filename_component(
+        _gt_prefix
+        "${GeoModelTools_DIR}/../../../.."
+        ABSOLUTE
+    )
     set(_geomodel_dtd "${_gt_prefix}/share/GeoModelXml/geomodel.dtd")
     if(EXISTS "${_geomodel_dtd}")
-        configure_file("${_geomodel_dtd}" "${GMX_OUT_DIR}/geomodel.dtd" COPYONLY)
+        configure_file(
+            "${_geomodel_dtd}"
+            "${GMX_OUT_DIR}/geomodel.dtd"
+            COPYONLY
+        )
     else()
         message(
             WARNING
