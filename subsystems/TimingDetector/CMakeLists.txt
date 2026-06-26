@@ -29,11 +29,17 @@ configure_file(
 )
 
 # Locate geomodel.dtd from the GeoModelTools install tree
-get_filename_component(_gt_prefix "${GeoModelTools_DIR}/../../.." ABSOLUTE)
-set(_geomodel_dtd "${_gt_prefix}/share/GeoModelXml/geomodel.dtd")
-if(EXISTS "${_geomodel_dtd}")
-    configure_file("${_geomodel_dtd}" "${GMX_OUT_DIR}/geomodel.dtd" COPYONLY)
-else()
+set(_geomodel_dtd "")
+foreach(_cand
+    "${GeoModelTools_DIR}/../../../../share/GeoModelXml/geomodel.dtd"
+    "${GeoModelTools_DIR}/../../../share/GeoModelXml/geomodel.dtd"
+)
+if(EXISTS "${_cand}")
+    set(_geomodel_dtd "${_cand}")
+    break()
+    endif()
+endforeach()
+if(_geomodel_dtd)
     get_filename_component(
         _gt_prefix
         "${GeoModelTools_DIR}/../../../.."
