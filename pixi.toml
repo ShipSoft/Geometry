@@ -16,6 +16,8 @@ git = "*"
 sqlite = "*"
 tomlplusplus = "*"
 geomodel = ">=6.22"
+eigen-abi-devel = "*"
+nlohmann_json = "*"
 
 [tasks]
 configure = "cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo"
