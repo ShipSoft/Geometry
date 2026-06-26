@@ -30,13 +30,14 @@ configure_file(
 
 # Locate geomodel.dtd from the GeoModelTools install tree
 set(_geomodel_dtd "")
-foreach(_cand
+foreach(
+    _cand
     "${GeoModelTools_DIR}/../../../../share/GeoModelXml/geomodel.dtd"
     "${GeoModelTools_DIR}/../../../share/GeoModelXml/geomodel.dtd"
 )
-if(EXISTS "${_cand}")
-    set(_geomodel_dtd "${_cand}")
-    break()
+    if(EXISTS "${_cand}")
+        set(_geomodel_dtd "${_cand}")
+        break()
     endif()
 endforeach()
 if(_geomodel_dtd)
