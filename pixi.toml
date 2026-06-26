@@ -23,3 +23,4 @@ nlohmann_json = "*"
 configure = "cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo"
 build = { cmd = "cmake --build build -j", depends-on = ["configure"] }
 test = { cmd = "ctest --test-dir build --output-on-failure", depends-on = ["build"] }
+geometry = { cmd = "./build/apps/build_geometry build/ship_geometry.db", depends-on = ["build"] }

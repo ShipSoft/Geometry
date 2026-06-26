@@ -14,4 +14,6 @@ jobs:
   build-and-test:
     uses: ShipSoft/.github/.github/workflows/pixi-cmake-build.yml@main
     with:
-      tasks: '["test"]'
+      tasks: '["test", "geometry"]'
+      artifact-name: ship_geometry-${{ github.sha }}
+      artifact-path: build/ship_geometry.db
