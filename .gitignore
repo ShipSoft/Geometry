@@ -5,3 +5,5 @@ install/
 gdml/
 __pycache__/
 .ruff_cache/
+doxygen/html/
+doxygen/latex/
