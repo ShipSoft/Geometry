@@ -6,6 +6,10 @@ This repository contains the SHiP experiment geometry implementation using GeoMo
 
 The SHiP geometry is described using GeoModel and is used by the simulation and digitisation/reconstruction packages which are developed in a separate repository.
 
+## Documentation
+
+An [automatic class reference](https://shipsoft.github.io/Geometry/) is built using Doxygen from comments in the C++ code.
+
 ## Coordinate System
 
 - **Origin**: target front face (first tungsten disk)
