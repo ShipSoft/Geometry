@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Bug fixes
 
+- *(Materials)* Use different names between material and elements to correctly import them in ROOT
 - *(build)* Include GNUInstallDirs before add_subdirectory(subsystems)
 - *(timing)* Install GMX data file and resolve path at runtime
 
