@@ -27,6 +27,13 @@ class SHiPMaterials {
     SHiPMaterials& operator=(const SHiPMaterials&) = delete;
 
     /**
+     * @brief Get an element by name
+     * @param name Element name (e.g., "Nitrogen_E", "Oxygen_E")
+     * @return Pointer to GeoElement or nullptr if not found
+     */
+    GeoElement* getElement(const std::string& name) const;
+
+    /**
      * @brief Get a material by name
      * @param name Material name (e.g., "Air", "Concrete", "Tungsten")
      * @return Pointer to GeoMaterial or nullptr if not found
