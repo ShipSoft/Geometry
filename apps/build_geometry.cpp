@@ -39,7 +39,8 @@ int main(int argc, char* argv[]) {
     for (int i = 1; i < argc; ++i) {
         const std::string arg = argv[i];
         if (arg == "--list") {
-            for (const auto& n : SHiPGeometry::subsystemNames()) std::cout << n << "\n";
+            for (const auto& n : SHiPGeometry::subsystemNames())
+                std::cout << n << "\n";
             return 0;
         }
         if (endsWith(arg, ".db")) {
@@ -57,21 +58,23 @@ int main(int argc, char* argv[]) {
         SHiPGeometry::SHiPGeometryBuilder builder;
         geometry = builder.build();
         label = "full SHiP geometry";
-        if (outputFile.empty()) outputFile = "ship_geometry.db";
+        if (outputFile.empty())
+            outputFile = "ship_geometry.db";
     } else if (names.size() == 1) {
         // A single subsystem, on its own (local frame).
         try {
             geometry = SHiPGeometry::buildSubsystem(names[0]);
         } catch (const std::exception& e) {
             std::cerr << "Error: " << e.what() << "\nAvailable subsystems:\n";
-            for (const auto& n : SHiPGeometry::subsystemNames()) std::cerr << "  " << n << "\n";
+            for (const auto& n : SHiPGeometry::subsystemNames())
+                std::cerr << "  " << n << "\n";
             return 1;
         }
         label = names[0];
-        if (outputFile.empty()) outputFile = names[0] + ".db";
+        if (outputFile.empty())
+            outputFile = names[0] + ".db";
     } else {
-        std::cerr << "Error: build at most one subsystem at a time (got " << names.size()
-                  << ").\n";
+        std::cerr << "Error: build at most one subsystem at a time (got " << names.size() << ").\n";
         return 1;
     }
 

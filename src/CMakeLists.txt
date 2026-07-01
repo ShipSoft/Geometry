@@ -10,19 +10,12 @@ target_include_directories(
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
         $<INSTALL_INTERFACE:include>
 )
-
 target_link_libraries(
     SHiPGeometry
     PUBLIC
         GeoModelCore::GeoModelKernel
         GeoModelIO::GeoModelRead
         GeoModelIO::GeoModelWrite
-        # Force-link the subsystem archives: each registers itself at
-        # static-init via REGISTER_SUBSYSTEM, and nothing here references
-        # their symbols, so without --whole-archive the linker would drop
-        # them and the registry would be empty. (GNU/Clang syntax; for
-        # CMake >= 3.24 prefer $<LINK_LIBRARY:WHOLE_ARCHIVE,...>.)
-        "-Wl,--whole-archive"
         Cavern
         Target
         MuonShield
@@ -33,5 +26,11 @@ target_link_libraries(
         Magnet
         TimingDetector
         Calorimeter
-        "-Wl,--no-whole-archive"
 )
+
+# The subsystems are referenced only through their REGISTER_SUBSYSTEM static
+# initialisers, so the toolchain's default --as-needed drops them from the
+# DT_NEEDED of every executable that links SHiPGeometry, and their
+# registrations never run. INTERFACE puts --no-as-needed on the *consumer's*
+# link line, which is where the entries were being dropped.
+target_link_options(SHiPGeometry INTERFACE "-Wl,--no-as-needed")

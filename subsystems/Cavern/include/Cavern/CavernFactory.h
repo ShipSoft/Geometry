@@ -21,7 +21,6 @@ class CavernFactory {
     explicit CavernFactory(SHiPMaterials& materials);
     ~CavernFactory() = default;
 
-
     /// This subsystem's self-description (name, node, id, placement).
     static SubsystemDescriptor descriptor() {
         return {"Cavern", "/SHiP/cavern", 0, 0.0, 0.0, 0.0, true};

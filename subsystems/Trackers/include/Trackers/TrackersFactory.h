@@ -3,8 +3,9 @@
 
 #pragma once
 
-#include <GeoModelKernel/Units.h>
 #include "SHiPGeometry/SubsystemRegistry.h"
+
+#include <GeoModelKernel/Units.h>
 
 #include <array>
 #include <string>
@@ -40,7 +41,6 @@ class TrackersFactory {
    public:
     explicit TrackersFactory(SHiPMaterials& materials);
     ~TrackersFactory() = default;
-
 
     /// This subsystem's self-description (name, node, id, placement).
     static SubsystemDescriptor descriptor() {

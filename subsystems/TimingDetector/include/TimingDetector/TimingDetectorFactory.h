@@ -3,8 +3,9 @@
 
 #pragma once
 
-#include <GeoModelKernel/Units.h>
 #include "SHiPGeometry/SubsystemRegistry.h"
+
+#include <GeoModelKernel/Units.h>
 
 class GeoPhysVol;
 
@@ -26,7 +27,6 @@ class TimingDetectorFactory {
    public:
     explicit TimingDetectorFactory(SHiPMaterials& materials);
     ~TimingDetectorFactory() = default;
-
 
     /// This subsystem's self-description (name, node, id, placement).
     static SubsystemDescriptor descriptor() {

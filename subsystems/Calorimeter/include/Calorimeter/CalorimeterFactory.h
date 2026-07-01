@@ -3,8 +3,9 @@
 
 #pragma once
 
-#include <GeoModelKernel/Units.h>
 #include "SHiPGeometry/SubsystemRegistry.h"
+
+#include <GeoModelKernel/Units.h>
 
 #include <string>
 
@@ -32,7 +33,6 @@ class CalorimeterFactory {
    public:
     explicit CalorimeterFactory(SHiPMaterials& materials, std::string configPath = "calo.toml");
     ~CalorimeterFactory() = default;
-
 
     /// This subsystem's self-description (name, node, id, placement).
     static SubsystemDescriptor descriptor() {

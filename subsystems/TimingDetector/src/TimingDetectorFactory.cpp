@@ -2,9 +2,9 @@
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
 #include "TimingDetector/TimingDetectorFactory.h"
-#include "SHiPGeometry/SubsystemRegistry.h"
 
 #include "SHiPGeometry/SHiPMaterials.h"
+#include "SHiPGeometry/SubsystemRegistry.h"
 #include "TimingDetector/SHiPTimingDetInterface.h"
 
 #include <GeoModelKernel/GeoBox.h>

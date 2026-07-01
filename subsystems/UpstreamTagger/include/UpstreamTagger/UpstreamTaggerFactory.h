@@ -54,7 +54,6 @@ class UpstreamTaggerFactory {
     explicit UpstreamTaggerFactory(SHiPMaterials& materials);
     ~UpstreamTaggerFactory() = default;
 
-
     /// This subsystem's self-description (name, node, id, placement).
     static SubsystemDescriptor descriptor() {
         return {"UpstreamTagger", "/SHiP/upstream_tagger", 3, 0.0, 0.0, 32720.0, false};

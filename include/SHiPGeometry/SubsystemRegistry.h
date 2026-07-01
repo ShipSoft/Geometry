@@ -22,13 +22,13 @@ class SHiPMaterials;
  * Translations are in millimetres from the world origin.
  */
 struct SubsystemDescriptor {
-    const char* name;     ///< registry key / CLI name, e.g. "Calorimeter"
-    const char* node;     ///< GeoNameTag, e.g. "/SHiP/calorimeter"
-    int id;               ///< GeoIdentifierTag
-    double x_mm;          ///< placement translation X (mm)
-    double y_mm;          ///< placement translation Y (mm)
-    double z_mm;          ///< placement translation Z, beam direction (mm)
-    bool isWorld = false; ///< true for the mother/world volume (the cavern)
+    const char* name;      ///< registry key / CLI name, e.g. "Calorimeter"
+    const char* node;      ///< GeoNameTag, e.g. "/SHiP/calorimeter"
+    int id;                ///< GeoIdentifierTag
+    double x_mm;           ///< placement translation X (mm)
+    double y_mm;           ///< placement translation Y (mm)
+    double z_mm;           ///< placement translation Z, beam direction (mm)
+    bool isWorld = false;  ///< true for the mother/world volume (the cavern)
 };
 
 /// A registered subsystem: its descriptor plus how to build it (local frame).
@@ -83,11 +83,10 @@ std::vector<std::string> subsystemNames();
  * references it, the subsystem archive must be linked with --whole-archive
  * (or an equivalent) so the initialiser is not dropped by the linker.
  */
-#define REGISTER_SUBSYSTEM(FACTORY)                                            \
-    namespace {                                                                \
-    const bool FACTORY##_registered = ::SHiPGeometry::registerSubsystem(       \
-        FACTORY::descriptor(),                                                 \
-        [](::SHiPGeometry::SHiPMaterials& materials) -> ::GeoVPhysVol* {        \
-            return FACTORY(materials).build();                                 \
-        });                                                                    \
+#define REGISTER_SUBSYSTEM(FACTORY)                                                             \
+    namespace {                                                                                 \
+    const bool FACTORY##_registered = ::SHiPGeometry::registerSubsystem(                        \
+        FACTORY::descriptor(), [](::SHiPGeometry::SHiPMaterials& materials) -> ::GeoVPhysVol* { \
+            return FACTORY(materials).build();                                                  \
+        });                                                                                     \
     }

@@ -2,9 +2,9 @@
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
 #include "Magnet/MagnetFactory.h"
-#include "SHiPGeometry/SubsystemRegistry.h"
 
 #include "SHiPGeometry/SHiPMaterials.h"
+#include "SHiPGeometry/SubsystemRegistry.h"
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoDefinitions.h>

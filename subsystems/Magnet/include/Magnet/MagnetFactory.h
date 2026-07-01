@@ -3,8 +3,9 @@
 
 #pragma once
 
-#include <GeoModelKernel/Units.h>
 #include "SHiPGeometry/SubsystemRegistry.h"
+
+#include <GeoModelKernel/Units.h>
 
 #include <string>
 
@@ -26,7 +27,6 @@ class MagnetFactory {
    public:
     explicit MagnetFactory(SHiPMaterials& materials);
     ~MagnetFactory() = default;
-
 
     /// This subsystem's self-description (name, node, id, placement).
     static SubsystemDescriptor descriptor() {

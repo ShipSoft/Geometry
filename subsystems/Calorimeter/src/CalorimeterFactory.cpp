@@ -2,13 +2,13 @@
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
 #include "Calorimeter/CalorimeterFactory.h"
-#include "SHiPGeometry/SubsystemRegistry.h"
 
 #include "Calorimeter/CaloBarLayer.h"
 #include "Calorimeter/CaloFibreHPLayer.h"
 #include "Calorimeter/CalorimeterConfig.h"
 #include "SHiPGeometry/ConfigPath.h"
 #include "SHiPGeometry/SHiPMaterials.h"
+#include "SHiPGeometry/SubsystemRegistry.h"
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoDefinitions.h>

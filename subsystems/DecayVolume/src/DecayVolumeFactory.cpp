@@ -2,13 +2,13 @@
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
 #include "DecayVolume/DecayVolumeFactory.h"
-#include "SHiPGeometry/SubsystemRegistry.h"
 
 #include "DecayVolume/SBTConfig.h"
 #include "DecayVolume/SBTSensorBuilder.h"
 #include "DecayVolume/SBTStructureBuilder.h"
 #include "SHiPGeometry/ConfigPath.h"
 #include "SHiPGeometry/SHiPMaterials.h"
+#include "SHiPGeometry/SubsystemRegistry.h"
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoDefinitions.h>
