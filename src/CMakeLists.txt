@@ -1,9 +1,7 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 # Copyright (C) CERN for the benefit of the SHiP Collaboration
 
-# Create SHiPGeometry library
 add_library(SHiPGeometry SHiPMaterials.cpp SHiPGeometry.cpp)
-
 target_include_directories(
     SHiPGeometry
     PUBLIC
