@@ -4,6 +4,7 @@
 #pragma once
 
 #include <GeoModelKernel/Units.h>
+#include "SHiPGeometry/SubsystemRegistry.h"
 
 #include <string>
 
@@ -26,6 +27,11 @@ class MagnetFactory {
     explicit MagnetFactory(SHiPMaterials& materials);
     ~MagnetFactory() = default;
 
+
+    /// This subsystem's self-description (name, node, id, placement).
+    static SubsystemDescriptor descriptor() {
+        return {"Magnet", "/SHiP/magnet", 6, 0.0, 0.0, 89570.0, false};
+    }
     /**
      * @brief Build the Magnet geometry
      * @return Pointer to the physical volume

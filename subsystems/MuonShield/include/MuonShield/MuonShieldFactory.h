@@ -4,6 +4,7 @@
 #pragma once
 
 #include <GeoModelKernel/Units.h>
+#include "SHiPGeometry/SubsystemRegistry.h"
 
 class GeoPhysVol;
 
@@ -26,6 +27,12 @@ class MuonShieldFactory {
     ~MuonShieldFactory() = default;
 
     [[nodiscard]] GeoPhysVol* build();
+
+    /// This subsystem's self-description (name, node, id, placement).
+    static SubsystemDescriptor descriptor() {
+        return {"MuonShield", "/SHiP/muon_shield", 2, 0.0, 0.0, 16763.3, false};
+    }
+    GeoPhysVol* build();
 
    private:
     SHiPMaterials& m_materials;

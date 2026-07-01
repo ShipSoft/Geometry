@@ -2,6 +2,7 @@
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
 #include "Magnet/MagnetFactory.h"
+#include "SHiPGeometry/SubsystemRegistry.h"
 
 #include "SHiPGeometry/SHiPMaterials.h"
 
@@ -119,5 +120,7 @@ GeoPhysVol* MagnetFactory::createVerticalConnector(const std::string& name) {
     auto* connectorLog = new GeoLogVol(name, connectorBox, aluminium);
     return new GeoPhysVol(connectorLog);
 }
+
+REGISTER_SUBSYSTEM(MagnetFactory)
 
 }  // namespace SHiPGeometry

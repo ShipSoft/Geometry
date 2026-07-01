@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "SHiPGeometry/SubsystemRegistry.h"
+
 class GeoVPhysVol;
 
 namespace SHiPGeometry {
@@ -52,6 +54,11 @@ class UpstreamTaggerFactory {
     explicit UpstreamTaggerFactory(SHiPMaterials& materials);
     ~UpstreamTaggerFactory() = default;
 
+
+    /// This subsystem's self-description (name, node, id, placement).
+    static SubsystemDescriptor descriptor() {
+        return {"UpstreamTagger", "/SHiP/upstream_tagger", 3, 0.0, 0.0, 32720.0, false};
+    }
     /**
      * @brief Build the UpstreamTagger geometry.
      * @param manager Optional manager to register the container tree-top; may be null.

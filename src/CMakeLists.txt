@@ -17,6 +17,12 @@ target_link_libraries(
         GeoModelCore::GeoModelKernel
         GeoModelIO::GeoModelRead
         GeoModelIO::GeoModelWrite
+        # Force-link the subsystem archives: each registers itself at
+        # static-init via REGISTER_SUBSYSTEM, and nothing here references
+        # their symbols, so without --whole-archive the linker would drop
+        # them and the registry would be empty. (GNU/Clang syntax; for
+        # CMake >= 3.24 prefer $<LINK_LIBRARY:WHOLE_ARCHIVE,...>.)
+        "-Wl,--whole-archive"
         Cavern
         Target
         MuonShield
@@ -27,4 +33,5 @@ target_link_libraries(
         Magnet
         TimingDetector
         Calorimeter
+        "-Wl,--no-whole-archive"
 )

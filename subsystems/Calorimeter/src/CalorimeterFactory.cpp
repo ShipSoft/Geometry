@@ -2,6 +2,7 @@
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
 #include "Calorimeter/CalorimeterFactory.h"
+#include "SHiPGeometry/SubsystemRegistry.h"
 
 #include "Calorimeter/CaloBarLayer.h"
 #include "Calorimeter/CaloFibreHPLayer.h"
@@ -350,5 +351,7 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, const CalorimeterConf
                     .absorberNeedsEnvelope = false,
                     .incrementGlobalOnAirGap = true});
 }
+
+REGISTER_SUBSYSTEM(CalorimeterFactory)
 
 }  // namespace SHiPGeometry

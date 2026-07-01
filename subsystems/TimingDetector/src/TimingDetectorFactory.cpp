@@ -2,6 +2,7 @@
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
 #include "TimingDetector/TimingDetectorFactory.h"
+#include "SHiPGeometry/SubsystemRegistry.h"
 
 #include "SHiPGeometry/SHiPMaterials.h"
 #include "TimingDetector/SHiPTimingDetInterface.h"
@@ -54,5 +55,7 @@ GeoPhysVol* TimingDetectorFactory::build() {
 
     return containerPhys;
 }
+
+REGISTER_SUBSYSTEM(TimingDetectorFactory)
 
 }  // namespace SHiPGeometry

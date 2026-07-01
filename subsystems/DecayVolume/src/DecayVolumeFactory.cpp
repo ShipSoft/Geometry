@@ -2,6 +2,7 @@
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
 #include "DecayVolume/DecayVolumeFactory.h"
+#include "SHiPGeometry/SubsystemRegistry.h"
 
 #include "DecayVolume/SBTConfig.h"
 #include "DecayVolume/SBTSensorBuilder.h"
@@ -120,5 +121,7 @@ GeoPhysVol* DecayVolumeFactory::build() {
 
     return container;
 }
+
+REGISTER_SUBSYSTEM(DecayVolumeFactory)
 
 }  // namespace SHiPGeometry

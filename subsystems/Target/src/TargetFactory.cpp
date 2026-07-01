@@ -2,6 +2,7 @@
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
 #include "Target/TargetFactory.h"
+#include "SHiPGeometry/SubsystemRegistry.h"
 
 #include "SHiPGeometry/SHiPMaterials.h"
 
@@ -238,5 +239,7 @@ GeoPhysVol* TargetFactory::createHeVolume() {
 
     return heVolumePhys;
 }
+
+REGISTER_SUBSYSTEM(TargetFactory)
 
 }  // namespace SHiPGeometry

@@ -2,6 +2,7 @@
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
 #include "NeutrinoDetector/NeutrinoDetectorFactory.h"
+#include "SHiPGeometry/SubsystemRegistry.h"
 
 #include "SHiPGeometry/SHiPMaterials.h"
 
@@ -290,5 +291,7 @@ GeoPhysVol* NeutrinoDetectorFactory::build() {
 
     return containerPhys;
 }
+
+REGISTER_SUBSYSTEM(NeutrinoDetectorFactory)
 
 }  // namespace SHiPGeometry

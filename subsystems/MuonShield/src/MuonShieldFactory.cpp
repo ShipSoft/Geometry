@@ -2,6 +2,7 @@
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
 #include "MuonShield/MuonShieldFactory.h"
+#include "SHiPGeometry/SubsystemRegistry.h"
 
 #include "SHiPGeometry/SHiPMaterials.h"
 
@@ -180,5 +181,7 @@ GeoPhysVol* MuonShieldFactory::build() {
 
     return areaPhys;
 }
+
+REGISTER_SUBSYSTEM(MuonShieldFactory)
 
 }  // namespace SHiPGeometry

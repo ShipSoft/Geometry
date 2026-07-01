@@ -71,9 +71,21 @@ ctest --test-dir build
 # Build the complete SHiP geometry
 ./build/apps/build_geometry [output_file.db]
 
+# Build a single subsystem on its own
+./build/apps/build_geometry <Name> [output_file.db]
+
+# List the available subsystem names
+./build/apps/build_geometry --list
+
 # View in gmex
 gmex output_file.db
 ```
+
+With no subsystem named, the complete detector is built. Naming a subsystem
+(as spelled by `--list`, e.g. `Calorimeter`) builds just that subsystem in its
+own local frame. A token ending in `.db` is taken as the output file; the
+default is `ship_geometry.db` for the full build, or `<Name>.db` for a single
+subsystem.
 
 ### Installing
 
@@ -96,20 +108,39 @@ GeoModelTools automatically.
 
 ### Factory Pattern
 
-Each subsystem is implemented as a factory class:
+Each subsystem is a self-contained factory class that builds its geometry,
+describes where it belongs, and registers itself:
 
 ```cpp
 class FooFactory {
 public:
     explicit FooFactory(SHiPMaterials& materials);
     GeoPhysVol* build();
+
+    // Self-description consumed by the assembler:
+    // name, tree node, id, placement (x/y/z mm), and whether it is the world.
+    static SubsystemDescriptor descriptor() {
+        return {"Foo", "/SHiP/foo", 42, 0.0, 0.0, 12345.0, /*isWorld=*/false};
+    }
 private:
     SHiPMaterials& m_materials;
 };
 ```
 
-`SHiPGeometryBuilder::build()` orchestrates all factories, creating the world
-volume (Cavern) and placing each subsystem at its global z-position.
+with a single registration line in the factory's `.cpp` (inside
+`namespace SHiPGeometry`):
+
+```cpp
+REGISTER_SUBSYSTEM(FooFactory)
+```
+
+The assembler names no subsystem. `assembleGeometry()` — also reachable via
+the unchanged `SHiPGeometryBuilder::build()` — iterates the registry, builds
+the world (the subsystem whose descriptor sets `isWorld`, i.e. the Cavern),
+and places every other registered subsystem at its declared position, ordered
+by `(z, id)`. A single subsystem can be built on its own, in its local frame,
+with `buildSubsystem("Foo")`. The registry, descriptor type, and macro live in
+`include/SHiPGeometry/SubsystemRegistry.h`.
 
 ### Materials
 
@@ -128,13 +159,19 @@ To add a new material, edit `src/SHiPMaterials.cpp`:
 ## Adding or Modifying a Subsystem
 
 1. **Header**: `subsystems/<Name>/include/<Name>/<Name>Factory.h` — declare
-   the factory class with dimension constants as `static constexpr` members
+   the factory class with dimension constants as `static constexpr` members,
+   plus `static SubsystemDescriptor descriptor()` returning its name, tree
+   node, id, and placement
 2. **Implementation**: `subsystems/<Name>/src/<Name>Factory.cpp` — implement
    `build()` using GeoModel primitives (`GeoBox`, `GeoTubs`, `GeoLogVol`,
    `GeoPhysVol`, `GeoTransform`, etc.)
-3. **Registration**: add a `build()` + placement call in
-   `src/SHiPGeometry.cpp` (`SHiPGeometryBuilder::build()`)
-4. **CMake**: add sources/headers to `subsystems/<Name>/CMakeLists.txt`
+3. **Registration**: add one line — `REGISTER_SUBSYSTEM(<Name>Factory)` — at
+   the end of the factory `.cpp`, inside `namespace SHiPGeometry`. The
+   subsystem registers itself; **do not** edit `src/SHiPGeometry.cpp`, which
+   names no subsystem.
+4. **CMake**: add sources/headers to `subsystems/<Name>/CMakeLists.txt`, and
+   add the new library to the `--whole-archive` block in `src/CMakeLists.txt`
+   so its self-registration initializer is not dropped by the linker
 5. **Docs**: update the subsystem `README.md` with geometry tree, materials,
    and status
 
@@ -142,7 +179,7 @@ To add a new material, edit `src/SHiPMaterials.cpp`:
 
 ```
 geometry/
-├── include/SHiPGeometry/   # Public headers (SHiPGeometry, SHiPMaterials)
+├── include/SHiPGeometry/   # Public headers (SHiPGeometry, SHiPMaterials, SubsystemRegistry)
 ├── src/                     # Core implementation
 ├── subsystems/              # Detector subsystem factories
 │   ├── Cavern/

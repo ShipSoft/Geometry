@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "SHiPGeometry/SubsystemRegistry.h"
+
 #include <GeoModelKernel/Units.h>
 
 class GeoPhysVol;
@@ -19,6 +21,11 @@ class CavernFactory {
     explicit CavernFactory(SHiPMaterials& materials);
     ~CavernFactory() = default;
 
+
+    /// This subsystem's self-description (name, node, id, placement).
+    static SubsystemDescriptor descriptor() {
+        return {"Cavern", "/SHiP/cavern", 0, 0.0, 0.0, 0.0, true};
+    }
     /**
      * @brief Build the Cavern geometry
      * @return Pointer to the world physical volume

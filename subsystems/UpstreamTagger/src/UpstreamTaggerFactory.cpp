@@ -2,6 +2,7 @@
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
 #include "UpstreamTagger/UpstreamTaggerFactory.h"
+#include "SHiPGeometry/SubsystemRegistry.h"
 
 #include "SHiPGeometry/SHiPMaterials.h"
 #include "UpstreamTagger/SHiPUBTManager.h"
@@ -140,5 +141,7 @@ GeoVPhysVol* UpstreamTaggerFactory::build(SHiPUBTManager* manager) {
 
     return containerPhys;
 }
+
+REGISTER_SUBSYSTEM(UpstreamTaggerFactory)
 
 }  // namespace SHiPGeometry

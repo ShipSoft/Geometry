@@ -4,6 +4,7 @@
 #pragma once
 
 #include <GeoModelKernel/Units.h>
+#include "SHiPGeometry/SubsystemRegistry.h"
 
 #include <array>
 #include <string>
@@ -40,6 +41,11 @@ class TrackersFactory {
     explicit TrackersFactory(SHiPMaterials& materials);
     ~TrackersFactory() = default;
 
+
+    /// This subsystem's self-description (name, node, id, placement).
+    static SubsystemDescriptor descriptor() {
+        return {"Trackers", "/SHiP/trackers", 5, 0.0, 0.0, 89570.0, false};
+    }
     /**
      * @brief Build the Trackers geometry.
      * @return Pointer to the container volume holding all 4 stations.

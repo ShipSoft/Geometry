@@ -2,6 +2,7 @@
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
 #include "Trackers/TrackersFactory.h"
+#include "SHiPGeometry/SubsystemRegistry.h"
 
 #include "SHiPGeometry/SHiPMaterials.h"
 
@@ -313,5 +314,7 @@ GeoPhysVol* TrackersFactory::buildTrackerMagnet() {
 
     return phys;
 }
+
+REGISTER_SUBSYSTEM(TrackersFactory)
 
 }  // namespace SHiPGeometry

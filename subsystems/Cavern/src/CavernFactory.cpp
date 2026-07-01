@@ -2,6 +2,7 @@
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
 #include "Cavern/CavernFactory.h"
+#include "SHiPGeometry/SubsystemRegistry.h"
 
 #include "SHiPGeometry/SHiPMaterials.h"
 
@@ -79,5 +80,7 @@ GeoPhysVol* CavernFactory::build() {
 
     return m_world;
 }
+
+REGISTER_SUBSYSTEM(CavernFactory)
 
 }  // namespace SHiPGeometry

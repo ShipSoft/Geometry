@@ -4,6 +4,7 @@
 #pragma once
 
 #include <GeoModelKernel/Units.h>
+#include "SHiPGeometry/SubsystemRegistry.h"
 
 class GeoPhysVol;
 
@@ -26,6 +27,11 @@ class TimingDetectorFactory {
     explicit TimingDetectorFactory(SHiPMaterials& materials);
     ~TimingDetectorFactory() = default;
 
+
+    /// This subsystem's self-description (name, node, id, placement).
+    static SubsystemDescriptor descriptor() {
+        return {"TimingDetector", "/SHiP/timing_detector", 7, 0.0, 0.0, 95902.0, false};
+    }
     /** Build the TimingDetector geometry and return the container volume. */
     [[nodiscard]] GeoPhysVol* build();
 
