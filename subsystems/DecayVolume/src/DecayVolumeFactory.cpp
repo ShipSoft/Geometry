@@ -62,10 +62,6 @@ std::string resolveTomlPath(const std::string& path) {
 DecayVolumeFactory::DecayVolumeFactory(SHiPMaterials& materials, std::string configPath)
     : m_materials(materials), m_configPath(std::move(configPath)) {}
 
-std::string DecayVolumeFactory::resolvedConfigPath() const {
-    return resolveTomlPath(m_configPath);
-}
-
 GeoPhysVol* DecayVolumeFactory::build() {
     const SBTConfig cfg = readSBTConfig(resolveTomlPath(m_configPath));
 

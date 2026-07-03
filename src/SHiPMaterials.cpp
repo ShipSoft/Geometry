@@ -16,11 +16,6 @@ SHiPMaterials::SHiPMaterials() {
     createMaterials();
 }
 
-GeoElement* SHiPMaterials::getElement(const std::string& name) const {
-    auto it = m_elements.find(name);
-    return (it != m_elements.end()) ? it->second : nullptr;
-}
-
 GeoMaterial* SHiPMaterials::getMaterial(const std::string& name) const {
     auto it = m_materials.find(name);
     return (it != m_materials.end()) ? it->second : nullptr;
@@ -191,14 +186,6 @@ void SHiPMaterials::createMaterials() {
     lab->add(m_elements["Hydrogen"], 0.1259);
     lab->lock();
     m_materials["LAB"] = lab;
-
-    // Scintillator / polyvinyltoluene (density 1.023 g/cm³): C 91.5%, H 8.5%
-    GeoMaterial* scintillator =
-        new GeoMaterial("Scintillator", 1.023 * GeoModelKernelUnits::g / GeoModelKernelUnits::cm3);
-    scintillator->add(m_elements["Carbon"], 0.915);
-    scintillator->add(m_elements["Hydrogen"], 0.085);
-    scintillator->lock();
-    m_materials["Scintillator"] = scintillator;
 
     // Lead (density 11.34 g/cm³): pure Pb
     GeoMaterial* lead =

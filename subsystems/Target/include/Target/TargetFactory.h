@@ -33,7 +33,7 @@ class TargetFactory {
      * @brief Build the Target geometry
      * @return Pointer to the target_vacuum_box physical volume
      */
-    GeoPhysVol* build();
+    [[nodiscard]] GeoPhysVol* build();
 
    private:
     SHiPMaterials& m_materials;

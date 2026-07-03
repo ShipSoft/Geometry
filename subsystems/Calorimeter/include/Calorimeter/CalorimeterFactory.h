@@ -31,7 +31,7 @@ class CalorimeterFactory {
     ~CalorimeterFactory() = default;
 
     /** Build and return the calorimeter container volume. */
-    GeoPhysVol* build();
+    [[nodiscard]] GeoPhysVol* build();
 
     /**
      * @brief Compute the total Z extent of one ECAL+gap+HCAL stack (mm).
@@ -40,9 +40,6 @@ class CalorimeterFactory {
      * independently of a full build().
      */
     static double totalStackZ(const CalorimeterConfig& cfg);
-
-    /** Return the config path that will actually be opened (after resolution). */
-    std::string resolvedConfigPath() const;
 
    private:
     SHiPMaterials& m_materials;

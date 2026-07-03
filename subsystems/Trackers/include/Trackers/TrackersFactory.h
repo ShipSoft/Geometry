@@ -42,7 +42,7 @@ class TrackersFactory {
      * @brief Build the Trackers geometry.
      * @return Pointer to the container volume holding all 4 stations.
      */
-    GeoPhysVol* build();
+    [[nodiscard]] GeoPhysVol* build();
 
     // ── Straw / view geometry constants (mm) ────────────────────────────
     static constexpr int s_nStations = 4;

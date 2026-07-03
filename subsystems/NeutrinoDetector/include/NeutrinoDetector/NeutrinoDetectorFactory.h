@@ -50,7 +50,7 @@ class NeutrinoDetectorFactory {
     ~NeutrinoDetectorFactory() = default;
 
     /// Build the SND geometry; returns the air container.
-    GeoPhysVol* build();
+    [[nodiscard]] GeoPhysVol* build();
 
    private:
     SHiPMaterials& m_materials;

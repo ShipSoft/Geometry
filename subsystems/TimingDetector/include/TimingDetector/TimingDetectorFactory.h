@@ -25,7 +25,7 @@ class TimingDetectorFactory {
     ~TimingDetectorFactory() = default;
 
     /** Build the TimingDetector geometry and return the container volume. */
-    GeoPhysVol* build();
+    [[nodiscard]] GeoPhysVol* build();
 
     /** Number of sensitive bars registered during the last build() call. */
     int barCount() const { return m_barCount; }

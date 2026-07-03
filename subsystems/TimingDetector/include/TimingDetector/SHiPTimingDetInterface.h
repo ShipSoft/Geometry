@@ -27,8 +27,6 @@ class SHiPTimingDetInterface : public GmxInterface {
 
     int barCount() const { return static_cast<int>(m_bars.size()); }
 
-    const std::vector<GeoVFullPhysVol*>& bars() const { return m_bars; }
-
    private:
     std::vector<GeoVFullPhysVol*> m_bars;
 };

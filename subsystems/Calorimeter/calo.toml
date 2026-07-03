@@ -25,11 +25,6 @@ module_ny = 3
 module_pitch_x_mm = 0.0
 module_pitch_y_mm = 0.0
 
-# Envelope padding around the active stack (mm)
-tol_x_mm = 10
-tol_y_mm = 10
-tol_z_mm = 10
-
 # ── ECAL ─────────────────────────────────────────────────────────────────
 layers = [
     7, 1, 7, 2, 7, 3, 7, 4, 7, 1, 7, 2, 7, 3, 7, 4, 7, 1, 7, 2,
@@ -52,8 +47,3 @@ airgap_mm = 1000
 gap_ecal_hcal_mm  = 100
 layers2           = [7, 1, 7, 2, 7, 1, 7, 2, 7, 1]
 iron_thickness_mm = 170
-
-# ── Detector placement (world coordinates, mm) ───────────────────────────
-detector_offset_x_mm = 0.0
-detector_offset_y_mm = 0.0
-detector_offset_z_mm = 96970.0

@@ -23,7 +23,7 @@ class MuonShieldFactory {
     explicit MuonShieldFactory(SHiPMaterials& materials);
     ~MuonShieldFactory() = default;
 
-    GeoPhysVol* build();
+    [[nodiscard]] GeoPhysVol* build();
 
    private:
     SHiPMaterials& m_materials;

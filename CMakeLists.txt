@@ -81,11 +81,6 @@ install(
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
-install(
-    TARGETS build_geometry validate_geometry
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
-
 # Install main headers
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 

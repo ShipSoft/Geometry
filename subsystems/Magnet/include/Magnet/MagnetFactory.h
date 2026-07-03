@@ -28,7 +28,7 @@ class MagnetFactory {
      * @brief Build the Magnet geometry
      * @return Pointer to the physical volume
      */
-    GeoPhysVol* build();
+    [[nodiscard]] GeoPhysVol* build();
 
    private:
     SHiPMaterials& m_materials;

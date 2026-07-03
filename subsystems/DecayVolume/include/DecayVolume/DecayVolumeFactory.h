@@ -30,10 +30,7 @@ class DecayVolumeFactory {
     ~DecayVolumeFactory() = default;
 
     /// Build the DecayVolume geometry; returns the air container.
-    GeoPhysVol* build();
-
-    /// The sbt.toml path actually used after fallback resolution.
-    std::string resolvedConfigPath() const;
+    [[nodiscard]] GeoPhysVol* build();
 
    private:
     SHiPMaterials& m_materials;

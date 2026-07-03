@@ -57,7 +57,7 @@ class UpstreamTaggerFactory {
      * @param manager Optional manager to register the container tree-top; may be null.
      * @return Pointer to the GeoFullPhysVol tile-plane container.
      */
-    GeoVPhysVol* build(SHiPUBTManager* manager = nullptr);
+    [[nodiscard]] GeoVPhysVol* build(SHiPUBTManager* manager = nullptr);
 
    private:
     SHiPMaterials& m_materials;

@@ -23,7 +23,7 @@ class CavernFactory {
      * @brief Build the Cavern geometry
      * @return Pointer to the world physical volume
      */
-    GeoPhysVol* build();
+    [[nodiscard]] GeoPhysVol* build();
 
    private:
     SHiPMaterials& m_materials;

@@ -62,10 +62,6 @@ static std::string resolveTomlPath(const std::string& path) {
 CalorimeterFactory::CalorimeterFactory(SHiPMaterials& materials, std::string configPath)
     : m_materials(materials), m_configPath(std::move(configPath)) {}
 
-std::string CalorimeterFactory::resolvedConfigPath() const {
-    return resolveTomlPath(m_configPath);
-}
-
 // ── totalStackZ ──────────────────────────────────────────────────────────────
 
 double CalorimeterFactory::totalStackZ(const CalorimeterConfig& cfg) {

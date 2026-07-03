@@ -22,7 +22,6 @@ class SHiPUBTManager : public GeoVDetectorManager {
     ~SHiPUBTManager() override = default;
 
     void setContainerVolume(GeoFullPhysVol* fpv) { m_container = fpv; }
-    GeoFullPhysVol* getFullPV() const { return m_container; }
 
     unsigned int getNumTreeTops() const override { return m_container ? 1u : 0u; }
 

@@ -124,7 +124,7 @@ GeoPhysVol* TrackersFactory::buildStation(int stationIndex) {
         GeoPhysVol* viewPhys = buildView(stationIndex, v);
 
         const double zView = -0.5 * (s_nViews - 1) * viewPitch + v * viewPitch;
-        const double angleRad = stereoSignedDeg(v) * M_PI / 180.0;
+        const double angleRad = stereoSignedDeg(v) * deg;
         const GeoTrf::Transform3D viewTrf =
             GeoTrf::Translate3D(0.0, 0.0, zView) * GeoTrf::RotateZ3D(angleRad);
 
@@ -237,7 +237,7 @@ GeoPhysVol* TrackersFactory::buildSubLayer(int stationIndex, int viewIndex, bool
 
         // GeoTube axis is local Z; rotate it to lie along X (the straw axis).
         const GeoTrf::Transform3D strawTrf =
-            GeoTrf::Translate3D(0.0, yStraw, 0.0) * GeoTrf::RotateY3D(M_PI / 2.0);
+            GeoTrf::Translate3D(0.0, yStraw, 0.0) * GeoTrf::RotateY3D(90.0 * deg);
 
         subPhys->add(new GeoNameTag(subName + "/straw_" + std::to_string(i)));
         subPhys->add(new GeoIdentifierTag(i));

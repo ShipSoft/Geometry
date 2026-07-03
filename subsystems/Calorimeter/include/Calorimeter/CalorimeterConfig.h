@@ -64,16 +64,6 @@ struct CalorimeterConfig {
     double module_pitch_x_mm = 0.0;  // 0 → use plate_xy_mm
     double module_pitch_y_mm = 0.0;  // 0 → use plate_xy_mm
 
-    // Tolerance (envelope padding, mm)
-    double tol_x_mm = 10.0;
-    double tol_y_mm = 10.0;
-    double tol_z_mm = 10.0;
-
-    // Global position of the calorimeter stack centre in the world (mm)
-    double detector_offset_x_mm = 0.0;
-    double detector_offset_y_mm = 0.0;
-    double detector_offset_z_mm = 96970.0;
-
     // If true, the layer stack is centred at z=0 in the container volume.
     bool center_stack = true;
 };

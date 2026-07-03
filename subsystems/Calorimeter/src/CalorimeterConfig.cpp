@@ -29,6 +29,7 @@
 #include <algorithm>
 #include <array>
 #include <iostream>
+#include <limits>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -46,9 +47,6 @@ using namespace std::string_view_literals;
 static constexpr std::array kKnownKeys = {
     "airgap_mm"sv,
     "center_stack"sv,
-    "detector_offset_x_mm"sv,
-    "detector_offset_y_mm"sv,
-    "detector_offset_z_mm"sv,
     "fiber_core_diameter_mm"sv,
     "fiber_diameter_mm"sv,
     "gap_ecal_hcal_mm"sv,
@@ -63,9 +61,6 @@ static constexpr std::array kKnownKeys = {
     "module_pitch_y_mm"sv,
     "plate_xy_mm"sv,
     "scint_thickness_mm"sv,
-    "tol_x_mm"sv,
-    "tol_y_mm"sv,
-    "tol_z_mm"sv,
 };
 
 // Mapping from TOML key name to CalorimeterConfig double member pointer.
@@ -86,12 +81,6 @@ static constexpr NumericField kNumericFields[] = {
     {"gap_ecal_hcal_mm", &CalorimeterConfig::gap_ecal_hcal_mm},
     {"module_pitch_x_mm", &CalorimeterConfig::module_pitch_x_mm},
     {"module_pitch_y_mm", &CalorimeterConfig::module_pitch_y_mm},
-    {"tol_x_mm", &CalorimeterConfig::tol_x_mm},
-    {"tol_y_mm", &CalorimeterConfig::tol_y_mm},
-    {"tol_z_mm", &CalorimeterConfig::tol_z_mm},
-    {"detector_offset_x_mm", &CalorimeterConfig::detector_offset_x_mm},
-    {"detector_offset_y_mm", &CalorimeterConfig::detector_offset_y_mm},
-    {"detector_offset_z_mm", &CalorimeterConfig::detector_offset_z_mm},
 };
 
 // Read an integer-list value: either a TOML array of ints, or a string

@@ -19,7 +19,7 @@ class SHiPGeometryBuilder {
      * @brief Build the complete SHiP detector geometry
      * @return Pointer to the world physical volume
      */
-    GeoPhysVol* build();
+    [[nodiscard]] GeoPhysVol* build();
 };
 
 }  // namespace SHiPGeometry
