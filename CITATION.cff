@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: If you use this software, please cite it as below.
+title: SHiP Geometry
+version: 0.2.1
+date-released: "2026-06-18"
+url: https://github.com/ShipSoft/Geometry
+repository-code: https://github.com/ShipSoft/Geometry
+type: software
+license: LGPL-3.0-or-later
+authors:
+  - name: The SHiP Collaboration
+abstract: SHiP detector geometry implementation using GeoModel. Builds the detector description into a GeoModel SQLite database and provides GDML export.
+keywords:
+  - physics
+  - particle-physics
+  - detector-geometry
+  - SHiP
+  - GeoModel

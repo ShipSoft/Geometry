@@ -35,6 +35,8 @@ python = ">=3.11"
 clang-format = "22.*"
 codespell = "*"
 cmakelint = "*"
+reuse = "*"
+cffconvert = "*"
 commitizen = "*"
 
 # Pinned via PyPI to match the previous hook revs exactly: conda-forge's cpplint

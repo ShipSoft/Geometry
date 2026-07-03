@@ -12,6 +12,7 @@ repos:
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: check-yaml
+      - id: check-toml
       - id: check-added-large-files
         args: ['--maxkb=500']
       - id: check-merge-conflict
@@ -55,6 +56,20 @@ repos:
         language: system
         entry: gersemi -i
         files: (\.cmake|CMakeLists\.txt)$
+
+      - id: validate-cff
+        name: validate CITATION.cff
+        language: system
+        entry: cffconvert --validate
+        files: ^CITATION\.cff$
+        pass_filenames: false
+
+      - id: reuse
+        name: reuse lint
+        language: system
+        entry: reuse lint
+        pass_filenames: false
+        always_run: true
 
       - id: commitizen
         name: commitizen (conventional commits)
