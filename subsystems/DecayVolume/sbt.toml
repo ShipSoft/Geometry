@@ -45,8 +45,10 @@ sensor_clearance_mm = 1.0
 
 # ── Helium decay region ─────────────────────────────────────────────────
 # The central helium volume is a frustum sized strictly inside the innermost
-# sensor faces (x_half - container_thickness, y_half - container_thickness)
-# minus this clearance, so it cannot overlap the structure or sensors.
+# sensor faces minus this clearance, so it cannot overlap the structure or
+# sensors. In Y the inset is y_half - container_thickness; in X the side
+# sensors are shifted inward by half a flange width, so the inset is
+# x_half - 0.5*hbeam_flange_width - container_thickness.
 helium_clearance_mm = 10.0
 
 # ── Materials (resolved from the central SHiPMaterials catalogue) ────────

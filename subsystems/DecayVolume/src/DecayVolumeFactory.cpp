@@ -115,14 +115,19 @@ GeoPhysVol* DecayVolumeFactory::build() {
     auto* container = new GeoPhysVol(containerLog);
 
     // ── Central helium decay region ──────────────────────────────────────
-    // A frustum sized inside the innermost sensor faces (x_half - thickness,
-    // y_half - thickness) minus the helium clearance, centred on the SBT.
-    const double inset = cfg.container_thickness_mm + cfg.helium_clearance_mm;
+    // A frustum sized strictly inside the innermost sensor faces, minus the
+    // helium clearance. The ±X (side) sensor containers are additionally
+    // shifted inward by half a flange width, so their inner face sits at
+    // x_half - 0.5*flange_width - container_thickness; the ±X inset must
+    // include that half-flange term to clear them. The ±Y (top/bottom) faces
+    // have no flange shift, so their inset is just thickness + clearance.
+    const double insetY = cfg.container_thickness_mm + cfg.helium_clearance_mm;
+    const double insetX = insetY + 0.5 * cfg.hbeam_flange_width_mm;
     const double dz = 0.5 * cfg.total_length_mm * mm;
-    const double dx1 = (cfg.x_half_entrance_mm - inset) * mm;
-    const double dy1 = (cfg.y_half_entrance_mm - inset) * mm;
-    const double dx2 = (cfg.x_half_exit_mm - inset) * mm;
-    const double dy2 = (cfg.y_half_exit_mm - inset) * mm;
+    const double dx1 = (cfg.x_half_entrance_mm - insetX) * mm;
+    const double dy1 = (cfg.y_half_entrance_mm - insetY) * mm;
+    const double dx2 = (cfg.x_half_exit_mm - insetX) * mm;
+    const double dy2 = (cfg.y_half_exit_mm - insetY) * mm;
 
     auto* heShape = new GeoTrap(dz, 0.0, 0.0, dy1, dx1, dx1, 0.0, dy2, dx2, dx2, 0.0);
     auto* heLog = new GeoLogVol("/SHiP/decay_volume/helium", heShape, helium);
