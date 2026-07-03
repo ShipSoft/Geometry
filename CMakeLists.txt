@@ -48,6 +48,25 @@ endif()
 # _LIBDIR / _INCLUDEDIR in their own install() rules.
 include(GNUInstallDirs)
 
+# The single source of truth for the subsystem list: drives the subdirectory
+# walk, the exported-target set, and the header-install loop below.
+set(SHIP_SUBSYSTEMS
+    Cavern
+    Target
+    MuonShield
+    NeutrinoDetector
+    Magnet
+    DecayVolume
+    Trackers
+    Calorimeter
+    UpstreamTagger
+    TimingDetector
+)
+
+# ship_add_subsystem(): the shared recipe each subsystem CMakeLists calls.
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+include(ShipAddSubsystem)
+
 # Add subdirectories
 add_subdirectory(src)
 add_subdirectory(subsystems)
@@ -64,18 +83,7 @@ include(CMakePackageConfigHelpers)
 
 # Export all targets (main library + subsystem libraries)
 install(
-    TARGETS
-        SHiPGeometry
-        Cavern
-        Target
-        MuonShield
-        NeutrinoDetector
-        Magnet
-        DecayVolume
-        Trackers
-        Calorimeter
-        UpstreamTagger
-        TimingDetector
+    TARGETS SHiPGeometry ${SHIP_SUBSYSTEMS}
     EXPORT SHiPGeometryTargets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -90,19 +98,7 @@ install(
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 # Install subsystem headers (needed for transitive include dirs in exported targets)
-foreach(
-    subsys
-    Cavern
-    Target
-    MuonShield
-    NeutrinoDetector
-    Magnet
-    DecayVolume
-    Trackers
-    Calorimeter
-    UpstreamTagger
-    TimingDetector
-)
+foreach(subsys ${SHIP_SUBSYSTEMS})
     install(
         DIRECTORY subsystems/${subsys}/include/${subsys}
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}

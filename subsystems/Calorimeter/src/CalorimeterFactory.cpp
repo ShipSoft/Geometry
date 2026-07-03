@@ -6,6 +6,7 @@
 #include "Calorimeter/CaloBarLayer.h"
 #include "Calorimeter/CaloFibreHPLayer.h"
 #include "Calorimeter/CalorimeterConfig.h"
+#include "SHiPGeometry/ConfigPath.h"
 #include "SHiPGeometry/SHiPMaterials.h"
 
 #include <GeoModelKernel/GeoBox.h>
@@ -18,7 +19,6 @@
 #include <GeoModelKernel/Units.h>
 
 #include <cmath>
-#include <filesystem>
 #include <format>
 #include <stdexcept>
 #include <string>
@@ -44,17 +44,7 @@ static constexpr double kThinPSBarPitch_mm = 10.0;
 // ── file-scope helper ────────────────────────────────────────────────────────
 
 static std::string resolveTomlPath(const std::string& path) {
-    if (!path.empty() && path[0] == '/')
-        return path;  // already absolute
-    if (std::filesystem::exists(path))
-        return path;  // found relative to CWD
-    const std::string srcFallback = CALO_TOML_DEFAULT_PATH;
-    if (std::filesystem::exists(srcFallback))
-        return srcFallback;  // source-tree fallback
-    const std::string installFallback = CALO_TOML_INSTALL_PATH;
-    if (!installFallback.empty() && std::filesystem::exists(installFallback))
-        return installFallback;  // installed data dir
-    return path;                 // give up — readCaloConfig will emit the error
+    return resolveConfigPath(path, CALO_TOML_DEFAULT_PATH, CALO_TOML_INSTALL_PATH);
 }
 
 // ── constructor / accessors ──────────────────────────────────────────────────

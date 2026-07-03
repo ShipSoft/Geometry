@@ -18,32 +18,18 @@ configure_file(
     COPYONLY
 )
 
-add_library(
-    Calorimeter
-    src/CalorimeterFactory.cpp
-    src/CalorimeterConfig.cpp
-    src/CaloBarLayer.cpp
-    src/CaloFibreHPLayer.cpp
-)
-
-target_include_directories(
-    Calorimeter
-    PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include>
-)
+# Library + test (all src/*.cpp); the test runs from the build dir so it finds
+# the staged calo.toml.
+ship_add_subsystem(Calorimeter TEST_WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
 target_link_libraries(
     Calorimeter
-    PUBLIC GeoModelCore::GeoModelKernel
-    PRIVATE
-        # toml++ is a build-time-only dependency: it's used by
-        # CalorimeterConfig.cpp's parser internals and never appears in any
-        # public header. Wrapping in $<BUILD_INTERFACE:...> keeps it out of
-        # the install-time export set (otherwise CMake refuses to install
-        # Calorimeter, since tomlplusplus isn't itself exportable).
-        $<BUILD_INTERFACE:tomlplusplus::tomlplusplus>
+    # toml++ is a build-time-only dependency: it's used by
+    # CalorimeterConfig.cpp's parser internals and never appears in any
+    # public header. Wrapping in $<BUILD_INTERFACE:...> keeps it out of
+    # the install-time export set (otherwise CMake refuses to install
+    # Calorimeter, since tomlplusplus isn't itself exportable).
+    PRIVATE $<BUILD_INTERFACE:tomlplusplus::tomlplusplus>
 )
 
 # Bake the absolute source-tree path as a compile-time fallback so the factory
@@ -62,15 +48,3 @@ install(
     FILES ${CMAKE_CURRENT_SOURCE_DIR}/calo.toml
     DESTINATION ${CMAKE_INSTALL_DATADIR}/SHiPGeometry
 )
-
-if(BUILD_TESTING)
-    include(Catch)
-    add_executable(test_calorimeter test_calorimeter.cpp)
-    target_link_libraries(
-        test_calorimeter
-        PRIVATE Calorimeter SHiPGeometry Catch2::Catch2WithMain
-    )
-    catch_discover_tests(test_calorimeter
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    )
-endif()

@@ -6,6 +6,7 @@
 #include "DecayVolume/SBTConfig.h"
 #include "DecayVolume/SBTSensorBuilder.h"
 #include "DecayVolume/SBTStructureBuilder.h"
+#include "SHiPGeometry/ConfigPath.h"
 #include "SHiPGeometry/SHiPMaterials.h"
 
 #include <GeoModelKernel/GeoBox.h>
@@ -20,7 +21,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <fstream>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -39,22 +39,9 @@ using namespace GeoModelKernelUnits;
 
 namespace {
 
-bool fileExists(const std::string& p) {
-    std::ifstream f(p);
-    return f.good();
-}
-
 // Find sbt.toml even when the CWD doesn't contain a copy of it.
 std::string resolveTomlPath(const std::string& path) {
-    if (fileExists(path))
-        return path;
-    const std::string srcFallback = SBT_TOML_DEFAULT_PATH;
-    if (!srcFallback.empty() && fileExists(srcFallback))
-        return srcFallback;
-    const std::string installFallback = SBT_TOML_INSTALL_PATH;
-    if (!installFallback.empty() && fileExists(installFallback))
-        return installFallback;
-    return path;  // give up — readSBTConfig will emit the error
+    return resolveConfigPath(path, SBT_TOML_DEFAULT_PATH, SBT_TOML_INSTALL_PATH);
 }
 
 }  // namespace

@@ -1,21 +1,9 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 # Copyright (C) CERN for the benefit of the SHiP Collaboration
 
-add_library(TimingDetector src/TimingDetectorFactory.cpp)
+ship_add_subsystem(TimingDetector)
 
-target_include_directories(
-    TimingDetector
-    PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include>
-)
-
-target_link_libraries(
-    TimingDetector
-    PUBLIC GeoModelCore::GeoModelKernel
-    PRIVATE GeoModelTools::GeoModelXml
-)
+target_link_libraries(TimingDetector PRIVATE GeoModelTools::GeoModelXml)
 
 # Copy GMX data file and DTD to build directory.
 # The DTD must be co-located with the GMX file (Xerces resolves SYSTEM identifiers
@@ -63,14 +51,4 @@ if(EXISTS "${_geomodel_dtd}")
         FILES "${_geomodel_dtd}"
         DESTINATION ${CMAKE_INSTALL_DATADIR}/SHiPGeometry/TimingDetector
     )
-endif()
-
-if(BUILD_TESTING)
-    include(Catch)
-    add_executable(test_timingdetector test_timingdetector.cpp)
-    target_link_libraries(
-        test_timingdetector
-        PRIVATE TimingDetector SHiPGeometry Catch2::Catch2WithMain
-    )
-    catch_discover_tests(test_timingdetector)
 endif()

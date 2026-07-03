@@ -8,6 +8,7 @@
 #include "DecayVolume/DecayVolumeFactory.h"
 #include "Magnet/MagnetFactory.h"
 #include "MuonShield/MuonShieldFactory.h"
+#include "SHiPGeometry/Placement.h"
 #include "SHiPGeometry/SHiPMaterials.h"
 #include "Target/TargetFactory.h"
 #include "TimingDetector/TimingDetectorFactory.h"
@@ -18,10 +19,7 @@
 #include "NeutrinoDetector/NeutrinoDetectorFactory.h"
 
 #include <GeoModelKernel/GeoDefinitions.h>
-#include <GeoModelKernel/GeoIdentifierTag.h>
-#include <GeoModelKernel/GeoNameTag.h>
 #include <GeoModelKernel/GeoPhysVol.h>
-#include <GeoModelKernel/GeoTransform.h>
 #include <GeoModelKernel/Units.h>
 
 namespace SHiPGeometry {
@@ -44,21 +42,13 @@ GeoPhysVol* SHiPGeometryBuilder::build() {
     // Position target in world (from GDML: x=0, y=-14.45cm, z=43.25cm)
     // Note: These are relative to the cave origin
     constexpr double cm = GeoModelKernelUnits::cm;
-    GeoTrf::Transform3D targetTrf = GeoTrf::Translate3D(0.0, -14.45 * cm, 43.25 * cm);
-    world->add(new GeoNameTag("/SHiP/target"));
-    world->add(new GeoIdentifierTag(1));
-    world->add(new GeoTransform(targetTrf));
-    world->add(target);
+    placeChild(world, target, "/SHiP/target", 1, GeoTrf::Translate3D(0.0, -14.45 * cm, 43.25 * cm));
 
     // Build and place MuonShieldArea
     // GDML z range: 204–3148.66 cm → centre: 1676.33 cm = 16763.3 mm from world origin
     MuonShieldFactory muonShieldFactory(materials);
     GeoPhysVol* muonShield = muonShieldFactory.build();
-    GeoTrf::Transform3D muonShieldTrf = GeoTrf::Translate3D(0.0, 0.0, 16763.3);
-    world->add(new GeoNameTag("/SHiP/muon_shield"));
-    world->add(new GeoIdentifierTag(2));
-    world->add(new GeoTransform(muonShieldTrf));
-    world->add(muonShield);
+    placeChild(world, muonShield, "/SHiP/muon_shield", 2, GeoTrf::Translate3D(0.0, 0.0, 16763.3));
 
     // Build and place the Scattering and Neutrino Detector (SND).
     // Z: 26.40 to 31.50 m (WARM muon-shield configuration) → centre 28.95 m.
@@ -66,81 +56,53 @@ GeoPhysVol* SHiPGeometryBuilder::build() {
     // envelope overlaps the muon-shield container by design (see test_consistency).
     NeutrinoDetectorFactory neutrinoDetectorFactory(materials);
     GeoPhysVol* neutrinoDetector = neutrinoDetectorFactory.build();
-    GeoTrf::Transform3D neutrinoDetectorTrf = GeoTrf::Translate3D(0.0, 0.0, 28.95 * 1000.0);
-    world->add(new GeoNameTag("/SHiP/neutrino_detector"));
-    world->add(new GeoIdentifierTag(9));
-    world->add(new GeoTransform(neutrinoDetectorTrf));
-    world->add(neutrinoDetector);
+    placeChild(world, neutrinoDetector, "/SHiP/neutrino_detector", 9,
+               GeoTrf::Translate3D(0.0, 0.0, 28.95 * 1000.0));
 
     // Build and place UpstreamTagger (sensitive scintillator slab)
     // Z: 32.52 to 32.92 m → centre: 32.72 m
     SHiPUBTManager ubtManager;
     UpstreamTaggerFactory upstreamTaggerFactory(materials);
     GeoVPhysVol* upstreamTagger = upstreamTaggerFactory.build(&ubtManager);
-    GeoTrf::Transform3D upstreamTaggerTrf = GeoTrf::Translate3D(0.0, 0.0, 32.72 * 1000.0);
-    world->add(new GeoNameTag("/SHiP/upstream_tagger"));
-    world->add(new GeoIdentifierTag(3));
-    world->add(new GeoTransform(upstreamTaggerTrf));
-    world->add(upstreamTagger);
+    placeChild(world, upstreamTagger, "/SHiP/upstream_tagger", 3,
+               GeoTrf::Translate3D(0.0, 0.0, 32.72 * 1000.0));
 
     // Build and place DecayVolume
     // Z: 32.92 to 83.32 m → centre: 58.12 m
     DecayVolumeFactory decayVolumeFactory(materials);
     GeoPhysVol* decayVolume = decayVolumeFactory.build();
-    GeoTrf::Transform3D decayVolumeTrf =
-        GeoTrf::Translate3D(0.0, 0.0, 58.12 * 1000.0);  // Convert m to mm
-    world->add(new GeoNameTag("/SHiP/decay_volume"));
-    world->add(new GeoIdentifierTag(4));
-    world->add(new GeoTransform(decayVolumeTrf));
-    world->add(decayVolume);
+    placeChild(world, decayVolume, "/SHiP/decay_volume", 4,
+               GeoTrf::Translate3D(0.0, 0.0, 58.12 * 1000.0));
 
-    // Build and place Trackers (container with 4 stations)
-    // Container spans stations 1-4, centred appropriately
+    // Build and place Trackers (container with 4 stations).
+    // The factory already handles internal positioning; place the container at
+    // its centre Z (average of station 1 and 4 centres).
     TrackersFactory trackersFactory(materials);
     GeoPhysVol* trackers = trackersFactory.build();
-    // The TrackerFactory already handles internal positioning, just place the container
-    // at its calculated centre Z position
-    constexpr double trackersCentreZ =
-        (84.07 + 95.07) / 2.0 * 1000.0;  // Average of station 1 and 4 centres
-    GeoTrf::Transform3D trackersTrf = GeoTrf::Translate3D(0.0, 0.0, trackersCentreZ);
-    world->add(new GeoNameTag("/SHiP/trackers"));
-    world->add(new GeoIdentifierTag(5));
-    world->add(new GeoTransform(trackersTrf));
-    world->add(trackers);
+    constexpr double trackersCentreZ = (84.07 + 95.07) / 2.0 * 1000.0;
+    placeChild(world, trackers, "/SHiP/trackers", 5,
+               GeoTrf::Translate3D(0.0, 0.0, trackersCentreZ));
 
     // Build and place Magnet
     // Z: 87.07 to 92.07 m → centre: 89.57 m
     MagnetFactory magnetFactory(materials);
     GeoPhysVol* magnet = magnetFactory.build();
-    GeoTrf::Transform3D magnetTrf =
-        GeoTrf::Translate3D(0.0, 0.0, 89.57 * 1000.0);  // Convert m to mm
-    world->add(new GeoNameTag("/SHiP/magnet"));
-    world->add(new GeoIdentifierTag(6));
-    world->add(new GeoTransform(magnetTrf));
-    world->add(magnet);
+    placeChild(world, magnet, "/SHiP/magnet", 6, GeoTrf::Translate3D(0.0, 0.0, 89.57 * 1000.0));
 
     // Build and place TimingDetector
     // Z: 95.902 m (from GDML reference)
     TimingDetectorFactory timingDetectorFactory(materials);
     GeoPhysVol* timingDetector = timingDetectorFactory.build();
-    GeoTrf::Transform3D timingDetectorTrf =
-        GeoTrf::Translate3D(0.0, 0.0, 95.902 * 1000.0);  // Convert m to mm
-    world->add(new GeoNameTag("/SHiP/timing_detector"));
-    world->add(new GeoIdentifierTag(7));
-    world->add(new GeoTransform(timingDetectorTrf));
-    world->add(timingDetector);
+    placeChild(world, timingDetector, "/SHiP/timing_detector", 7,
+               GeoTrf::Translate3D(0.0, 0.0, 95.902 * 1000.0));
 
     // Build and place Calorimeter (ECAL + HCAL).
     // The layer structure is driven by calo.toml; the outer container dimensions
     // and placement are fixed to match the SHiP subsystem envelope.
     CalorimeterFactory calorimeterFactory(materials);
     GeoPhysVol* calorimeter = calorimeterFactory.build();
-    GeoTrf::Transform3D calorimeterTrf =
-        GeoTrf::Translate3D(0.0, 0.0, 98.32 * 1000.0);  // 98.32 m, fixed envelope centre
-    world->add(new GeoNameTag("/SHiP/calorimeter"));
-    world->add(new GeoIdentifierTag(8));
-    world->add(new GeoTransform(calorimeterTrf));
-    world->add(calorimeter);
+    placeChild(world, calorimeter, "/SHiP/calorimeter", 8,
+               GeoTrf::Translate3D(0.0, 0.0, 98.32 * 1000.0));
 
     return world;
 }

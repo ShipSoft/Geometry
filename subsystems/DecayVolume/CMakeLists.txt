@@ -18,32 +18,18 @@ configure_file(
     COPYONLY
 )
 
-add_library(
-    DecayVolume
-    src/DecayVolumeFactory.cpp
-    src/SBTConfig.cpp
-    src/SBTStructureBuilder.cpp
-    src/SBTSensorBuilder.cpp
-)
-
-target_include_directories(
-    DecayVolume
-    PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include>
-)
+# Library + test (all src/*.cpp); the test runs from the build dir so it finds
+# the staged sbt.toml.
+ship_add_subsystem(DecayVolume TEST_WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
 target_link_libraries(
     DecayVolume
-    PUBLIC GeoModelCore::GeoModelKernel
-    PRIVATE
-        # toml++ is a build-time-only dependency: it's used by SBTConfig.cpp's
-        # parser internals and never appears in any public header. Wrapping in
-        # $<BUILD_INTERFACE:...> keeps it out of the install-time export set
-        # (otherwise CMake refuses to install DecayVolume, since tomlplusplus
-        # isn't itself exportable).
-        $<BUILD_INTERFACE:tomlplusplus::tomlplusplus>
+    # toml++ is a build-time-only dependency: it's used by SBTConfig.cpp's
+    # parser internals and never appears in any public header. Wrapping in
+    # $<BUILD_INTERFACE:...> keeps it out of the install-time export set
+    # (otherwise CMake refuses to install DecayVolume, since tomlplusplus
+    # isn't itself exportable).
+    PRIVATE $<BUILD_INTERFACE:tomlplusplus::tomlplusplus>
 )
 
 # Bake the absolute source-tree path as a compile-time fallback so the factory
@@ -62,15 +48,3 @@ install(
     FILES ${CMAKE_CURRENT_SOURCE_DIR}/sbt.toml
     DESTINATION ${CMAKE_INSTALL_DATADIR}/SHiPGeometry
 )
-
-if(BUILD_TESTING)
-    include(Catch)
-    add_executable(test_decayvolume test_decayvolume.cpp)
-    target_link_libraries(
-        test_decayvolume
-        PRIVATE DecayVolume SHiPGeometry Catch2::Catch2WithMain
-    )
-    catch_discover_tests(test_decayvolume
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    )
-endif()
