@@ -11,11 +11,16 @@
 #include <GeoModelKernel/GeoLogVol.h>
 #include <GeoModelKernel/GeoNameTag.h>
 #include <GeoModelKernel/GeoPhysVol.h>
+#include <GeoModelKernel/GeoSerialDenominator.h>
+#include <GeoModelKernel/GeoSerialIdentifier.h>
+#include <GeoModelKernel/GeoSerialTransformer.h>
 #include <GeoModelKernel/GeoShapeSubtraction.h>
 #include <GeoModelKernel/GeoTransform.h>
 #include <GeoModelKernel/GeoTube.h>
+#include <GeoModelKernel/GeoXF.h>
 #include <GeoModelKernel/Units.h>
 
+#include <GeoGenericFunctions/Variable.h>
 #include <cmath>
 #include <string>
 
@@ -224,37 +229,49 @@ GeoPhysVol* TrackersFactory::buildSubLayer(int stationIndex, int viewIndex, bool
     auto* subLog = new GeoLogVol(subName, subBox, air);
     auto* subPhys = new GeoPhysVol(subLog);
 
-    // Globally-unique straw id seed: keeps every straw log-volume name unique
-    // across the whole subsystem (station, view, sub-layer, straw).
+    // Globally-unique straw id seed: the GeoSerialIdentifier base so every
+    // straw keeps a unique id across the whole subsystem (station, view,
+    // sub-layer, straw).
     const int subLayerOrdinal =
         ((stationIndex * s_nViews) + viewIndex) * s_nSubLayers + (shifted ? 1 : 0);
-    int strawUid = subLayerOrdinal * s_nStraws;
+    const int strawUid = subLayerOrdinal * s_nStraws;
 
     const double yStart = -(s_nStraws - 1) * 0.5 * pitch;
 
-    for (int i = 0; i < s_nStraws; ++i) {
-        const double yStraw = yStart + i * pitch + yStagger;
+    // Every straw is geometrically identical, so one shared straw subtree is
+    // placed s_nStraws times along Y by a GeoSerialTransformer: O(s_nStraws)
+    // tree nodes and per-straw log volumes collapse to one straw and one node.
+    // Pow(TranslateY(1 mm), yStraw) advances each copy in Y; RotateY(90°) lays
+    // the GeoTube (local Z) axis along X. GeoSerialIdentifier reproduces the
+    // per-straw ids (base = subLayerOrdinal · s_nStraws); GeoSerialDenominator
+    // reproduces the "<subName>/straw_<i>" names.
+    GeoGenfun::Variable i;
+    GeoGenfun::GENFUNCTION yStraw = (yStart + yStagger) + pitch * i;
+    GeoXF::TRANSFUNCTION strawXF =
+        GeoXF::Pow(GeoTrf::Transform3D(GeoTrf::Translate3D(0.0, 1.0, 0.0)), yStraw) *
+        GeoTrf::Transform3D(GeoTrf::RotateY3D(90.0 * deg));
 
-        // GeoTube axis is local Z; rotate it to lie along X (the straw axis).
-        const GeoTrf::Transform3D strawTrf =
-            GeoTrf::Translate3D(0.0, yStraw, 0.0) * GeoTrf::RotateY3D(90.0 * deg);
-
-        subPhys->add(new GeoNameTag(subName + "/straw_" + std::to_string(i)));
-        subPhys->add(new GeoIdentifierTag(i));
-        subPhys->add(new GeoTransform(strawTrf));
-        subPhys->add(buildStraw(strawUid++));
-    }
+    subPhys->add(new GeoSerialDenominator(subName + "/straw_"));
+    subPhys->add(new GeoSerialIdentifier(strawUid));
+    subPhys->add(new GeoSerialTransformer(buildStraw(), &strawXF, s_nStraws));
 
     return subPhys;
 }
 
 // ── buildStraw ───────────────────────────────────────────────────────────────
 
-GeoPhysVol* TrackersFactory::buildStraw(int uid) {
+GeoPhysVol* TrackersFactory::buildStraw() {
     // A straw is a solid Mylar cylinder (the wall) with a gas daughter that
     // fills the interior. Modelling the wall as a solid cylinder rather than a
     // hollow tube keeps the gas fully contained, with no mother-daughter
     // overlap. GeoTube axis is local Z; the parent sub-layer rotates it to X.
+    //
+    // Every straw in every sub-layer is identical, so the subtree (with its two
+    // shared log volumes and shapes) is built once and reused; sub-layers place
+    // it via GeoSerialTransformer.
+    if (m_strawPhys)
+        return m_strawPhys;
+
     const GeoMaterial* mylar = m_materials.requireMaterial("Mylar");
     const GeoMaterial* gas = m_materials.requireMaterial("ArCO2_70_30");
 
@@ -263,12 +280,11 @@ GeoPhysVol* TrackersFactory::buildStraw(int uid) {
     const double halfLength = s_strawLength / 2.0;
 
     auto* wallTube = new GeoTube(0.0, rWall, halfLength);
-    auto* wallLog =
-        new GeoLogVol("/SHiP/trackers/straw_wall_" + std::to_string(uid), wallTube, mylar);
+    auto* wallLog = new GeoLogVol("/SHiP/trackers/straw_wall", wallTube, mylar);
     auto* wallPhys = new GeoPhysVol(wallLog);
 
     auto* gasTube = new GeoTube(0.0, rGas, halfLength);
-    auto* gasLog = new GeoLogVol("/SHiP/trackers/straw_gas_" + std::to_string(uid), gasTube, gas);
+    auto* gasLog = new GeoLogVol("/SHiP/trackers/straw_gas", gasTube, gas);
     auto* gasPhys = new GeoPhysVol(gasLog);
 
     wallPhys->add(new GeoNameTag("/SHiP/trackers/straw_gas"));
@@ -276,6 +292,7 @@ GeoPhysVol* TrackersFactory::buildStraw(int uid) {
     wallPhys->add(new GeoTransform(GeoTrf::Transform3D::Identity()));
     wallPhys->add(gasPhys);
 
+    m_strawPhys = wallPhys;
     return wallPhys;
 }
 

@@ -135,10 +135,14 @@ class TrackersFactory {
     GeoPhysVol* buildSubLayer(int stationIndex, int viewIndex, bool shifted);
 
     /**
-     * @brief Build a single straw: a Mylar wall cylinder with a gas core.
-     * @param uid Globally unique straw identifier, used for unique names.
+     * @brief Return the shared straw subtree: a Mylar wall cylinder with a gas
+     *        core. Built once and reused, since every straw is identical; the
+     *        sub-layers place it many times via GeoSerialTransformer.
      */
-    GeoPhysVol* buildStraw(int uid);
+    GeoPhysVol* buildStraw();
+
+    /// Lazily-built shared straw subtree (see buildStraw()).
+    GeoPhysVol* m_strawPhys = nullptr;
 
     /**
      * @brief Build the inert TrackerMagnet marker volume (air-filled box).

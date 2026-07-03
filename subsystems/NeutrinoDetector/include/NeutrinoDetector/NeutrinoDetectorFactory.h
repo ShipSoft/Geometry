@@ -30,12 +30,12 @@ class SHiPMaterials;
  * `GeoPhysVol` children that reuse shared `GeoLogVol`s; sensitive-detector
  * assignment is done downstream by name.
  *
- * Approximation: each 0.5 mm scintillating-fibre plane (two staggered
- * sub-layers of 0.25 mm fibres in the original standalone simulation) is
- * modelled here as a single homogeneous polystyrene slab of the same
- * thickness. Tightly-packed 0.25 mm fibres are ~solid polystyrene, and
- * placing them individually would add O(300k) volumes — far beyond the scale
- * of any other subsystem. The X/Y plane names are preserved for readout.
+ * Each 0.5 mm scintillating-fibre plane is built from its individual fibres,
+ * two staggered sub-layers of 0.25 mm fibres. To keep the node count bounded,
+ * the O(300k) identical fibres are not placed one node at a time: a single
+ * shared fibre `GeoPhysVol` is multiply placed per sub-layer via a
+ * `GeoSerialTransformer`, so each plane costs O(1) tree nodes regardless of
+ * fibre count. The X/Y plane names are preserved for readout.
  *
  * The container is a box approximation of the SND envelope
  * (`subsystem_envelopes.csv`: z 26.40–31.50 m WARM, half-width/height up to

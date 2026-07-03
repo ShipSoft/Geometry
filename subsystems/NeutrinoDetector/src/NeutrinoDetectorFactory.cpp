@@ -11,10 +11,14 @@
 #include <GeoModelKernel/GeoLogVol.h>
 #include <GeoModelKernel/GeoNameTag.h>
 #include <GeoModelKernel/GeoPhysVol.h>
+#include <GeoModelKernel/GeoSerialIdentifier.h>
+#include <GeoModelKernel/GeoSerialTransformer.h>
 #include <GeoModelKernel/GeoTransform.h>
 #include <GeoModelKernel/GeoTube.h>
+#include <GeoModelKernel/GeoXF.h>
 #include <GeoModelKernel/Units.h>
 
+#include <GeoGenericFunctions/Variable.h>
 #include <cmath>
 #include <string>
 
@@ -154,19 +158,32 @@ void buildFibrePlane(GeoVPhysVol* mother, const GeoLogVol* envLog, const GeoLogV
             : GeoTrf::Transform3D(GeoTrf::RotateX3D(90.0 * deg));  // Z → Y
 
     const int nFibres = static_cast<int>(2.0 * halfXY / d);
-    int chan = 0;
+
+    // Every fibre is geometrically identical, so a single shared fibre physical
+    // volume is placed nFibres times per sub-layer via a GeoSerialTransformer:
+    // O(nFibres) tree nodes collapse to one. The unit step is 1 mm along the
+    // measuring axis (Y for an X plane, X for a Y plane); Pow(step, i) advances
+    // by i·d. GeoSerialIdentifier reproduces the original continuous channel
+    // numbering (sub-layer 1 continues after sub-layer 0).
+    auto* fibrePhys = new GeoPhysVol(fibreLog);
+    const GeoTrf::Transform3D unitStep =
+        isX ? GeoTrf::Transform3D(GeoTrf::Translate3D(0.0, mm, 0.0))
+            : GeoTrf::Transform3D(GeoTrf::Translate3D(mm, 0.0, 0.0));
+
     for (int sub = 0; sub < s_hcal_fibre_sublayers; ++sub) {
         const double localZ = -envHalfZ + r + sub * d;
         const double stagger = (sub == 1) ? r : 0.0;
-        for (int i = 0; i < nFibres; ++i) {
-            const double t = -halfXY + r + i * d + stagger;
-            const double x = isX ? 0.0 : t;
-            const double y = isX ? t : 0.0;
-            envPhys->add(new GeoNameTag(envName));
-            envPhys->add(new GeoIdentifierTag(chan++));
-            envPhys->add(new GeoTransform(GeoTrf::Translate3D(x * mm, y * mm, localZ * mm) * rot));
-            envPhys->add(new GeoPhysVol(fibreLog));
-        }
+        const double start = -halfXY + r + stagger;
+
+        GeoGenfun::Variable i;
+        GeoGenfun::GENFUNCTION pos = start + d * i;  // fibre centre along measuring axis (mm)
+        GeoXF::TRANSFUNCTION fibreXF =
+            GeoTrf::Transform3D(GeoTrf::Translate3D(0.0, 0.0, localZ * mm)) *
+            GeoXF::Pow(unitStep, pos) * rot;
+
+        envPhys->add(new GeoNameTag(envName));
+        envPhys->add(new GeoSerialIdentifier(sub * nFibres));
+        envPhys->add(new GeoSerialTransformer(fibrePhys, &fibreXF, nFibres));
     }
 }
 
