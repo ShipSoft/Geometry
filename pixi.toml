@@ -6,6 +6,36 @@ name = "shipgeometry"
 description = "SHiP detector geometry implementation using GeoModel"
 channels = ["https://prefix.dev/ship", "conda-forge"]
 platforms = ["linux-64"]
+preview = ["pixi-build"]
+requires-pixi = ">=0.68"
+
+# Lets downstream dev environments (geometry_service, aegir, ...) consume the
+# geometry from source: `shipgeometry = { path = "../geometry" }`. Mirrors
+# ship-conda-recipes/recipes/shipgeometry (the release recipe); keep the
+# version and the host dependencies in lockstep with it.
+[package]
+name = "shipgeometry"
+version = "0.2.1"
+
+[package.build]
+backend = { name = "pixi-build-cmake", version = "0.*" }
+
+[package.build.config]
+extra-args = [
+    "-DCMAKE_CXX_STANDARD=20",
+    "-DCMAKE_INSTALL_LIBDIR=lib",
+    "-DBUILD_TESTING=OFF",
+]
+
+# eigen-abi-devel and nlohmann_json are needed for the same GeoModel CMake
+# config reasons documented in the release recipe.
+[package.host-dependencies]
+geomodel-core = "*"
+geomodel-tools = "*"
+sqlite = "*"
+tomlplusplus = "*"
+eigen-abi-devel = "*"
+nlohmann_json = "*"
 
 [dependencies]
 cxx-compiler = "*"
