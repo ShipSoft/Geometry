@@ -153,11 +153,16 @@ TEST_CASE("ConsistencyTest.PositionsSanity", "[consistency]") {
         double tolerance;  // mm
     };
 
-    // Only check subsystems whose positions are straightforward to derive
+    // Centres as placed in SHiPGeometryBuilder::build()
     std::vector<Expected> expected = {
+        {"/SHiP/target", 432.5, 500.0},
+        {"/SHiP/muon_shield", 16763.3, 500.0},
+        {"/SHiP/neutrino_detector", 28950.0, 500.0},
         {"/SHiP/upstream_tagger", 32720.0, 500.0},
         {"/SHiP/decay_volume", 58120.0, 500.0},
+        {"/SHiP/trackers", 89570.0, 500.0},
         {"/SHiP/magnet", 89570.0, 500.0},
+        {"/SHiP/timing_detector", 95902.0, 500.0},
         {"/SHiP/calorimeter", 98320.0, 500.0},
     };
 
