@@ -137,10 +137,11 @@ void buildTarget(GeoVPhysVol* mother, const GeoMaterial* tungsten, const GeoMate
 
 /// Build one scintillating-fibre plane: an air envelope filled with individual
 /// polystyrene fibres in two staggered sub-layers. Fibres run along X (X plane,
-/// measuring Y) or along Y (Y plane, measuring X). @p envLog and @p fibreLog are
-/// the shared per-section log volumes; @p zFront_mm is the plane's upstream face.
-void buildFibrePlane(GeoVPhysVol* mother, const GeoLogVol* envLog, const GeoLogVol* fibreLog,
-                     bool isX, double sectionXY_mm, double zFront_mm, const std::string& lTag) {
+/// measuring Y) or along Y (Y plane, measuring X). @p envLog is the shared
+/// per-section envelope log volume and @p fibrePhys the shared per-section fibre
+/// physical volume; @p zFront_mm is the plane's upstream face.
+void buildFibrePlane(GeoVPhysVol* mother, const GeoLogVol* envLog, GeoPhysVol* fibrePhys, bool isX,
+                     double sectionXY_mm, double zFront_mm, const std::string& lTag) {
     const double r = 0.5 * s_hcal_fibre_diameter;
     const double d = s_hcal_fibre_diameter;
     const double halfXY = 0.5 * sectionXY_mm;
@@ -160,12 +161,12 @@ void buildFibrePlane(GeoVPhysVol* mother, const GeoLogVol* envLog, const GeoLogV
     const int nFibres = static_cast<int>(2.0 * halfXY / d);
 
     // Every fibre is geometrically identical, so a single shared fibre physical
-    // volume is placed nFibres times per sub-layer via a GeoSerialTransformer:
-    // O(nFibres) tree nodes collapse to one. The unit step is 1 mm along the
-    // measuring axis (Y for an X plane, X for a Y plane); Pow(step, i) advances
-    // by i·d. GeoSerialIdentifier reproduces the original continuous channel
-    // numbering (sub-layer 1 continues after sub-layer 0).
-    auto* fibrePhys = new GeoPhysVol(fibreLog);
+    // volume (@p fibrePhys, shared across every plane in the section) is placed
+    // nFibres times per sub-layer via a GeoSerialTransformer: O(nFibres) tree
+    // nodes collapse to one. The unit step is 1 mm along the measuring axis
+    // (Y for an X plane, X for a Y plane); Pow(step, i) advances by i·d.
+    // GeoSerialIdentifier reproduces the original continuous channel numbering
+    // (sub-layer 1 continues after sub-layer 0).
     const GeoTrf::Transform3D unitStep =
         isX ? GeoTrf::Transform3D(GeoTrf::Translate3D(0.0, mm, 0.0))
             : GeoTrf::Transform3D(GeoTrf::Translate3D(mm, 0.0, 0.0));
@@ -220,6 +221,8 @@ void buildHCal(GeoVPhysVol* mother, const GeoMaterial* air, const GeoMaterial* i
                                           new GeoBox(envHalfXY, envHalfXY, envHalfZ * mm), air);
         auto* fibreLog =
             new GeoLogVol(sTag + "/fibre", new GeoTube(0.0, r * mm, halfXY), polystyrene);
+        // One shared fibre physical volume placed by every plane in this section.
+        auto* fibrePhys = new GeoPhysVol(fibreLog);
 
         const int nTiles = static_cast<int>(std::lround(sectionXY / s_hcal_tile_xy));
         const double tileHalf = 0.5 * s_hcal_tile_xy;
@@ -229,9 +232,9 @@ void buildHCal(GeoVPhysVol* mother, const GeoMaterial* air, const GeoMaterial* i
 
             placeChild(mother, ironLog, lTag + "/Fe", l, 0.0, 0.0, z + 0.5 * s_hcal_iron);
             z += s_hcal_iron;
-            buildFibrePlane(mother, fibreEnvLog, fibreLog, /*isX=*/true, sectionXY, z, lTag);
+            buildFibrePlane(mother, fibreEnvLog, fibrePhys, /*isX=*/true, sectionXY, z, lTag);
             z += s_hcal_fibre_plane;
-            buildFibrePlane(mother, fibreEnvLog, fibreLog, /*isX=*/false, sectionXY, z, lTag);
+            buildFibrePlane(mother, fibreEnvLog, fibrePhys, /*isX=*/false, sectionXY, z, lTag);
             z += s_hcal_fibre_plane;
 
             const double tileZc = z + 0.5 * s_hcal_tile_thickness;
