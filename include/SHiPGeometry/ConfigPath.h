@@ -10,20 +10,20 @@ namespace SHiPGeometry {
 
 /// Resolve a config-file path against the repo's standard fallback chain.
 ///
-/// Order: the path as-is if it is absolute or exists relative to the current
-/// working directory; then the build-time source-tree path; then the installed
-/// data path. If none exist, @p path is returned unchanged so the caller's
-/// reader emits the not-found error.
+/// Order: the path as-is if it is absolute or exists as a regular file relative
+/// to the current working directory; then the build-time source-tree path; then
+/// the installed data path. If none exist as a regular file, @p path is returned
+/// unchanged so the caller's reader emits the not-found error.
 inline std::string resolveConfigPath(const std::string& path, const std::string& srcFallback,
                                      const std::string& installFallback) {
     namespace fs = std::filesystem;
     if (!path.empty() && path.front() == '/')
         return path;  // already absolute
-    if (fs::exists(path))
+    if (fs::is_regular_file(path))
         return path;  // relative to CWD
-    if (!srcFallback.empty() && fs::exists(srcFallback))
+    if (!srcFallback.empty() && fs::is_regular_file(srcFallback))
         return srcFallback;
-    if (!installFallback.empty() && fs::exists(installFallback))
+    if (!installFallback.empty() && fs::is_regular_file(installFallback))
         return installFallback;
     return path;
 }
