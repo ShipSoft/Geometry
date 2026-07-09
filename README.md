@@ -19,6 +19,16 @@ An [automatic class reference](https://shipsoft.github.io/Geometry/) is built us
 - **Units**: mm (GeoModel native), angles in radians
 - **Beam axis height**: 1.7 m above floor
 
+### Unit convention
+
+Every dimensional literal (length or angle) in the code carries an explicit
+`GeoModelKernelUnits` unit, e.g. `3000.0 * GeoModelKernelUnits::mm` or
+`90.0 * deg` — either at its definition or, for config-driven values with an
+`_mm` suffix, at the point of conversion into GeoModel units. GeoModel's
+native length unit is mm (`GeoModelKernelUnits::mm == 1.0`), so the
+annotations are numerically free; they exist to make the unit of every
+quantity explicit at the point where it is written.
+
 ## Implementation Status
 
 | Subsystem | Status | Description |

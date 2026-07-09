@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <GeoModelKernel/Units.h>
+
 class GeoPhysVol;
 
 namespace SHiPGeometry {
@@ -34,10 +36,10 @@ class TimingDetectorFactory {
     SHiPMaterials& m_materials;
     int m_barCount{0};
 
-    // Container dimensions (mm)
-    static constexpr double s_containerHalfX = 2750.0;
-    static constexpr double s_containerHalfY = 3250.0;
-    static constexpr double s_containerHalfZ = 250.0;
+    // Container dimensions
+    static constexpr double s_containerHalfX = 2750.0 * GeoModelKernelUnits::mm;
+    static constexpr double s_containerHalfY = 3250.0 * GeoModelKernelUnits::mm;
+    static constexpr double s_containerHalfZ = 250.0 * GeoModelKernelUnits::mm;
 };
 
 }  // namespace SHiPGeometry
