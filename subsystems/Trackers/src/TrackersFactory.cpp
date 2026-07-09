@@ -31,12 +31,12 @@ using namespace GeoModelKernelUnits;
 // ── file-scope geometry helpers ──────────────────────────────────────────────
 namespace {
 
-// Clearances (mm). The view aperture is a little larger than the nominal
+// Clearances. The view aperture is a little larger than the nominal
 // straw pattern so the staggered sub-layer and the straw outer radius fit
 // inside; the view envelope is a little larger than the frame outer box.
-constexpr double kApertureClearX = 5.0;
-constexpr double kApertureClearY = 15.0;
-constexpr double kEnvClearance = 5.0;
+constexpr double kApertureClearX = 5.0 * mm;
+constexpr double kApertureClearY = 15.0 * mm;
+constexpr double kEnvClearance = 5.0 * mm;
 
 // View aperture (inner frame hole) half-sizes.
 constexpr double kApertureHalfX = TrackersFactory::s_apertureX / 2.0 + kApertureClearX;  // 2005
@@ -52,7 +52,7 @@ constexpr double kViewHalfY = kFrameHalfY + kEnvClearance;                    //
 constexpr double kViewHalfZ = TrackersFactory::s_frameHalfZ + kEnvClearance;  // 27
 
 // Small gap between the frame aperture and the sub-layer envelope.
-constexpr double kFrameClearance = 0.5;
+constexpr double kFrameClearance = 0.5 * mm;
 
 // Signed stereo angle for a view: views 0,2 → +, views 1,3 → -.
 double stereoSignedDeg(int viewIndex) {
@@ -122,7 +122,7 @@ GeoPhysVol* TrackersFactory::buildStation(int stationIndex) {
 
     // Four stereo views, stacked along Z within the station, each rotated
     // about the beam axis by its signed stereo angle.
-    const double viewGap = 5.0;
+    const double viewGap = 5.0 * mm;
     const double viewPitch = 2.0 * kViewHalfZ + viewGap;
 
     for (int v = 0; v < s_nViews; ++v) {
@@ -168,7 +168,7 @@ GeoPhysVol* TrackersFactory::buildView(int stationIndex, int viewIndex) {
 
     // Two sub-layers of straws. Centres at z = ±(strawRadius + 0.55) mm so the
     // two sub-layer envelopes do not overlap each other at z = 0.
-    const double dz = s_strawRadius + 0.55;
+    const double dz = s_strawRadius + 0.55 * mm;
 
     {
         GeoPhysVol* sub0 = buildSubLayer(stationIndex, viewIndex, false);
@@ -196,7 +196,7 @@ GeoPhysVol* TrackersFactory::buildFrame(int stationIndex, int viewIndex) {
     // Hollow rectangle = outer box minus aperture box. The inner box is made
     // slightly thicker in Z so the subtraction punches cleanly through.
     auto* outerBox = new GeoBox(kFrameHalfX, kFrameHalfY, s_frameHalfZ);
-    auto* innerBox = new GeoBox(kApertureHalfX, kApertureHalfY, s_frameHalfZ + 1.0);
+    auto* innerBox = new GeoBox(kApertureHalfX, kApertureHalfY, s_frameHalfZ + 1.0 * mm);
     auto* frameShape = new GeoShapeSubtraction(outerBox, innerBox);
 
     const std::string frameName = "/SHiP/trackers/station_" + std::to_string(stationIndex + 1) +
@@ -220,7 +220,7 @@ GeoPhysVol* TrackersFactory::buildSubLayer(int stationIndex, int viewIndex, bool
 
     const double subHalfX = kApertureHalfX - kFrameClearance;
     const double subHalfY = kApertureHalfY - kFrameClearance;
-    const double subHalfZ = s_strawRadius + 0.5;
+    const double subHalfZ = s_strawRadius + 0.5 * mm;
 
     const std::string subName = "/SHiP/trackers/station_" + std::to_string(stationIndex + 1) +
                                 "/view_" + std::to_string(viewIndex) + "/sublayer_" +
@@ -248,7 +248,7 @@ GeoPhysVol* TrackersFactory::buildSubLayer(int stationIndex, int viewIndex, bool
     GeoGenfun::Variable i;
     GeoGenfun::GENFUNCTION yStraw = (yStart + yStagger) + pitch * i;
     GeoXF::TRANSFUNCTION strawXF =
-        GeoXF::Pow(GeoTrf::Transform3D(GeoTrf::Translate3D(0.0, 1.0, 0.0)), yStraw) *
+        GeoXF::Pow(GeoTrf::Transform3D(GeoTrf::Translate3D(0.0, 1.0 * mm, 0.0)), yStraw) *
         GeoTrf::Transform3D(GeoTrf::RotateY3D(90.0 * deg));
 
     subPhys->add(new GeoSerialDenominator(subName + "/straw_"));

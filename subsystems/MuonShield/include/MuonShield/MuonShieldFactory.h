@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <GeoModelKernel/Units.h>
+
 class GeoPhysVol;
 
 namespace SHiPGeometry {
@@ -28,15 +30,18 @@ class MuonShieldFactory {
    private:
     SHiPMaterials& m_materials;
 
+    // Unit shorthand (GeoModel's native length unit is mm)
+    static constexpr double mm = GeoModelKernelUnits::mm;
+
     struct PieceData {
-        double halfX, halfY, halfZ;  // bounding-box half-sizes (mm)
-        double centX, centY;         // centre offset in station XY frame (mm)
+        double halfX, halfY, halfZ;  // bounding-box half-sizes
+        double centX, centY;         // centre offset in station XY frame
         const char* name;            // piece name suffix
     };
 
     struct StationData {
         const char* name;  // station name
-        double stationZ;   // z in MuonShieldArea frame (mm)
+        double stationZ;   // z in MuonShieldArea frame
         double containerHalfX;
         double containerHalfY;
         double containerHalfZ;
@@ -48,10 +53,10 @@ class MuonShieldFactory {
 
     GeoPhysVol* buildStation(const StationData& station);
 
-    // MuonShieldArea container dimensions (mm)
-    static constexpr double s_areaHalfX = 1810.0;
-    static constexpr double s_areaHalfY = 1700.0;
-    static constexpr double s_areaHalfZ = 14724.0;
+    // MuonShieldArea container dimensions
+    static constexpr double s_areaHalfX = 1810.0 * mm;
+    static constexpr double s_areaHalfY = 1700.0 * mm;
+    static constexpr double s_areaHalfZ = 14724.0 * mm;
 };
 
 }  // namespace SHiPGeometry

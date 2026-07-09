@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <GeoModelKernel/Units.h>
+
 #include <string>
 
 class GeoPhysVol;
@@ -37,33 +39,36 @@ class MagnetFactory {
     GeoPhysVol* createCoil(const std::string& name);
     GeoPhysVol* createVerticalConnector(const std::string& name);
 
-    // Yoke dimensions from GDML (half-sizes in mm)
+    // Unit shorthand (GeoModel's native length unit is mm)
+    static constexpr double mm = GeoModelKernelUnits::mm;
+
+    // Yoke dimensions from GDML (half-sizes)
     // GDML: outer 600×860×280 cm, inner 440×700×282 cm
-    static constexpr double s_yokeOuterHalfX = 3000.0;
-    static constexpr double s_yokeOuterHalfY = 4300.0;
-    static constexpr double s_yokeOuterHalfZ = 1400.0;
-    static constexpr double s_yokeInnerHalfX = 2200.0;
-    static constexpr double s_yokeInnerHalfY = 3500.0;
-    static constexpr double s_yokeInnerHalfZ = 1410.0;
+    static constexpr double s_yokeOuterHalfX = 3000.0 * mm;
+    static constexpr double s_yokeOuterHalfY = 4300.0 * mm;
+    static constexpr double s_yokeOuterHalfZ = 1400.0 * mm;
+    static constexpr double s_yokeInnerHalfX = 2200.0 * mm;
+    static constexpr double s_yokeInnerHalfY = 3500.0 * mm;
+    static constexpr double s_yokeInnerHalfZ = 1410.0 * mm;
 
     // Coil dimensions (simplified as boxes)
-    static constexpr double s_coilHalfX = 800.0;
-    static constexpr double s_coilHalfY = 400.0;
-    static constexpr double s_coilHalfZ = 1660.0;
-    static constexpr double s_coilXOffset = 2200.0;
-    static constexpr double s_coilYOffset = 3250.0;
+    static constexpr double s_coilHalfX = 800.0 * mm;
+    static constexpr double s_coilHalfY = 400.0 * mm;
+    static constexpr double s_coilHalfZ = 1660.0 * mm;
+    static constexpr double s_coilXOffset = 2200.0 * mm;
+    static constexpr double s_coilYOffset = 3250.0 * mm;
 
     // Vertical connector dimensions from GDML: 80×650×25 cm
-    static constexpr double s_connectorHalfX = 400.0;
-    static constexpr double s_connectorHalfY = 3250.0;
-    static constexpr double s_connectorHalfZ = 125.0;
-    static constexpr double s_connectorXOffset = 2600.0;
-    static constexpr double s_connectorZOffset = 1525.0;  // From GDML positions
+    static constexpr double s_connectorHalfX = 400.0 * mm;
+    static constexpr double s_connectorHalfY = 3250.0 * mm;
+    static constexpr double s_connectorHalfZ = 125.0 * mm;
+    static constexpr double s_connectorXOffset = 2600.0 * mm;
+    static constexpr double s_connectorZOffset = 1525.0 * mm;  // From GDML positions
 
     // Container (same as yoke outer for simplicity)
-    static constexpr double s_containerHalfX = 3250.0;
-    static constexpr double s_containerHalfY = 4300.0;
-    static constexpr double s_containerHalfZ = 2500.0;
+    static constexpr double s_containerHalfX = 3250.0 * mm;
+    static constexpr double s_containerHalfY = 4300.0 * mm;
+    static constexpr double s_containerHalfZ = 2500.0 * mm;
 };
 
 }  // namespace SHiPGeometry
