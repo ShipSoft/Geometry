@@ -65,7 +65,8 @@ class MagnetFactory {
     static constexpr double s_connectorXOffset = 2600.0 * mm;
     static constexpr double s_connectorZOffset = 1525.0 * mm;  // From GDML positions
 
-    // Container (same as yoke outer for simplicity)
+    // Container sized to enclose the yoke, coils, and connectors: HalfX and
+    // HalfZ exceed the yoke outer dimensions, while HalfY matches it.
     static constexpr double s_containerHalfX = 3250.0 * mm;
     static constexpr double s_containerHalfY = 4300.0 * mm;
     static constexpr double s_containerHalfZ = 2500.0 * mm;
