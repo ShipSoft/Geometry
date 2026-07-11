@@ -76,9 +76,10 @@ TEST_CASE("ConsistencyTest.ExpectedSubsystemCount", "[consistency]") {
     REQUIRE(world != nullptr);
 
     auto subsystems = collectSubsystems(world);
-    // 9 subsystems: target, muon_shield, neutrino_detector, upstream_tagger,
-    // decay_volume, trackers, magnet, timing_detector, calorimeter
-    CHECK(subsystems.size() == 9u);  // NOLINT(readability/check)
+    // 8 subsystems: target, muon_shield, upstream_tagger, decay_volume,
+    // trackers, magnet, timing_detector, calorimeter. The neutrino detector is
+    // nested inside the muon-shield container, so it is not a direct world child.
+    CHECK(subsystems.size() == 8u);  // NOLINT(readability/check)
 }
 
 TEST_CASE("ConsistencyTest.SubsystemsGenerallyInZOrder", "[consistency]") {
@@ -110,13 +111,9 @@ TEST_CASE("ConsistencyTest.NoUnexpectedZOverlaps", "[consistency]") {
 
     // The trackers container intentionally spans across the magnet
     // (stations 1-2 before, stations 3-4 after), so that pair is allowed to overlap.
-    // The SND sits inside the downstream end of the muon-shield region, so the
-    // muon_shield / neutrino_detector pair is also an intentional overlap.
     auto isAllowedOverlap = [](const std::string& a, const std::string& b) {
         return (a == "/SHiP/trackers" && b == "/SHiP/magnet") ||
-               (a == "/SHiP/magnet" && b == "/SHiP/trackers") ||
-               (a == "/SHiP/muon_shield" && b == "/SHiP/neutrino_detector") ||
-               (a == "/SHiP/neutrino_detector" && b == "/SHiP/muon_shield");
+               (a == "/SHiP/magnet" && b == "/SHiP/trackers");
     };
 
     // Sort by Z centre
@@ -156,8 +153,10 @@ TEST_CASE("ConsistencyTest.PositionsSanity", "[consistency]") {
     // Centres as placed in SHiPGeometryBuilder::build()
     std::vector<Expected> expected = {
         {"/SHiP/target", 432.5, 500.0},
-        {"/SHiP/muon_shield", 16763.3, 500.0},
-        {"/SHiP/neutrino_detector", 28950.0, 500.0},
+        {"/SHiP/muon_shield", 18310.0, 500.0},
+        // The neutrino detector is nested inside the muon shield (see
+        // MuonShieldFactory::embedDaughter), not a direct world child, so it is
+        // not among collectSubsystems(world).
         {"/SHiP/upstream_tagger", 32720.0, 500.0},
         {"/SHiP/decay_volume", 58120.0, 500.0},
         {"/SHiP/trackers", 89570.0, 500.0},

@@ -1,0 +1,58 @@
+# SPDX-License-Identifier: LGPL-3.0-or-later
+# Copyright (C) CERN for the benefit of the SHiP Collaboration
+#
+# Muon shield geometry — solid-block approximation of the FairShip TRY_2026
+# magnet layout (FairShip PR #1334). Each magnet is one solid iron block from
+# its outer envelope (dX*(1+ratio)+midGap+ceil(max(100/dY,gap)) x dY+dY_yoke);
+# the aperture, yoke shape and field are dropped (field handled elsewhere).
+#
+# The muon shield is defined INDEPENDENTLY of the neutrino detector. The SND
+# reservation is declared in NeutrinoDetector/SD.toml and subtracted from the
+# iron at build time (A - B), so this file needs no knowledge of the SND.
+#
+# The FairShip absorber (row 0) is the magnetised hadron stopper and lives in
+# the Target subsystem (2.14-4.44 m); the shield front is at 2.14 m, so magnet 1
+# begins at 4.59 m.
+
+block_material = "Iron"
+
+envelope_half_x_mm = 1760.0
+envelope_half_y_mm = 1320.0
+envelope_z_start_m = 4.5400
+envelope_z_end_m   = 32.0800
+
+# magnet 1
+[[block]]
+start = [0.0, 0.0, 4590.0]
+size  = [2720.0, 1600.0, 3000.0]
+
+# magnet 2
+[[block]]
+start = [0.0, 0.0, 7740.0]
+size  = [2980.0, 1780.0, 4500.0]
+
+# magnet 3
+[[block]]
+start = [0.0, 0.0, 12400.0]
+size  = [3104.0, 1700.0, 4500.0]
+
+# magnet 4
+[[block]]
+start = [0.0, 0.0, 17050.0]
+size  = [3184.0, 1200.0, 4500.0]
+
+# magnet 5
+[[block]]
+start = [0.0, 0.0, 21710.0]
+size  = [2680.0, 1040.0, 2620.0]
+
+# magnet 6 (widens in Y toward downstream)
+[[block]]
+start = [0.0, 0.0, 24480.0]
+size  = [3000.0, 1060.0, 3360.0]
+taper = [0.0000, 1.7047]
+
+# magnet 7
+[[block]]
+start = [0.0, 0.0, 28030.0]
+size  = [3420.0, 2540.0, 4000.0]
