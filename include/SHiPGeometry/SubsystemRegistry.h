@@ -5,9 +5,12 @@
 
 #include <GeoModelKernel/GeoPhysVol.h>  // complete GeoPhysVol/GeoVPhysVol for the macro's upcast
 
+#include <cstdio>
+#include <cstdlib>
 #include <functional>
 #include <map>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace SHiPGeometry {
@@ -50,10 +53,21 @@ inline std::map<std::string, SubsystemInfo>& registry() {
     return instance;
 }
 
-/// Add a subsystem to the registry. Returns true (usable as a static initialiser).
+/// Add a subsystem to the registry. Returns true (usable as a static
+/// initialiser). A duplicate name is a programming error (two subsystems
+/// declaring the same descriptor name): it is reported and aborts, rather
+/// than being silently dropped by emplace(). Runs at static-init, so this
+/// diagnoses to stderr and aborts instead of throwing.
 inline bool registerSubsystem(const SubsystemDescriptor& desc,
                               std::function<GeoVPhysVol*(SHiPMaterials&)> build) {
-    registry().emplace(desc.name, SubsystemInfo{desc, std::move(build)});
+    const auto result = registry().emplace(desc.name, SubsystemInfo{desc, std::move(build)});
+    if (!result.second) {
+        std::fprintf(stderr,
+                     "SHiPGeometry: duplicate subsystem name '%s' registered; "
+                     "each subsystem's descriptor() must return a unique name.\n",
+                     desc.name);
+        std::abort();
+    }
     return true;
 }
 
@@ -79,9 +93,11 @@ std::vector<std::string> subsystemNames();
  * The factory must expose `static SubsystemDescriptor descriptor()` and be
  * constructible from `SHiPMaterials&` with a `build()` returning a volume.
  *
- * NOTE: because this registration lives in a static library and nothing else
- * references it, the subsystem archive must be linked with --whole-archive
- * (or an equivalent) so the initialiser is not dropped by the linker.
+ * NOTE: nothing references this registration, so the subsystem library would
+ * otherwise be dropped from a consumer's DT_NEEDED by the toolchain's default
+ * --as-needed and the initialiser would never run. src/CMakeLists.txt applies
+ * -Wl,--no-as-needed as an INTERFACE link option on SHiPGeometry so the flag
+ * lands on each executable's link line. Do not remove it.
  */
 #define REGISTER_SUBSYSTEM(FACTORY)                                                             \
     namespace {                                                                                 \

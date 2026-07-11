@@ -32,3 +32,7 @@ target_link_libraries(
 # registrations never run. INTERFACE puts --no-as-needed on the *consumer's*
 # link line, which is where the entries were being dropped.
 target_link_options(SHiPGeometry INTERFACE "-Wl,--no-as-needed")
+
+if(UNIX AND NOT APPLE)
+    target_link_options(SHiPGeometry INTERFACE "-Wl,--no-as-needed")
+endif()
