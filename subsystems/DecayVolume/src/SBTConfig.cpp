@@ -165,10 +165,20 @@ SBTConfig readSBTConfig(const std::string& path) {
     requirePositive(cfg.container_thickness_mm, "container_thickness_mm");
     requirePositive(cfg.wall_thickness_mm, "wall_thickness_mm");
     // Clearances are insets/gaps; a non-positive value collapses the gap and
-    // can overlap geometry (helium_clearance_mm feeds the helium inset =
-    // container_thickness_mm + helium_clearance_mm in DecayVolumeFactory).
+    // can overlap geometry. helium_clearance_mm is the gap SBTEnvelope leaves
+    // between the helium and the innermost SBT surface.
     requirePositive(cfg.sensor_clearance_mm, "sensor_clearance_mm");
     requirePositive(cfg.helium_clearance_mm, "helium_clearance_mm");
+    // sensor_clearance_mm is trimmed off *each side* of a top/bottom container,
+    // so it must leave something behind: SBTConfig::topBottomContainerHalfThickness()
+    // is 0.5*container_thickness_mm - sensor_clearance_mm and is used directly as
+    // a GeoTrap half-dimension. Worse, if it goes negative,
+    // topBottomSensorInnerY() reports the container's inner face as *further out*
+    // than it is, and SBTEnvelope sizes the helium into the scintillator.
+    if (cfg.sensor_clearance_mm >= 0.5 * cfg.container_thickness_mm)
+        throw std::runtime_error(
+            "SBTConfig: 'sensor_clearance_mm' must be < 0.5 * 'container_thickness_mm' "
+            "(otherwise the top/bottom container half-thickness is non-positive)");
     // Web half-height (= height/2 - flange_thickness) is used as a GeoBox
     // half-dimension, so the flanges must not consume the whole beam.
     if (cfg.hbeam_height_mm <= 2.0 * cfg.hbeam_flange_thickness_mm)

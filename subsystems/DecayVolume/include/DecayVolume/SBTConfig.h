@@ -127,6 +127,14 @@ struct SBTConfig {
         return topBottomContainerCentreY(y_half_mm) - topBottomContainerHalfThickness();
     }
     /// Half-extent in X available to top/bottom containers (mm).
+    ///
+    /// The container stops half a flange width short of the frustum wall (that
+    /// is where the columns' inner face is), less a 1 mm gap so it does not
+    /// land flush against them. The 1 mm is inherited from the original
+    /// SBTSensorBuilder and is a literal, not sensor_clearance_mm — the two
+    /// happen to be equal at the current settings, which is worth being aware
+    /// of when changing sensor_clearance_mm, but they are not the same quantity
+    /// and this one is deliberately left as-is.
     double topBottomAvailX(double x_half_mm) const {
         return x_half_mm - 0.5 * hbeam_flange_width_mm - 1.0;
     }
