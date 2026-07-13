@@ -44,10 +44,30 @@ n_cells                = 6
 sensor_clearance_mm = 1.0
 
 # ── Helium decay region ─────────────────────────────────────────────────
-# The central helium volume is a frustum sized strictly inside the innermost
-# sensor faces (x_half - container_thickness, y_half - container_thickness)
-# minus this clearance, so it cannot overlap the structure or sensors.
-helium_clearance_mm = 10.0
+# The helium is NOT sized from a parameter here. It is derived at build time
+# from where the SBT material actually is (see SBTEnvelope.h), so that it can
+# never overlap the structure or the sensors and never leaves an unphysical
+# margin behind. Two consequences are worth knowing about:
+#
+#   * In X it is bounded by the side scintillator containers, whose outer face
+#     is FLAT over the first zSplitOffset() = (hbeam_height + flange_thickness)/2
+#     of each sub-frustum so as to clear the columns. The free region is
+#     therefore a sawtooth, and the helium is built as one GeoTrap per segment
+#     (2 per sub-frustum) rather than a single frustum.
+#
+#   * In Y it is bounded by STEEL, not scintillator: the top/bottom
+#     longitudinal beams straddle the sensor plane and their inner flange hangs
+#     below it, reaching y_half - 0.5*web_height - 0.5*hbeam_height*sec(taper).
+#     That is ~13.5 mm deeper than the scintillator's inner face.
+#
+# This is the gap left between the helium and the SBT surfaces, measured along
+# the coordinate axis. It is NOT a safety margin: 1 um is far below any
+# engineering tolerance and costs ~0.0001% of the fiducial volume. Its only job
+# is to keep the helium and the SBT from sharing a surface, because coincident
+# boundaries are a classic source of stuck tracks in Geant4's navigator.
+# Set it to 0.0 only if you want exact face-to-face contact and have checked
+# that the navigator copes.
+helium_clearance_mm = 0.001
 
 # ── Materials (resolved from the central SHiPMaterials catalogue) ────────
 material_steel   = "Iron"
