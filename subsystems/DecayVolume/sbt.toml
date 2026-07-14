@@ -61,10 +61,11 @@ sensor_clearance_mm = 1.0
 #     That is ~13.5 mm deeper than the scintillator's inner face.
 #
 # This is the gap left between the helium and the SBT surfaces, measured along
-# the coordinate axis. It is NOT a safety margin: 1 um is far below any
-# engineering tolerance and costs ~0.0001% of the fiducial volume. Its only job
-# is to keep the helium and the SBT from sharing a surface, because coincident
-# boundaries are a classic source of stuck tracks in Geant4's navigator.
+# the coordinate axis. It must be >= 0, and is validated by SBTEnvelope, its only
+# consumer. It is NOT a safety margin: 1 um is far below any engineering
+# tolerance and costs ~0.0001% of the fiducial volume. Its only job is to keep
+# the helium and the SBT from sharing a surface, because coincident boundaries
+# are a classic source of stuck tracks in Geant4's navigator.
 # Set it to 0.0 only if you want exact face-to-face contact and have checked
 # that the navigator copes.
 helium_clearance_mm = 0.001

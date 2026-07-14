@@ -208,16 +208,16 @@ void SBTStructureBuilder::build(GeoVPhysVol* mother, const GeoMaterial* steel, c
 
     // Frustum profile from SBTConfig — the same accessors SBTEnvelope uses to
     // size the helium, so the two can never disagree.
-    auto xHalfAtZ = [&](double z_mm, double /*zEnt_mm*/) { return cfg.xHalfAt(z_mm); };
-    auto yHalfAtZ = [&](double z_mm, double /*zEnt_mm*/) { return cfg.yHalfAt(z_mm); };
+    auto xHalfAtZ = [&](double z_mm) { return cfg.xHalfAt(z_mm); };
+    auto yHalfAtZ = [&](double z_mm) { return cfg.yHalfAt(z_mm); };
 
     //  (A)  VERTICAL COLUMNS — 11 rows x 2 sides, frustum top -> floor.
     for (int row = 0; row <= nSubFrustrum; ++row) {
         const double z_mm = zEntrance_mm + row * subLength;
         const double z_G = z_mm * mm;
 
-        const double xEdge_mm = xHalfAtZ(z_mm, zEntrance_mm);
-        const double yTop_mm = yHalfAtZ(z_mm, zEntrance_mm);
+        const double xEdge_mm = xHalfAtZ(z_mm);
+        const double yTop_mm = yHalfAtZ(z_mm);
 
         const double yCol_ctr_mm = 0.5 * (yTop_mm + yFloor);
         const double yCol_half_mm = 0.5 * (yTop_mm - yFloor);
@@ -253,10 +253,10 @@ void SBTStructureBuilder::build(GeoVPhysVol* mother, const GeoMaterial* steel, c
             const double zA_mm = zEntrance_mm + s * subLength + cbEndGap;
             const double zB_mm = zEntrance_mm + (s + 1) * subLength - cbEndGap;
 
-            const double xA = xHalfAtZ(zA_mm, zEntrance_mm);
-            const double xB = xHalfAtZ(zB_mm, zEntrance_mm);
-            const double yA = yHalfAtZ(zA_mm, zEntrance_mm);
-            const double yB = yHalfAtZ(zB_mm, zEntrance_mm);
+            const double xA = xHalfAtZ(zA_mm);
+            const double xB = xHalfAtZ(zB_mm);
+            const double yA = yHalfAtZ(zA_mm);
+            const double yB = yHalfAtZ(zB_mm);
 
             const std::string bname =
                 tag + "_CornerBeam_" + std::to_string(ci) + "_S" + std::to_string(s);
@@ -275,18 +275,18 @@ void SBTStructureBuilder::build(GeoVPhysVol* mother, const GeoMaterial* steel, c
         const double zLo_mm = zEntrance_mm + s * subLength;
         const double zHi_mm = zEntrance_mm + (s + 1) * subLength;
 
-        const double xLo = xHalfAtZ(zLo_mm, zEntrance_mm);
-        const double xHi = xHalfAtZ(zHi_mm, zEntrance_mm);
+        const double xLo = xHalfAtZ(zLo_mm);
+        const double xHi = xHalfAtZ(zHi_mm);
 
         // Straddle beam: the outer flange sits above the scintillator, the web
         // is omitted (it would pass through the cells) and the INNER FLANGE
         // HANGS BELOW THE SCINTILLATOR, into the decay region. That inner
         // flange is the innermost material in ±Y and therefore what bounds the
         // helium — see SBTConfig::longBeamInnerY() and SBTEnvelope.
-        const double yTop_Lo = +cfg.longBeamCentreY(yHalfAtZ(zLo_mm, zEntrance_mm));
-        const double yTop_Hi = +cfg.longBeamCentreY(yHalfAtZ(zHi_mm, zEntrance_mm));
-        const double yBot_Lo = -cfg.longBeamCentreY(yHalfAtZ(zLo_mm, zEntrance_mm));
-        const double yBot_Hi = -cfg.longBeamCentreY(yHalfAtZ(zHi_mm, zEntrance_mm));
+        const double yTop_Lo = +cfg.longBeamCentreY(yHalfAtZ(zLo_mm));
+        const double yTop_Hi = +cfg.longBeamCentreY(yHalfAtZ(zHi_mm));
+        const double yBot_Lo = -cfg.longBeamCentreY(yHalfAtZ(zLo_mm));
+        const double yBot_Hi = -cfg.longBeamCentreY(yHalfAtZ(zHi_mm));
 
         const std::string sTag = tag + "_SF" + std::to_string(s);
 
@@ -379,9 +379,9 @@ void SBTStructureBuilder::build(GeoVPhysVol* mother, const GeoMaterial* steel, c
         const double z_mm = zEntrance_mm + row * subLength;
         const double z_G = z_mm * mm;
 
-        const double xEdge_mm = xHalfAtZ(z_mm, zEntrance_mm);
-        const double yTop_mm = +yHalfAtZ(z_mm, zEntrance_mm);
-        const double yBot_mm = -yHalfAtZ(z_mm, zEntrance_mm);
+        const double xEdge_mm = xHalfAtZ(z_mm);
+        const double yTop_mm = +yHalfAtZ(z_mm);
+        const double yBot_mm = -yHalfAtZ(z_mm);
 
         const std::string rowTag = tag + "_XBeam_R" + std::to_string(row);
 

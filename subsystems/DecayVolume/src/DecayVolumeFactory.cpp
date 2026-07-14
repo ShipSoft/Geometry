@@ -11,13 +11,9 @@
 #include "SHiPGeometry/SHiPMaterials.h"
 
 #include <GeoModelKernel/GeoBox.h>
-#include <GeoModelKernel/GeoDefinitions.h>
 #include <GeoModelKernel/GeoLogVol.h>
 #include <GeoModelKernel/GeoMaterial.h>
-#include <GeoModelKernel/GeoNameTag.h>
 #include <GeoModelKernel/GeoPhysVol.h>
-#include <GeoModelKernel/GeoTransform.h>
-#include <GeoModelKernel/GeoTrap.h>
 #include <GeoModelKernel/Units.h>
 
 #include <algorithm>
@@ -25,7 +21,6 @@
 #include <stdexcept>
 #include <string>
 #include <utility>
-#include <vector>
 
 // Source-tree / install-time fallbacks for sbt.toml, set by CMake.
 #ifndef SBT_TOML_DEFAULT_PATH
@@ -108,8 +103,9 @@ GeoPhysVol* DecayVolumeFactory::build() {
     // The helium is not sized independently — it is *derived* from where the
     // SBT material actually is (SBTEnvelope, which reads the same placement
     // primitives on SBTConfig that the two builders above place with). It
-    // fills the interior exactly: no protrusion into steel or scintillator,
-    // and no arbitrary margin left behind (helium_clearance_mm = 0).
+    // fills the interior exactly: no protrusion into steel or scintillator, and
+    // no arbitrary margin left behind beyond helium_clearance_mm (1 um, just
+    // enough to avoid coincident surfaces).
     //
     // It is a stack of GeoTraps rather than one, because the inner surface is
     // not linear in Z: the side containers present a flat outer face over the

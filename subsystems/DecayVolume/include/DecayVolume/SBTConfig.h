@@ -39,9 +39,11 @@ struct SBTConfig {
     double sensor_clearance_mm = 1.0;
 
     // ── Helium decay region ─────────────────────────────────────────────
-    // Gap left between the helium and the innermost SBT material, along the
-    // coordinate axis. Not a safety margin — just enough to avoid coincident
-    // surfaces, which Geant4's navigator handles badly.
+    // Gap left between the helium and the innermost SBT material, measured along
+    // the coordinate axis. Must be >= 0; SBTEnvelope enforces that and is the
+    // only consumer. It is not a safety margin — the default of 1 um is simply
+    // enough to stop the helium and the SBT sharing a surface, which Geant4's
+    // navigator handles badly. 0 is legal and gives exact face-to-face contact.
     // NOTE: this default must track sbt.toml.
     double helium_clearance_mm = 0.001;
 
