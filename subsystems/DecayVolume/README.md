@@ -41,6 +41,12 @@ children of the container), which the clash-avoidance logic relies on.
  └─ /SHiP/decay_volume/sbt/sensors_*       (Al walls + LAB cells, 3380 GeoTrap)
 ```
 
+The tree above is by *name*, not by containment: `.../sbt/...` is a prefix on the
+volume names, not a physical grouping volume. Every volume — helium slabs,
+structure pieces and sensor pieces alike — is a direct child of
+`/SHiP/decay_volume` (the clash-avoidance logic relies on this flat layout, and
+`test_decayvolume` asserts all 3712 are direct children with no grandchildren).
+
 Position in world: z = 58120 mm (centre), unchanged. The 50 m SBT is centred
 on the container origin (entrance face at z = −25000 mm in the local frame).
 
