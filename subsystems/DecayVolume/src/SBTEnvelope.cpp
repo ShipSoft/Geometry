@@ -57,6 +57,18 @@ double innerFreeHalfY(const SBTConfig& cfg, double z_mm) {
     // ... and the longitudinal beams' inner flange, which hangs below them.
     const double beam = cfg.longBeamInnerY(yHalf);
     // (Cross-beams sit a full beam-height above y_half and never reach in.)
+    //
+    // KNOWN LIMITATION (conservative): the longitudinal beams do not run the
+    // full sub-frustum length — they stand off by ~0.5*flange_width from each
+    // boundary (SBTStructureBuilder). In those ~142 mm end bands the true Y
+    // bound is the shallower scintillator, but we cap at the deeper beam line
+    // regardless, so the helium is up to ~13.5 mm short of the material there.
+    // This never overlaps (it only makes the helium smaller), but it does leave
+    // the helium slightly inside the "no unphysical margin" ideal over ~2.8 m of
+    // length — worth ~0.18 m^3, i.e. 0.04% of the fiducial volume. Reclaiming it
+    // means subdividing the Y envelope at the beam ends, which has to account
+    // for the flange box's z-projection overshooting its nominal end; deferred
+    // to a dedicated change rather than risking that interaction here.
     return std::min(sensor, beam);
 }
 

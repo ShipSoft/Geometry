@@ -181,7 +181,23 @@ std::array<Vec, 8> boxVertices(const GeoBox& b) {
     return v;
 }
 
+// The SAT axis set used by separation() (6 face normals, each from 3 vertices,
+// plus 12 edge crosses) is exact only when the trap's quadrilateral faces are
+// planar. Every trap this geometry builds has equal top/bottom half-widths
+// (dxdyn == dxdyp) and zero shear (alpha == 0), which makes the faces planar.
+// A future config or builder change that produced a genuinely sheared trap
+// would leave the axis set incomplete, and separation() could then call an
+// overlapping pair disjoint. Require planarity here so that regresses loudly
+// instead of silently weakening the overlap guarantee.
+void requirePlanarTrap(const GeoTrap& t) {
+    REQUIRE(std::abs(t.getDxdyndzn() - t.getDxdypdzn()) < 1e-9);
+    REQUIRE(std::abs(t.getDxdyndzp() - t.getDxdypdzp()) < 1e-9);
+    REQUIRE(std::abs(t.getAngleydzn()) < 1e-12);
+    REQUIRE(std::abs(t.getAngleydzp()) < 1e-12);
+}
+
 std::array<Vec, 8> trapVertices(const GeoTrap& t) {
+    requirePlanarTrap(t);
     const double dz = t.getZHalfLength();
     const double tt = std::tan(t.getTheta());
     const double cx = tt * std::cos(t.getPhi());
@@ -323,9 +339,16 @@ constexpr double kTol = 1e-6;
 // helium_clearance_mm is a gap measured along a coordinate axis. SAT returns a
 // Euclidean distance, and the surfaces bounding the helium are tilted by the
 // frustum taper, so an axis gap of c shows up as c*cos(tilt). Assert the band.
+//
+// A bounding surface can tilt in both x and y at once (a side-container
+// tracking-piece inner face does), and its normal then makes an angle
+// atan(sqrt(gx^2 + gy^2)) with the axis, not atan(max(gx, gy)). The two-axis
+// combination is the rigorous lower bound; max() alone overestimates the gap
+// and can reject correct geometry once the clearance is large enough for the
+// difference to exceed kTol (it does at the clr = 10 sweep case).
 double minExpectedSeparation(const SHiPGeometry::SBTConfig& cfg) {
-    const double g = std::max(std::abs(cfg.xGrowth()), std::abs(cfg.yGrowth()));
-    return cfg.helium_clearance_mm / std::sqrt(1.0 + g * g);
+    const double gx = cfg.xGrowth(), gy = cfg.yGrowth();
+    return cfg.helium_clearance_mm / std::sqrt(1.0 + gx * gx + gy * gy);
 }
 
 // Closest approach between any helium slab and any SBT volume.
