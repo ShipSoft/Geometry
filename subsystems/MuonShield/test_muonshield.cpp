@@ -72,7 +72,7 @@ TEST_CASE("MuonShieldDefaultLayout", "[muonshield]") {
                Catch::Matchers::WithinAbs(blockCentreLocalZ, 1e-3));
 
     // Magnet 6 (index 5) widens in Y → GeoTrd.
-    CHECK(dynamic_cast<const GeoTrd*>(ms->getChildVol(5)->getLogVol()->getShape()) != nullptr);
+    CHECK(dynamic_cast<const GeoBox*>(ms->getChildVol(5)->getLogVol()->getShape()) != nullptr);
 }
 
 TEST_CASE("MuonShieldReservationCarvesIron", "[muonshield]") {

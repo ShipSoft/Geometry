@@ -46,11 +46,11 @@ size  = [3184.0, 1200.0, 4500.0]
 start = [0.0, 0.0, 21710.0]
 size  = [2680.0, 1040.0, 2620.0]
 
-# magnet 6 (widens in Y toward downstream)
+# magnet 6
 [[block]]
 start = [0.0, 0.0, 24480.0]
-size  = [3000.0, 1060.0, 3360.0]
-taper = [0.0000, 1.7047]
+size  = [3000.0, 1260.0, 3360.0]
+
 
 # magnet 7
 [[block]]
