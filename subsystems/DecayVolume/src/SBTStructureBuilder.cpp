@@ -154,10 +154,10 @@ void placeHBeamInclined(GeoVPhysVol* parent, const GeoMaterial* mat, const SBTCo
         nz /= nmag;
     }
 
-    // Third axis: b = d x n  (completes right-handed frame)
-    const double bx = uy * nz - uz * ny;
-    const double by = uz * nx - ux * nz;
-    const double bz = ux * ny - uy * nx;
+    // Third axis: b = n x d  (completes right-handed frame with columns (b, n, d))
+    const double bx = ny * uz - nz * uy;
+    const double by = nz * ux - nx * uz;
+    const double bz = nx * uy - ny * ux;
 
     const double xcm = 0.5 * (x0 + x1);
     const double ycm = 0.5 * (y0 + y1);
@@ -326,7 +326,7 @@ void SBTStructureBuilder::build(GeoVPhysVol* mother, const GeoMaterial* steel, c
 
                 GeoTrf::RotationMatrix3D rotMat;
                 rotMat.col(0) =
-                    Eigen::Vector3d(uy * nz - uz * ny, uz * nx - ux * nz, ux * ny - uy * nx);
+                    Eigen::Vector3d(ny * uz - nz * uy, nz * ux - nx * uz, nx * uy - ny * ux);
                 rotMat.col(1) = Eigen::Vector3d(nx, ny, nz);
                 rotMat.col(2) = Eigen::Vector3d(ux, uy, uz);
 
