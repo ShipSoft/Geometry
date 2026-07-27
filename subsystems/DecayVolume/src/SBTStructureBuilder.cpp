@@ -78,7 +78,7 @@ void placeHBeamAlongY(GeoVPhysVol* parent, const GeoMaterial* mat, const SBTConf
     const double hz_flange = 0.5 * hBeamTf * mm;                  // flange thick  -> Z
     const double hx_web = 0.5 * cfg.hbeam_web_thickness_mm * mm;  // web thickness -> X
     const double hz_web = 0.5 * hBeamHw * mm;                     // web height    -> Z
-    const double zOffset = (0.5 * hBeamH - 0.5 * hBeamTf) * mm;
+    const double zOffset = cfg.hbeamFlangeOffset() * mm;
 
     placeBox(parent, mat, name + "_FF", hx_flange, halfLen, hz_flange,
              GeoTrf::Translate3D(xc, yc, zc + zOffset));
@@ -100,7 +100,7 @@ void placeHBeamAlongX(GeoVPhysVol* parent, const GeoMaterial* mat, const SBTConf
     const double hz_flange = 0.5 * hBeamW * mm;                   // flange width     -> Z
     const double hy_web = 0.5 * hBeamHw * mm;                     // web height       -> Y
     const double hz_web = 0.5 * cfg.hbeam_web_thickness_mm * mm;  // web thickness -> Z
-    const double yOffset = (0.5 * hBeamH - 0.5 * hBeamTf) * mm;
+    const double yOffset = cfg.hbeamFlangeOffset() * mm;
 
     placeBox(parent, mat, name + "_TF", halfLen, hy_flange, hz_flange,
              GeoTrf::Translate3D(xc, yc + yOffset, zc));
@@ -167,7 +167,7 @@ void placeHBeamInclined(GeoVPhysVol* parent, const GeoMaterial* mat, const SBTCo
     const double hy_flange = 0.5 * hBeamTf * mm;
     const double hx_web = 0.5 * hBeamTw * mm;
     const double hy_web = 0.5 * hBeamHw * mm;
-    const double yOffset = (0.5 * hBeamH - 0.5 * hBeamTf) * mm;
+    const double yOffset = cfg.hbeamFlangeOffset() * mm;
 
     GeoTrf::RotationMatrix3D rotMat;
     rotMat.col(0) = Eigen::Vector3d(bx, by, bz);  // local X -> b
@@ -325,7 +325,7 @@ void SBTStructureBuilder::build(GeoVPhysVol* mother, const GeoMaterial* steel, c
                 const double xcm = 0.5 * (x0 + x1), ycm = 0.5 * (y0 + y1), zcm = 0.5 * (z0 + z1);
 
                 const double hxF = 0.5 * hBeamW * mm, hyF = 0.5 * hBeamTf * mm;
-                const double yOff = (0.5 * hBeamH - 0.5 * hBeamTf) * mm;
+                const double yOff = cfg.hbeamFlangeOffset() * mm;
 
                 auto makeTrf = [&](double localDY) {
                     const double px = xcm + nx * localDY, py = ycm + ny * localDY,

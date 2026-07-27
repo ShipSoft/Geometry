@@ -433,8 +433,21 @@ TEST_CASE("HeliumMatchesAnalyticEnvelope", "[decayvolume][envelope]") {
             const double freeX = SHiPGeometry::innerFreeHalfX(cfg, zs);
             const double freeY = SHiPGeometry::innerFreeHalfY(cfg, zs);
 
+            // Upper bound: the helium never protrudes past the analytic envelope.
             CHECK(dx <= freeX - cfg.helium_clearance_mm + kTol);  // NOLINT(readability/check)
             CHECK(dy <= freeY - cfg.helium_clearance_mm + kTol);  // NOLINT(readability/check)
+
+            // Lower bound: the helium is flush, not merely inside. In Y the
+            // envelope is continuous across a slab, so the interpolated edge
+            // must sit right on it. In X it steps at each flat/tracking knot:
+            // envelopeAtKnot freezes the slab's dx at the lower (flat) value,
+            // while freeX just inside the tracking piece is up to
+            // xGrowth * zSplitOffset higher — so allow exactly that documented
+            // sawtooth slack there, and no more.
+            const double xSlack = std::abs(cfg.xGrowth()) * cfg.zSplitOffset();
+            CHECK(dx >=
+                  freeX - cfg.helium_clearance_mm - xSlack - kTol);  // NOLINT(readability/check)
+            CHECK(dy >= freeY - cfg.helium_clearance_mm - kTol);     // NOLINT(readability/check)
         }
     }
 }
