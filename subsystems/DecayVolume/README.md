@@ -15,10 +15,16 @@ at the exit) made of two parts:
 - **LAB liquid-scintillator sensor cells** in thin aluminium containers,
   tiling the four faces of the frustum.
 
-The decay region itself is a central **helium frustum**. It is sized strictly
-inside the innermost sensor faces (`x_half − container_thickness`,
-`y_half − container_thickness`) minus a clearance, so it cannot overlap the
-structure or the sensors.
+The decay region itself is **helium**, but it is not sized by a fixed inset.
+It is *derived* from where the SBT material actually sits (see
+[`SBTEnvelope.h`](include/DecayVolume/SBTEnvelope.h)): the innermost surfaces —
+the side and top/bottom scintillator containers, and the top/bottom longitudinal
+beam inner flanges, which hang *below* the sensor plane into the decay region —
+bound it directly. Because that inner surface is not linear in Z (the side
+containers present a flat outer face over the first part of each sub-frustum to
+clear the columns), the helium is built as a stack of GeoTraps, two per
+sub-frustum, each strictly inscribed inside the material minus a small
+clearance. This cannot overlap the structure or the sensors.
 
 Everything is held in an **air container** (the SBT is part of the experiment's
 support frame, not a sealed vessel). The previous monolithic aluminium box
@@ -30,10 +36,16 @@ children of the container), which the clash-avoidance logic relies on.
 
 ```
 /SHiP/decay_volume                         (Air box, 4400 × 6600 × 50400 mm)
- ├─ /SHiP/decay_volume/helium              (PressurisedHe90, central frustum)
+ ├─ /SHiP/decay_volume/helium_0..19        (PressurisedHe90, 20 inscribed GeoTrap slabs)
  ├─ /SHiP/decay_volume/sbt/structure_*     (Iron, 312 GeoBox H-beam pieces)
  └─ /SHiP/decay_volume/sbt/sensors_*       (Al walls + LAB cells, 3380 GeoTrap)
 ```
+
+The tree above is by *name*, not by containment: `.../sbt/...` is a prefix on the
+volume names, not a physical grouping volume. Every volume — helium slabs,
+structure pieces and sensor pieces alike — is a direct child of
+`/SHiP/decay_volume` (the clash-avoidance logic relies on this flat layout, and
+`test_decayvolume` asserts all 3712 are direct children with no grandchildren).
 
 Position in world: z = 58120 mm (centre), unchanged. The 50 m SBT is centred
 on the container origin (entrance face at z = −25000 mm in the local frame).
@@ -46,6 +58,12 @@ on the container origin (entrance face at z = −25000 mm in the local frame).
 | Corner beams        |   120 | 4 corners × 10 segments × 3 boxes (inclined) |
 | Longitudinal beams  |    60 | 1/face (sub-frustum 0–4), 2/face (5–9); flanges only |
 | Cross-beams         |    66 | 11 rows × 2 faces × 3 boxes                  |
+
+### Helium (20 GeoTrap)
+
+Two inscribed slabs per sub-frustum (10 sub-frusta): the slab boundaries fall at
+each sub-frustum entrance and at the side-container flat-piece edge, so the slab
+faces follow the sawtooth inner surface without cutting into it.
 
 ### Sensors (3380 GeoTrap)
 
@@ -77,7 +95,7 @@ entrance Z, and all material names. Unknown keys are reported on stderr.
 
 ## Status
 
-- [x] C++ implementation (SBT structure + sensors + helium frustum)
+- [x] C++ implementation (SBT structure + sensors + derived helium)
 - [x] Frustum shape (replaces the old box vessel approximation)
 - [x] Surround Background Tagger integrated
 - [x] sbt.toml configuration
@@ -86,5 +104,9 @@ entrance Z, and all material names. Unknown keys are reported on stderr.
 ## Tests
 
 `test_decayvolume` checks the container envelope, the 312 structure GeoBoxes,
-the 3381 GeoTrap children (1 helium + 3380 sensors), the total of 3693 direct
-children, and that the central decay region is a helium GeoTrap frustum.
+and the 3400 GeoTrap children (20 helium slabs + 3380 sensors) for a total of
+3712 direct children. Beyond the counts, it runs an exact separating-axis
+overlap test between every helium slab and every SBT volume in the built tree,
+asserting the helium neither protrudes into any material nor leaves a margin
+beyond the configured clearance, and repeats that across 14 perturbed SBT
+configurations so the guarantee survives re-parameterisation.

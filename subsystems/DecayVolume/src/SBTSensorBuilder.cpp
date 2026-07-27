@@ -64,14 +64,11 @@ void placeSideContainer(GeoVPhysVol* mother, const GeoMaterial* alMat, const Geo
                         const SBTConfig& cfg, const std::string& name, double sgnX, double xHalf_lo,
                         double xHalf_hi, double zLo_mm, double zHi_mm, double dy1, double dy2,
                         double yCtr1, double yCtr2) {
-    const double contThick = cfg.container_thickness_mm;
-    const double hBeamH = cfg.hbeam_height_mm;
-    const double hBeamW = cfg.hbeam_flange_width_mm;
-    const double hBeamTf = cfg.hbeam_flange_thickness_mm;
+    // Geometry rules live on SBTConfig (see "PLACEMENT PRIMITIVES" there) so
+    // that SBTEnvelope can derive the helium from exactly the same expressions.
+    const double dx = cfg.sideContainerHalfThickness() * mm;
 
-    const double dx = 0.5 * contThick * mm;
-
-    const double z_split_rel = 0.5 * hBeamH + 0.5 * hBeamTf;  // column front-flange outer edge
+    const double z_split_rel = cfg.zSplitOffset();  // column front-flange outer edge
     const double z_split_mm = zLo_mm + z_split_rel;
 
     // ---- Piece 1: z in [zLo, z_split] — flat outer face, Y shear only ----
@@ -85,7 +82,7 @@ void placeSideContainer(GeoVPhysVol* mother, const GeoMaterial* alMat, const Geo
         const double yC1 = yCtr1;
         const double yC2 = yCtr1 + (yCtr2 - yCtr1) * frac1;
 
-        const double xCtr_flat = sgnX * (xHalf_lo - 0.5 * hBeamW - 0.5 * contThick) * mm;
+        const double xCtr_flat = sgnX * cfg.sideContainerCentreX(xHalf_lo) * mm;
 
         const double dY1 = yC2 - yC1;
         const double shear1 = std::abs(dY1);
@@ -109,8 +106,8 @@ void placeSideContainer(GeoVPhysVol* mother, const GeoMaterial* alMat, const Geo
         const double yC2 = yCtr2;
 
         const double xHalf_split = xHalf_lo + (xHalf_hi - xHalf_lo) * frac1;
-        const double xCtr1_p2 = sgnX * (xHalf_split - 0.5 * hBeamW - 0.5 * contThick) * mm;
-        const double xCtr2_p2 = sgnX * (xHalf_hi - 0.5 * hBeamW - 0.5 * contThick) * mm;
+        const double xCtr1_p2 = sgnX * cfg.sideContainerCentreX(xHalf_split) * mm;
+        const double xCtr2_p2 = sgnX * cfg.sideContainerCentreX(xHalf_hi) * mm;
 
         const double dX2 = xCtr2_p2 - xCtr1_p2;
         const double dY2 = yC2 - yC1;
@@ -205,34 +202,24 @@ void SBTSensorBuilder::build(GeoVPhysVol* mother, const GeoMaterial* alMat,
                              const GeoMaterial* labMat, const SBTConfig& cfg,
                              const std::string& tag) {
     // Bind config to the names the ported body uses (magnitudes in mm).
-    const double xHalf_ent = cfg.x_half_entrance_mm;
-    const double yHalf_ent = cfg.y_half_entrance_mm;
-    const double xHalf_ext = cfg.x_half_exit_mm;
-    const double yHalf_ext = cfg.y_half_exit_mm;
-    const double zTotal = cfg.total_length_mm;
     const int nSub = cfg.n_sub_frustum;
     const double subLen = cfg.subLength();
     const double hBeamH = cfg.hbeam_height_mm;
-    const double hBeamW = cfg.hbeam_flange_width_mm;
-    const double hBeamTf = cfg.hbeam_flange_thickness_mm;
-    const double contThick = cfg.container_thickness_mm;
     const double sensorClear = cfg.sensor_clearance_mm;
     const double zEntrance_mm = cfg.z_entrance_mm;
 
-    auto xHalfAtZ = [&](double z_mm, double zEnt_mm) {
-        return xHalf_ent + (z_mm - zEnt_mm) / zTotal * (xHalf_ext - xHalf_ent);
-    };
-    auto yHalfAtZ = [&](double z_mm, double zEnt_mm) {
-        return yHalf_ent + (z_mm - zEnt_mm) / zTotal * (yHalf_ext - yHalf_ent);
-    };
+    // Frustum profile and all placement rules come from SBTConfig, so that
+    // SBTEnvelope sizes the helium from the very same expressions.
+    auto xHalfAtZ = [&](double z_mm) { return cfg.xHalfAt(z_mm); };
+    auto yHalfAtZ = [&](double z_mm) { return cfg.yHalfAt(z_mm); };
 
     //  (A)  SIDE CONTAINERS  (±X faces) — 4 containers per side, split by Y=0.
     for (int s = 0; s < nSub; ++s) {
         const double zLo_mm = zEntrance_mm + s * subLen;
         const double zHi_mm = zEntrance_mm + (s + 1) * subLen;
 
-        const double availLo = (yHalfAtZ(zLo_mm, zEntrance_mm) - hBeamH) * mm;
-        const double availHi = (yHalfAtZ(zHi_mm, zEntrance_mm) - hBeamH) * mm;
+        const double availLo = (yHalfAtZ(zLo_mm) - hBeamH) * mm;
+        const double availHi = (yHalfAtZ(zHi_mm) - hBeamH) * mm;
 
         const double dy1[4] = {availLo / 4.0, availLo / 4.0, availLo / 4.0, availLo / 4.0};
         const double dy2[4] = {availHi / 4.0, availHi / 4.0, availHi / 4.0, availHi / 4.0};
@@ -249,9 +236,9 @@ void SBTSensorBuilder::build(GeoVPhysVol* mother, const GeoMaterial* alMat,
                 const std::string cname = tag + "_Side_S" + std::to_string(s) + "_X" +
                                           (side == 0 ? "P" : "M") + "_C" + std::to_string(ci);
 
-                placeSideContainer(mother, alMat, labMat, cfg, cname, sgnX,
-                                   xHalfAtZ(zLo_mm, zEntrance_mm), xHalfAtZ(zHi_mm, zEntrance_mm),
-                                   zLo_mm, zHi_mm, dy1[ci], dy2[ci], yCtr1[ci], yCtr2[ci]);
+                placeSideContainer(mother, alMat, labMat, cfg, cname, sgnX, xHalfAtZ(zLo_mm),
+                                   xHalfAtZ(zHi_mm), zLo_mm, zHi_mm, dy1[ci], dy2[ci], yCtr1[ci],
+                                   yCtr2[ci]);
             }
         }
     }
@@ -265,19 +252,19 @@ void SBTSensorBuilder::build(GeoVPhysVol* mother, const GeoMaterial* alMat,
         const double zLo_mm = zEntrance_mm + s * subLen;
         const double zHi_mm = zEntrance_mm + (s + 1) * subLen;
 
-        const double xAvailLo = (xHalfAtZ(zLo_mm, zEntrance_mm) - 0.5 * hBeamW - 1.0) * mm;
-        const double xAvailHi = (xHalfAtZ(zHi_mm, zEntrance_mm) - 0.5 * hBeamW - 1.0) * mm;
+        const double xAvailLo = cfg.topBottomAvailX(xHalfAtZ(zLo_mm)) * mm;
+        const double xAvailHi = cfg.topBottomAvailX(xHalfAtZ(zHi_mm)) * mm;
 
-        const double yFaceTop_Lo = (yHalfAtZ(zLo_mm, zEntrance_mm) - 0.5 * contThick) * mm;
-        const double yFaceTop_Hi = (yHalfAtZ(zHi_mm, zEntrance_mm) - 0.5 * contThick) * mm;
+        const double yFaceTop_Lo = cfg.topBottomContainerCentreY(yHalfAtZ(zLo_mm)) * mm;
+        const double yFaceTop_Hi = cfg.topBottomContainerCentreY(yHalfAtZ(zHi_mm)) * mm;
         const double yFaceBot_Lo = -yFaceTop_Lo;
         const double yFaceBot_Hi = -yFaceTop_Hi;
 
-        const double dx = (0.5 * contThick - sensorClear) * mm;
+        const double dx = cfg.topBottomContainerHalfThickness() * mm;
 
         const int nCont = (s < threshold) ? 2 : 3;
 
-        const double z_split_rel = 0.5 * hBeamH + 0.5 * hBeamTf;  // column front-flange outer edge
+        const double z_split_rel = cfg.zSplitOffset();  // column front-flange outer edge
         const double z_split_mm = zLo_mm + z_split_rel;
         const double frac_split = z_split_rel / (zHi_mm - zLo_mm);
 
