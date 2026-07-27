@@ -185,6 +185,7 @@ geometry/
 │   ├── Cavern/
 │   ├── Target/
 │   ├── MuonShield/
+│   ├── NeutrinoDetector/
 │   ├── Magnet/
 │   ├── DecayVolume/
 │   ├── Trackers/

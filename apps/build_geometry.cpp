@@ -25,13 +25,6 @@
 #include <string>
 #include <vector>
 
-namespace {
-bool endsWith(const std::string& s, const std::string& suffix) {
-    return s.size() >= suffix.size() &&
-           s.compare(s.size() - suffix.size(), suffix.size(), suffix) == 0;
-}
-}  // namespace
-
 int main(int argc, char* argv[]) {
     std::string outputFile;
     std::vector<std::string> names;  // requested subsystem(s)
@@ -43,7 +36,7 @@ int main(int argc, char* argv[]) {
                 std::cout << n << "\n";
             return 0;
         }
-        if (endsWith(arg, ".db")) {
+        if (arg.ends_with(".db")) {
             outputFile = arg;
         } else {
             names.push_back(arg);

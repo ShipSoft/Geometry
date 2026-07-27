@@ -7,14 +7,12 @@
 
 #include "SHiPGeometry/SHiPGeometry.h"
 
+#include "SHiPGeometry/Placement.h"
 #include "SHiPGeometry/SHiPMaterials.h"
 #include "SHiPGeometry/SubsystemRegistry.h"
 
 #include <GeoModelKernel/GeoDefinitions.h>
-#include <GeoModelKernel/GeoIdentifierTag.h>
-#include <GeoModelKernel/GeoNameTag.h>
 #include <GeoModelKernel/GeoPhysVol.h>
-#include <GeoModelKernel/GeoTransform.h>
 
 #include <algorithm>
 #include <stdexcept>
@@ -23,28 +21,9 @@
 
 namespace SHiPGeometry {
 
-namespace {
-
-/// Attach a built subsystem volume to the world at its declared placement.
-void place(GeoPhysVol* world, GeoVPhysVol* volume, const SubsystemDescriptor& d) {
-    world->add(new GeoNameTag(d.node));
-    world->add(new GeoIdentifierTag(d.id));
-    world->add(new GeoTransform(GeoTrf::Translate3D(d.x_mm, d.y_mm, d.z_mm)));
-    world->add(volume);
-}
-
-}  // namespace
-
-GeoPhysVol* assembleGeometry(const std::vector<std::string>& only) {
+GeoPhysVol* assembleGeometry() {
     SHiPMaterials materials;
     auto& reg = registry();
-
-    // Validate any requested names up front.
-    for (const auto& name : only) {
-        if (reg.find(name) == reg.end()) {
-            throw std::runtime_error("Unknown subsystem: '" + name + "'");
-        }
-    }
 
     // The world is whichever registered subsystem marks itself isWorld (cavern).
     GeoPhysVol* world = nullptr;
@@ -58,16 +37,14 @@ GeoPhysVol* assembleGeometry(const std::vector<std::string>& only) {
         throw std::runtime_error("No world (isWorld) subsystem is registered");
     }
 
-    // Gather the placed subsystems (selection or all), then order them
-    // deterministically by (z, id) — independent of registration order.
+    // Gather all non-world subsystems, then order them deterministically by
+    // (z, id) — independent of registration order.
     std::vector<const SubsystemInfo*> placed;
     for (auto& entry : reg) {
         const SubsystemInfo& info = entry.second;
         if (info.desc.isWorld)
             continue;
-        if (only.empty() || std::find(only.begin(), only.end(), entry.first) != only.end()) {
-            placed.push_back(&info);
-        }
+        placed.push_back(&info);
     }
     std::sort(placed.begin(), placed.end(), [](const SubsystemInfo* a, const SubsystemInfo* b) {
         if (a->desc.z_mm != b->desc.z_mm)
@@ -76,7 +53,9 @@ GeoPhysVol* assembleGeometry(const std::vector<std::string>& only) {
     });
 
     for (const SubsystemInfo* info : placed) {
-        place(world, info->build(materials), info->desc);
+        const SubsystemDescriptor& d = info->desc;
+        placeChild(world, info->build(materials), d.node, d.id,
+                   GeoTrf::Translate3D(d.x_mm, d.y_mm, d.z_mm));
     }
     return world;
 }
@@ -103,7 +82,7 @@ SHiPGeometryBuilder::SHiPGeometryBuilder() = default;
 SHiPGeometryBuilder::~SHiPGeometryBuilder() = default;
 
 GeoPhysVol* SHiPGeometryBuilder::build() {
-    return assembleGeometry({});
+    return assembleGeometry();
 }
 
 }  // namespace SHiPGeometry

@@ -73,9 +73,9 @@ inline bool registerSubsystem(const SubsystemDescriptor& desc,
 
 // ── Generic consumers — these name no subsystem ─────────────────────────────
 
-/// Assemble the world plus a selection of subsystems (empty selection = all),
-/// each placed at its own declared position. Returns the world volume.
-GeoPhysVol* assembleGeometry(const std::vector<std::string>& only = {});
+/// Assemble the world plus all registered subsystems, each placed at its own
+/// declared position. Returns the world volume.
+GeoPhysVol* assembleGeometry();
 
 /// Build a single subsystem on its own, in its local frame (no world, no
 /// placement). Throws std::runtime_error if the name is not registered.

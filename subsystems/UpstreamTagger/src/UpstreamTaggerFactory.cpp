@@ -80,6 +80,15 @@ UpstreamTaggerFactory::UpstreamTaggerFactory(SHiPMaterials& materials) : m_mater
 // ── build ────────────────────────────────────────────────────────────────────
 
 GeoVPhysVol* UpstreamTaggerFactory::build(SHiPUBTManager* manager) {
+    // REGISTER_SUBSYSTEM builds subsystems generically via build() with no
+    // argument (manager == nullptr). Fall back to a local manager so the
+    // container wiring below still runs — matching the assembler's previous
+    // behaviour, where the manager was a stack local discarded after build().
+    SHiPUBTManager localManager;
+    if (!manager) {
+        manager = &localManager;
+    }
+
     const GeoMaterial* air = m_materials.requireMaterial("Air");
     const GeoMaterial* polystyrene = m_materials.requireMaterial("Polystyrene");
 
@@ -135,9 +144,7 @@ GeoVPhysVol* UpstreamTaggerFactory::build(SHiPUBTManager* manager) {
                       r.fine ? finePitch : coarsePitch);
     }
 
-    if (manager) {
-        manager->setContainerVolume(containerPhys);
-    }
+    manager->setContainerVolume(containerPhys);
 
     return containerPhys;
 }

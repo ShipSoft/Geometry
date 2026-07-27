@@ -31,8 +31,18 @@ target_link_libraries(
 # DT_NEEDED of every executable that links SHiPGeometry, and their
 # registrations never run. INTERFACE puts --no-as-needed on the *consumer's*
 # link line, which is where the entries were being dropped.
-target_link_options(SHiPGeometry INTERFACE "-Wl,--no-as-needed")
-
+# (--no-as-needed is a GNU/binutils flag; Apple's ld neither needs nor accepts it.)
 if(UNIX AND NOT APPLE)
     target_link_options(SHiPGeometry INTERFACE "-Wl,--no-as-needed")
+elseif(NOT BUILD_SHARED_LIBS)
+    # Static build: --no-as-needed does not apply to archives. Subsystem
+    # self-registration would instead need --whole-archive (or equivalent),
+    # which is not configured here, so the registry may be empty at run time.
+    message(
+        WARNING
+        "Static build detected: subsystem self-registration relies on "
+        "-Wl,--no-as-needed for shared libraries and is not wired up for static "
+        "archives. build_geometry/tests may find an empty subsystem registry. "
+        "Prefer BUILD_SHARED_LIBS=ON."
+    )
 endif()
