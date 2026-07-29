@@ -10,11 +10,13 @@
 #include <GeoModelKernel/GeoIdentifierTag.h>
 #include <GeoModelKernel/GeoLogVol.h>
 #include <GeoModelKernel/GeoNameTag.h>
+#include <GeoModelKernel/GeoPcon.h>
 #include <GeoModelKernel/GeoPhysVol.h>
 #include <GeoModelKernel/GeoShapeShift.h>
 #include <GeoModelKernel/GeoShapeSubtraction.h>
 #include <GeoModelKernel/GeoTransform.h>
 #include <GeoModelKernel/GeoTube.h>
+#include <GeoModelKernel/GeoTubs.h>
 
 #include <string>
 
@@ -63,47 +65,16 @@ GeoPhysVol* TargetFactory::build() {
     vacuumBoxPhys->add(new GeoTransform(pedestalTrf));
     vacuumBoxPhys->add(shieldingPedestal);
 
-    // Place vessel components directly in vacuum box with corrected positions
-    // Original TargetArea position: (0, 14.45, -43.25) cm
-    // Component positions are relative to TargetArea, so add the offset
-
-    // Create and place target vessel
-    // Original: (0, 0, 79.32) in TargetArea → (0, 14.45, 36.07) in vacuum_box
-    auto* targetVessel = createTargetVessel();
-    GeoTrf::Transform3D vesselTrf =
-        GeoTrf::Translate3D(0.0, s_targetAreaPosY, s_targetAreaPosZ + s_vesselPosZ);
-    vacuumBoxPhys->add(new GeoNameTag("/SHiP/target/vessel"));
-    vacuumBoxPhys->add(new GeoIdentifierTag(4));
-    vacuumBoxPhys->add(new GeoTransform(vesselTrf));
-    vacuumBoxPhys->add(targetVessel);
-
-    // Create and place target vessel front cap
-    // Original: (0, 0, -6.6) in TargetArea → (0, 14.45, -49.85) in vacuum_box
-    auto* targetVesselFront = createTargetVesselFront();
-    GeoTrf::Transform3D vesselFrontTrf =
-        GeoTrf::Translate3D(0.0, s_targetAreaPosY, s_targetAreaPosZ + s_vesselFrontPosZ);
-    vacuumBoxPhys->add(new GeoNameTag("/SHiP/target/vessel_front"));
-    vacuumBoxPhys->add(new GeoIdentifierTag(5));
-    vacuumBoxPhys->add(new GeoTransform(vesselFrontTrf));
-    vacuumBoxPhys->add(targetVesselFront);
-
-    // Create and place target vessel back cap
-    // Original: (0, 0, 165.24) in TargetArea → (0, 14.45, 121.99) in vacuum_box
-    auto* targetVesselBack = createTargetVesselBack();
-    GeoTrf::Transform3D vesselBackTrf =
-        GeoTrf::Translate3D(0.0, s_targetAreaPosY, s_targetAreaPosZ + s_vesselBackPosZ);
-    vacuumBoxPhys->add(new GeoNameTag("/SHiP/target/vessel_back"));
-    vacuumBoxPhys->add(new GeoIdentifierTag(6));
-    vacuumBoxPhys->add(new GeoTransform(vesselBackTrf));
-    vacuumBoxPhys->add(targetVesselBack);
-
-    // Create and place HeVolume (contains target enclosure and slabs)
-    // Original: (0, 0, 79.32) in TargetArea → (0, 14.45, 36.07) in vacuum_box
+    // Create and place HeVolume (contains disks, steel core, jacket, flanges
+    // and rear endcap). The tube is centred on the target-frame He centre,
+    // and the target frame sits at (s_targetAreaPosY, s_targetAreaPosZ) in
+    // the vacuum box.
+    const double heCentreZ = 0.5 * (s_heZMin + s_heZMax);
     auto* heVolume = createHeVolume();
     GeoTrf::Transform3D heVolumeTrf =
-        GeoTrf::Translate3D(0.0, s_targetAreaPosY, s_targetAreaPosZ + s_heVolumePosZ);
+        GeoTrf::Translate3D(0.0, s_targetAreaPosY, s_targetAreaPosZ + heCentreZ);
     vacuumBoxPhys->add(new GeoNameTag("/SHiP/target/he_volume"));
-    vacuumBoxPhys->add(new GeoIdentifierTag(7));
+    vacuumBoxPhys->add(new GeoIdentifierTag(4));
     vacuumBoxPhys->add(new GeoTransform(heVolumeTrf));
     vacuumBoxPhys->add(heVolume);
 
@@ -156,85 +127,109 @@ GeoPhysVol* TargetFactory::createShieldingPedestal() {
     return new GeoPhysVol(pedestalLog);
 }
 
-GeoPhysVol* TargetFactory::createTargetVessel() {
-    const GeoMaterial* inconel718 = m_materials.requireMaterial("Inconel718");
+const GeoShape* TargetFactory::createSteelCoreShape() {
+    // The core is a polycone in the target frame (z = 0 at disk-1 front
+    // face): bore r 125 -> 157 at the rear block, outer r 195 (front step,
+    // inside the flange) -> 207 -> 190 (rear step, inside the rear flange).
+    auto* corePcon = new GeoPcon(0.0 * deg, 360.0 * deg);
+    corePcon->addPlane(s_coreZMin, s_coreBoreR1, s_coreFrontOuterR);
+    corePcon->addPlane(s_coreFrontZMax, s_coreBoreR1, s_coreFrontOuterR);
+    corePcon->addPlane(s_coreFrontZMax, s_coreBoreR1, s_coreOuterR);
+    corePcon->addPlane(s_coreBoreStepZ, s_coreBoreR1, s_coreOuterR);
+    corePcon->addPlane(s_coreBoreStepZ, s_coreBoreR2, s_coreOuterR);
+    corePcon->addPlane(s_coreRearZMin, s_coreBoreR2, s_coreOuterR);
+    corePcon->addPlane(s_coreRearZMin, s_coreBoreR2, s_coreRearOuterR);
+    corePcon->addPlane(s_coreZMax, s_coreBoreR2, s_coreRearOuterR);
 
-    auto* vesselTube = new GeoTube(s_vesselRmin, s_vesselRmax, s_vesselHalfZ);
-    auto* vesselLog = new GeoLogVol("/SHiP/target/vessel", vesselTube, inconel718);
-    return new GeoPhysVol(vesselLog);
-}
+    // Subtract the He cooling grooves (tube segments centred on the vertical
+    // axis; the removed volume fills with the parent helium)
+    const GeoShape* coreShape = corePcon;
+    auto subtractGroove = [&coreShape](double rmin, double rmax, double z0, double z1,
+                                       double phiStart, double phiWidth) {
+        auto* tubs = new GeoTubs(rmin, rmax, 0.5 * (z1 - z0), phiStart, phiWidth);
+        coreShape =
+            &(coreShape->subtract((*tubs) << GeoTrf::Translate3D(0.0, 0.0, 0.5 * (z0 + z1))));
+    };
+    for (const auto& seg : s_groovesTop) {
+        subtractGroove(s_grooveRmin, s_grooveRmax, seg[0], seg[1],
+                       90.0 * deg - 0.5 * s_groovePhiWidth, s_groovePhiWidth);
+    }
+    for (const auto& seg : s_groovesBottom) {
+        subtractGroove(s_grooveRmin, s_grooveRmax, seg[0], seg[1],
+                       270.0 * deg - 0.5 * s_groovePhiWidth, s_groovePhiWidth);
+    }
+    subtractGroove(s_rearGrooveRmin, s_rearGrooveRmax, s_rearGrooveZMin, s_rearGrooveZMax,
+                   90.0 * deg - 0.5 * s_rearGroovePhiWidth, s_rearGroovePhiWidth);
 
-GeoPhysVol* TargetFactory::createTargetVesselFront() {
-    const GeoMaterial* inconel718 = m_materials.requireMaterial("Inconel718");
-
-    auto* frontDisk = new GeoTube(0.0, s_vesselCapRadius, s_vesselCapHalfZ);
-    auto* frontLog = new GeoLogVol("/SHiP/target/vessel_front", frontDisk, inconel718);
-    return new GeoPhysVol(frontLog);
-}
-
-GeoPhysVol* TargetFactory::createTargetVesselBack() {
-    const GeoMaterial* inconel718 = m_materials.requireMaterial("Inconel718");
-
-    auto* backDisk = new GeoTube(0.0, s_vesselCapRadius, s_vesselCapHalfZ);
-    auto* backLog = new GeoLogVol("/SHiP/target/vessel_back", backDisk, inconel718);
-    return new GeoPhysVol(backLog);
-}
-
-GeoPhysVol* TargetFactory::createTargetEnclosure() {
-    const GeoMaterial* steel316L = m_materials.requireMaterial("Steel316L");
-
-    auto* outerTube = new GeoTube(s_enclosureRmin, s_enclosureRmax, s_enclosureHalfZ);
-    auto* cutoutBox = new GeoBox(s_enclosureCutoutHalfX, s_enclosureCutoutHalfY, s_enclosureHalfZ);
-    const GeoShape* enclosureShape = &(outerTube->subtract(*cutoutBox));
-
-    auto* enclosureLog = new GeoLogVol("/SHiP/target/enclosure", enclosureShape, steel316L);
-    return new GeoPhysVol(enclosureLog);
+    return coreShape;
 }
 
 GeoPhysVol* TargetFactory::createHeVolume() {
     const GeoMaterial* pressurisedHe90 = m_materials.requireMaterial("PressurisedHe90");
-    const GeoMaterial* tantalum = m_materials.requireMaterial("Tantalum");
     const GeoMaterial* tungsten = m_materials.requireMaterial("Tungsten");
+    const GeoMaterial* steel316L = m_materials.requireMaterial("Steel316L");
 
     // Create HeVolume container
-    auto* heVolumeTube = new GeoTube(0.0, s_heVolumeRadius, s_heVolumeHalfZ);
+    auto* heVolumeTube = new GeoTube(0.0, s_heRadius, 0.5 * (s_heZMax - s_heZMin));
     auto* heVolumeLog = new GeoLogVol("/SHiP/target/he_volume", heVolumeTube, pressurisedHe90);
     auto* heVolumePhys = new GeoPhysVol(heVolumeLog);
 
-    // Create and place target enclosure
-    auto* targetEnclosure = createTargetEnclosure();
-    heVolumePhys->add(new GeoNameTag("/SHiP/target/enclosure"));
-    heVolumePhys->add(new GeoIdentifierTag(0));
-    heVolumePhys->add(new GeoTransform(GeoTrf::Transform3D::Identity()));
-    heVolumePhys->add(targetEnclosure);
+    // The HeVolume tube is centred on the target-frame He centre; this
+    // translation converts a target-frame z centre into the local frame
+    const double heCentreZ = 0.5 * (s_heZMin + s_heZMax);
+    auto spanTrf = [heCentreZ](double z0, double z1) {
+        return GeoTrf::Translate3D(0.0, 0.0, 0.5 * (z0 + z1) - heCentreZ);
+    };
+    int nextId = 0;
+    auto place = [&](GeoPhysVol* child, const std::string& name, GeoTrf::Transform3D trf) {
+        heVolumePhys->add(new GeoNameTag(name));
+        heVolumePhys->add(new GeoIdentifierTag(nextId++));
+        heVolumePhys->add(new GeoTransform(trf));
+        heVolumePhys->add(child);
+    };
 
-    // Create and place all 19 target slabs
-    for (int i = 0; i < s_numSlabs; ++i) {
-        // Create cladding tube (Tantalum)
-        auto* claddingTube = new GeoTube(0.0, s_claddingRadius, s_claddingHalfZ[i]);
-        std::string claddingName = "/SHiP/target/cladding_" + std::to_string(i + 1);
-        auto* claddingLog = new GeoLogVol(claddingName, claddingTube, tantalum);
-        auto* claddingPhys = new GeoPhysVol(claddingLog);
-
-        // Create core tube (Tungsten)
-        auto* coreTube = new GeoTube(0.0, s_coreRadius, s_coreHalfZ[i]);
-        std::string coreName = "/SHiP/target/core_" + std::to_string(i + 1);
-        auto* coreLog = new GeoLogVol(coreName, coreTube, tungsten);
-        auto* corePhys = new GeoPhysVol(coreLog);
-
-        // Place core inside cladding (centered)
-        claddingPhys->add(new GeoNameTag(coreName));
-        claddingPhys->add(new GeoIdentifierTag(i));
-        claddingPhys->add(new GeoTransform(GeoTrf::Transform3D::Identity()));
-        claddingPhys->add(corePhys);
-
-        // Place cladding in HeVolume
-        GeoTrf::Transform3D slabTrf = GeoTrf::Translate3D(0.0, 0.0, s_slabPosZ[i]);
-        heVolumePhys->add(new GeoNameTag(claddingName));
-        heVolumePhys->add(new GeoIdentifierTag(i + 1));
-        heVolumePhys->add(new GeoTransform(slabTrf));
-        heVolumePhys->add(claddingPhys);
+    // Tungsten disks (no cladding); the last disk (rear block) is larger
+    for (int i = 0; i < s_numDisks; ++i) {
+        const double z0 = s_diskZ[i][0];
+        const double z1 = s_diskZ[i][1];
+        const double radius = (i == s_numDisks - 1) ? s_lastDiskRadius : s_diskRadius;
+        auto* diskTube = new GeoTube(0.0, radius, 0.5 * (z1 - z0));
+        std::string diskName = "/SHiP/target/core_" + std::to_string(i + 1);
+        auto* diskLog = new GeoLogVol(diskName, diskTube, tungsten);
+        place(new GeoPhysVol(diskLog), diskName, spanTrf(z0, z1));
     }
+
+    // Steel core with the He grooves subtracted; the shape is defined in the
+    // target frame, so shift it by the He centre only
+    auto* coreLog = new GeoLogVol("/SHiP/target/core_steel", createSteelCoreShape(), steel316L);
+    place(new GeoPhysVol(coreLog), "/SHiP/target/core_steel",
+          GeoTrf::Translate3D(0.0, 0.0, -heCentreZ));
+
+    // Jacket tube and flanges
+    auto* jacketTube = new GeoTube(s_jacketRmin, s_jacketRmax, 0.5 * (s_jacketZMax - s_jacketZMin));
+    auto* jacketLog = new GeoLogVol("/SHiP/target/jacket", jacketTube, steel316L);
+    place(new GeoPhysVol(jacketLog), "/SHiP/target/jacket", spanTrf(s_jacketZMin, s_jacketZMax));
+
+    auto* flangeFrontTube =
+        new GeoTube(s_flangeFrontRmin, s_jacketRmax, 0.5 * (s_jacketZMin - s_heZMin));
+    auto* flangeFrontLog = new GeoLogVol("/SHiP/target/flange_front", flangeFrontTube, steel316L);
+    place(new GeoPhysVol(flangeFrontLog), "/SHiP/target/flange_front",
+          spanTrf(s_heZMin, s_jacketZMin));
+
+    auto* flangeRearTube =
+        new GeoTube(s_jacketRmax, s_flangeRearRmax, 0.5 * (s_flangeRearZMax - s_jacketZMax));
+    auto* flangeRearLog = new GeoLogVol("/SHiP/target/flange_back", flangeRearTube, steel316L);
+    place(new GeoPhysVol(flangeRearLog), "/SHiP/target/flange_back",
+          spanTrf(s_jacketZMax, s_flangeRearZMax));
+
+    // Rear endcap as a single polycone in the target frame
+    auto* endcapPcon = new GeoPcon(0.0 * deg, 360.0 * deg);
+    for (const auto& plane : s_endcapPlanes) {
+        endcapPcon->addPlane(plane[0], plane[1], plane[2]);
+    }
+    auto* endcapLog = new GeoLogVol("/SHiP/target/endcap", endcapPcon, steel316L);
+    place(new GeoPhysVol(endcapLog), "/SHiP/target/endcap",
+          GeoTrf::Translate3D(0.0, 0.0, -heCentreZ));
 
     return heVolumePhys;
 }
