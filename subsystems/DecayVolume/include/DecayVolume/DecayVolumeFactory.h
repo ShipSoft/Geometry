@@ -4,6 +4,7 @@
 #pragma once
 
 #include "SHiPGeometry/SubsystemDescriptor.h"
+#include "DecayVolume/SBTConfig.h"
 
 #include <string>
 
@@ -21,8 +22,9 @@ class SHiPMaterials;
  * 50 m rectangular frustum — wrapped around a central helium decay volume.
  * The SBT geometry is driven by sbt.toml (parsed into an SBTConfig).
  *
- * The helium frustum is sized strictly inside the innermost sensor faces, so
- * it does not overlap the structure or the sensors.
+ * The helium is not an independent volume: it is derived from where the SBT
+ * material actually is (see SBTEnvelope.h), so that it can neither overlap the
+ * structure and sensors nor leave an unphysical margin behind.
  *
  * Z: 32.92 to 83.32 m -> centre 58.12 m; placement handled by SHiPGeometry.
  */
@@ -38,9 +40,17 @@ class DecayVolumeFactory {
     /// Build the DecayVolume geometry; returns the air container.
     [[nodiscard]] GeoPhysVol* build();
 
+    /// The config the last build() actually used.
+    ///
+    /// Tests must reason about *this*, not a default-constructed SBTConfig:
+    /// the geometry comes from sbt.toml, and a test that checks a clearance
+    /// against the C++ default is validating a config it did not build.
+    [[nodiscard]] const SBTConfig& config() const { return m_config; }
+
    private:
     SHiPMaterials& m_materials;
     std::string m_configPath;
+    SBTConfig m_config;
 
     // Air container enclosing the SBT structure + sensors and helium (mm).
     static constexpr double s_halfX = 2200.0;

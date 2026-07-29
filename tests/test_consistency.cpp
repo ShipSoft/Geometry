@@ -68,7 +68,31 @@ std::vector<SubsystemInfo> collectSubsystems(GeoPhysVol* world) {
     return subsystems;
 }
 
+// Recursively assert every placement transform is a pure rotation (no
+// reflection): the linear part of getXToChildVol must have positive
+// determinant. Guards against left-handed frames like the one fixed in PR #70
+// (SBTStructureBuilder), which Geant4 rejects as improper rotations.
+void checkRightHanded(const GeoVPhysVol* vol, const std::string& path = "") {
+    for (unsigned int i = 0; i < vol->getNChildVols(); ++i) {
+        const GeoVPhysVol* child = &*vol->getChildVol(i);
+        const double det = vol->getXToChildVol(i).linear().determinant();
+        const std::string childPath =
+            path + "/[" + std::to_string(i) + "]" + child->getLogVol()->getName();
+        INFO("Placement " << childPath << " has determinant " << det);
+        CHECK(det > 0.0);
+        checkRightHanded(child, childPath);
+    }
+}
+
 }  // namespace
+
+TEST_CASE("ConsistencyTest.AllRotationsRightHanded", "[consistency]") {
+    SHiPGeometryBuilder builder;
+    GeoPhysVol* world = builder.build();
+    REQUIRE(world != nullptr);
+
+    checkRightHanded(world, world->getLogVol()->getName());
+}
 
 TEST_CASE("ConsistencyTest.ExpectedSubsystemCount", "[consistency]") {
     SHiPGeometryBuilder builder;
