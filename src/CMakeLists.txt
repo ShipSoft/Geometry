@@ -26,23 +26,29 @@ target_link_libraries(
         Calorimeter
 )
 
-# The subsystems are referenced only through their REGISTER_SUBSYSTEM static
-# initialisers, so the toolchain's default --as-needed drops them from the
-# DT_NEEDED of every executable that links SHiPGeometry, and their
-# registrations never run. INTERFACE puts --no-as-needed on the *consumer's*
-# link line, which is where the entries were being dropped.
-# (--no-as-needed is a GNU/binutils flag; Apple's ld neither needs nor accepts it.)
-if(UNIX AND NOT APPLE)
-    target_link_options(SHiPGeometry INTERFACE "-Wl,--no-as-needed")
-elseif(NOT BUILD_SHARED_LIBS)
-    # Static build: --no-as-needed does not apply to archives. Subsystem
-    # self-registration would instead need --whole-archive (or equivalent),
-    # which is not configured here, so the registry may be empty at run time.
+# Subsystem self-registration: each subsystem library's REGISTER_SUBSYSTEM
+# static initialiser is the only thing referencing it, so the toolchain's
+# default --as-needed drops the library from the DT_NEEDED of every executable
+# that links SHiPGeometry, and the registration never runs.
+#
+# For SHARED libraries the fix is --no-as-needed on the *consumer's* link line
+# (INTERFACE), where the entries were being dropped. For STATIC libraries that
+# flag does nothing — the objects need --whole-archive instead, which is not
+# wired up here — so warn rather than silently produce an empty registry. This
+# is orthogonal to platform, so it is checked first and independently.
+if(NOT BUILD_SHARED_LIBS)
     message(
         WARNING
-        "Static build detected: subsystem self-registration relies on "
-        "-Wl,--no-as-needed for shared libraries and is not wired up for static "
-        "archives. build_geometry/tests may find an empty subsystem registry. "
-        "Prefer BUILD_SHARED_LIBS=ON."
+        "Static build detected (BUILD_SHARED_LIBS=OFF): subsystem "
+        "self-registration relies on -Wl,--no-as-needed for shared libraries "
+        "and is not wired up for static archives (which would need "
+        "--whole-archive). build_geometry and the tests may find an empty "
+        "subsystem registry at run time. Prefer BUILD_SHARED_LIBS=ON."
     )
+endif()
+
+# --no-as-needed is a GNU/binutils flag; Apple's ld neither needs nor accepts
+# it (Mach-O has no --as-needed stripping to undo).
+if(UNIX AND NOT APPLE)
+    target_link_options(SHiPGeometry INTERFACE "-Wl,--no-as-needed")
 endif()

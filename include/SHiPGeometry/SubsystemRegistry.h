@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "SHiPGeometry/SubsystemDescriptor.h"
+
 #include <GeoModelKernel/GeoPhysVol.h>  // complete GeoPhysVol/GeoVPhysVol for the macro's upcast
 
 #include <cstdio>
@@ -16,23 +18,6 @@
 namespace SHiPGeometry {
 
 class SHiPMaterials;
-
-/**
- * @brief A subsystem's self-description: everything the assembler needs.
- *
- * This is the "required input to the geometry builder" that each subsystem
- * yields about itself. It is a plain data type (no GeoModel dependency).
- * Translations are in millimetres from the world origin.
- */
-struct SubsystemDescriptor {
-    const char* name;      ///< registry key / CLI name, e.g. "Calorimeter"
-    const char* node;      ///< GeoNameTag, e.g. "/SHiP/calorimeter"
-    int id;                ///< GeoIdentifierTag
-    double x_mm;           ///< placement translation X (mm)
-    double y_mm;           ///< placement translation Y (mm)
-    double z_mm;           ///< placement translation Z, beam direction (mm)
-    bool isWorld = false;  ///< true for the mother/world volume (the cavern)
-};
 
 /// A registered subsystem: its descriptor plus how to build it (local frame).
 struct SubsystemInfo {
@@ -73,9 +58,10 @@ inline bool registerSubsystem(const SubsystemDescriptor& desc,
 
 // ── Generic consumers — these name no subsystem ─────────────────────────────
 
-/// Assemble the world plus all registered subsystems, each placed at its own
-/// declared position. Returns the world volume.
-GeoPhysVol* assembleGeometry();
+/// Assemble the world plus a selection of subsystems (empty selection = all),
+/// each placed at its own declared position. Unknown names throw
+/// std::runtime_error. Returns the world volume.
+GeoPhysVol* assembleGeometry(const std::vector<std::string>& only = {});
 
 /// Build a single subsystem on its own, in its local frame (no world, no
 /// placement). Throws std::runtime_error if the name is not registered.

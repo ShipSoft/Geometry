@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "SHiPGeometry/SubsystemRegistry.h"
+#include "SHiPGeometry/SubsystemDescriptor.h"
 
 class GeoPhysVol;
 

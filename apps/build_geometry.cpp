@@ -8,6 +8,7 @@
 //   build_geometry out.db              # full detector          -> out.db
 //   build_geometry Calorimeter         # just that subsystem    -> Calorimeter.db
 //   build_geometry Calorimeter c.db    # just that subsystem    -> c.db
+//   build_geometry Target Magnet       # assemble a selection    -> ship_selection.db
 //   build_geometry --list              # list available subsystems
 //
 // A token ending in ".db" is the output file; any other token names a
@@ -46,28 +47,32 @@ int main(int argc, char* argv[]) {
     GeoVPhysVol* geometry = nullptr;
     std::string label;
 
-    if (names.empty()) {
-        // Default: the complete detector (unchanged behaviour).
-        SHiPGeometry::SHiPGeometryBuilder builder;
-        geometry = builder.build();
-        label = "full SHiP geometry";
-        if (outputFile.empty())
-            outputFile = "ship_geometry.db";
-    } else if (names.size() == 1) {
-        // A single subsystem, on its own (local frame).
-        try {
+    try {
+        if (names.empty()) {
+            // Default: the complete detector (unchanged behaviour).
+            SHiPGeometry::SHiPGeometryBuilder builder;
+            geometry = builder.build();
+            label = "full SHiP geometry";
+            if (outputFile.empty())
+                outputFile = "ship_geometry.db";
+        } else if (names.size() == 1) {
+            // A single subsystem, on its own (local frame).
             geometry = SHiPGeometry::buildSubsystem(names[0]);
-        } catch (const std::exception& e) {
-            std::cerr << "Error: " << e.what() << "\nAvailable subsystems:\n";
-            for (const auto& n : SHiPGeometry::subsystemNames())
-                std::cerr << "  " << n << "\n";
-            return 1;
+            label = names[0];
+            if (outputFile.empty())
+                outputFile = names[0] + ".db";
+        } else {
+            // Several subsystems: assemble them into the world at their declared
+            // placements (the world/cavern is always included).
+            geometry = SHiPGeometry::assembleGeometry(names);
+            label = "selection (" + std::to_string(names.size()) + " subsystems)";
+            if (outputFile.empty())
+                outputFile = "ship_selection.db";
         }
-        label = names[0];
-        if (outputFile.empty())
-            outputFile = names[0] + ".db";
-    } else {
-        std::cerr << "Error: build at most one subsystem at a time (got " << names.size() << ").\n";
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << "\nAvailable subsystems:\n";
+        for (const auto& n : SHiPGeometry::subsystemNames())
+            std::cerr << "  " << n << "\n";
         return 1;
     }
 

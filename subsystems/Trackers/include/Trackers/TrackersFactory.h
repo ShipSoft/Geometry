@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "SHiPGeometry/SubsystemRegistry.h"
+#include "SHiPGeometry/SubsystemDescriptor.h"
 
 #include <GeoModelKernel/Units.h>
 
@@ -44,7 +44,10 @@ class TrackersFactory {
 
     /// This subsystem's self-description (name, node, id, placement).
     static SubsystemDescriptor descriptor() {
-        return {"Trackers", "/SHiP/trackers", 5, 0.0, 0.0, 89570.0, false};
+        // s_containerCentreZ is in GeoModel's native length unit (mm == 1.0),
+        // which is exactly the millimetre convention SubsystemDescriptor::z_mm
+        // expects, so no conversion is needed here.
+        return {"Trackers", "/SHiP/trackers", 5, 0.0, 0.0, s_containerCentreZ, false};
     }
     /**
      * @brief Build the Trackers geometry.
