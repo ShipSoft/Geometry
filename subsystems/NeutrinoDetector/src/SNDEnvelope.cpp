@@ -4,6 +4,7 @@
 #include "NeutrinoDetector/SNDEnvelope.h"
 
 #include "SHiPGeometry/ConfigPath.h"
+#include "SHiPGeometry/TomlConfig.h"
 
 #include <array>
 #include <cstddef>
@@ -26,33 +27,9 @@ namespace SHiPGeometry {
 
 namespace {
 
-double toNumber(const toml::node* node, const std::string& key, const std::string& path) {
-    if (node) {
-        if (auto d = node->value<double>())
-            return *d;
-        if (auto i = node->value<int64_t>())
-            return static_cast<double>(*i);
-    }
-    throw std::runtime_error("SNDEnvelope: '" + key + "' values must be numbers in " + path);
-}
-
 std::array<double, 3> readVec3(const toml::table& table, const char* key, const std::string& path,
                                bool required, const std::array<double, 3>& fallback) {
-    auto node = table[key];
-    if (!node) {
-        if (required)
-            throw std::runtime_error("SNDEnvelope: missing required '" + std::string(key) +
-                                     "' in " + path);
-        return fallback;
-    }
-    const toml::array* arr = node.as_array();
-    if (!arr || arr->size() != 3)
-        throw std::runtime_error("SNDEnvelope: '" + std::string(key) +
-                                 "' must be a 3-element array in " + path);
-    std::array<double, 3> out{};
-    for (std::size_t i = 0; i < 3; ++i)
-        out[i] = toNumber(arr->get(i), key, path);
-    return out;
+    return tomlconfig::readNumericArray<3>(table, key, path, required, fallback, "SNDEnvelope");
 }
 
 }  // namespace

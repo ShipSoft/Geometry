@@ -15,12 +15,13 @@
 
 #include "MuonShield/MuonShieldConfig.h"
 
+#include "SHiPGeometry/TomlConfig.h"
+
 #include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstddef>
 #include <iostream>
-#include <optional>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -56,51 +57,11 @@ static constexpr NumericField kNumericFields[] = {
     {"envelope_z_end_m", &MuonShieldConfig::envelope_z_end_m},
 };
 
-// Extract a TOML numeric (integer or float) as a double, if the node holds one.
-std::optional<double> asDouble(const toml::node* node) {
-    if (node) {
-        if (auto d = node->value<double>())
-            return *d;
-        if (auto i = node->value<int64_t>())
-            return static_cast<double>(*i);
-    }
-    return std::nullopt;
-}
-
-// Read a double or integer as a double.
+// Read a scalar double or integer as a double (shared numeric extraction).
 double readNumeric(const toml::node_view<toml::node>& node, const std::string& key) {
-    if (auto v = asDouble(node.node()))
+    if (auto v = tomlconfig::asDouble(node.node()))
         return *v;
     throw std::runtime_error("MuonShieldConfig: '" + key + "' must be a number");
-}
-
-// Read a single toml node as a double (int or float).
-double nodeToNumber(const toml::node* node, const std::string& context, const std::string& path) {
-    if (auto v = asDouble(node))
-        return *v;
-    throw std::runtime_error("MuonShieldConfig: " + context + " values must be numbers in " + path);
-}
-
-// Read a fixed-length numeric array (e.g. size = [x, y, z]) from a block table.
-template <std::size_t N>
-std::array<double, N> readFixedArray(const toml::table& block, const char* key,
-                                     const std::string& path, bool required,
-                                     const std::array<double, N>& fallback) {
-    auto node = block[key];
-    if (!node) {
-        if (required)
-            throw std::runtime_error("MuonShieldConfig: block is missing required '" +
-                                     std::string(key) + "' in " + path);
-        return fallback;
-    }
-    const toml::array* arr = node.as_array();
-    if (!arr || arr->size() != N)
-        throw std::runtime_error("MuonShieldConfig: block '" + std::string(key) + "' must be an " +
-                                 std::to_string(N) + "-element array in " + path);
-    std::array<double, N> out{};
-    for (std::size_t i = 0; i < N; ++i)
-        out[i] = nodeToNumber(arr->get(i), "block '" + std::string(key) + "'", path);
-    return out;
 }
 
 }  // namespace
@@ -149,10 +110,14 @@ MuonShieldConfig readMuonShieldConfig(const std::string& path) {
                 throw std::runtime_error(
                     "MuonShieldConfig: each [[block]] entry must be a table in " + path);
             MuonShieldBlock block;
-            block.start = readFixedArray<3>(*bt, "start", path, true, {0.0, 0.0, 0.0});
-            block.size = readFixedArray<3>(*bt, "size", path, true, {0.0, 0.0, 0.0});
-            block.rotation_deg = readFixedArray<3>(*bt, "rotation", path, false, {0.0, 0.0, 0.0});
-            block.taper_deg = readFixedArray<2>(*bt, "taper", path, false, {0.0, 0.0});
+            block.start = tomlconfig::readNumericArray<3>(*bt, "start", path, true, {0.0, 0.0, 0.0},
+                                                          "MuonShieldConfig");
+            block.size = tomlconfig::readNumericArray<3>(*bt, "size", path, true, {0.0, 0.0, 0.0},
+                                                         "MuonShieldConfig");
+            block.rotation_deg = tomlconfig::readNumericArray<3>(
+                *bt, "rotation", path, false, {0.0, 0.0, 0.0}, "MuonShieldConfig");
+            block.taper_deg = tomlconfig::readNumericArray<2>(*bt, "taper", path, false, {0.0, 0.0},
+                                                              "MuonShieldConfig");
             cfg.blocks.push_back(block);
         }
     }
