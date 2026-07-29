@@ -8,55 +8,53 @@
 #include "TimingDetector/SHiPTimingDetInterface.h"
 
 #include <GeoModelKernel/GeoBox.h>
-#include <GeoModelKernel/GeoDefinitions.h>
-#include <GeoModelKernel/GeoIdentifierTag.h>
 #include <GeoModelKernel/GeoLogVol.h>
-#include <GeoModelKernel/GeoNameTag.h>
 #include <GeoModelKernel/GeoPhysVol.h>
-#include <GeoModelKernel/GeoTransform.h>
+#include <GeoModelXml/Gmx2Geo.h>
 
+#include <filesystem>
 #include <string>
 
+// Build-tree fallback path baked in by CMake so out-of-source builds always
+// find timing_detector.gmx even when the CWD doesn't contain a copy of it.
+#ifndef TIMING_DETECTOR_GMX_DEFAULT_PATH
+#define TIMING_DETECTOR_GMX_DEFAULT_PATH "timing_detector.gmx"
+#endif
+// Install-time data directory path, set by CMake during install configuration.
+#ifndef TIMING_DETECTOR_GMX_INSTALL_PATH
+#define TIMING_DETECTOR_GMX_INSTALL_PATH ""
+#endif
+
 namespace SHiPGeometry {
+
+// ── file-scope helper ────────────────────────────────────────────────────────
+
+static std::string resolveGmxPath() {
+    const std::string srcFallback = TIMING_DETECTOR_GMX_DEFAULT_PATH;
+    if (std::filesystem::exists(srcFallback))
+        return srcFallback;  // build-tree fallback
+    const std::string installFallback = TIMING_DETECTOR_GMX_INSTALL_PATH;
+    if (!installFallback.empty() && std::filesystem::exists(installFallback))
+        return installFallback;  // installed data dir
+    return srcFallback;          // give up — Gmx2Geo will emit the error
+}
 
 TimingDetectorFactory::TimingDetectorFactory(SHiPMaterials& materials) : m_materials(materials) {}
 
 GeoPhysVol* TimingDetectorFactory::build() {
-    const GeoMaterial* air = m_materials.requireMaterial("Air");
-    const GeoMaterial* scint = m_materials.requireMaterial("TimDetScint");
+    auto* air = m_materials.requireMaterial("Air");
 
     auto* containerBox = new GeoBox(s_containerHalfX, s_containerHalfY, s_containerHalfZ);
     auto* containerLog = new GeoLogVol("/SHiP/timing_detector", containerBox, air);
     auto* containerPhys = new GeoPhysVol(containerLog);
 
-    // One reusable bar logvol, shared across all placements (the GeoModel idiom
-    // used by the calorimeter bar layers and the upstream-tagger tiles).
-    auto* barLog = new GeoLogVol("/SHiP/timing_detector/bar",
-                                 new GeoBox(s_barHalfX, s_barHalfY, s_barHalfZ), scint);
+    SHiPTimingDetInterface iface;
+    Gmx2Geo gmx(resolveGmxPath(), containerPhys, iface);
 
-    // 3 columns × 110 rows = 330 bars. Positions are analytic:
-    //   x = (ic - 1) * pitch          → -1300, 0, +1300 mm
-    //   y = y0 + ir * step            → -3220 … +3220 mm (step 6440/109)
-    //   z = (ir%2)*12 + (ic%2)*90     → 4 stagger levels: 0, 12, 90, 102 mm
-    m_barCount = 0;
-    for (int ic = 0; ic < s_nColumns; ++ic) {
-        const double x = (ic - 1) * s_columnPitchX;
-        for (int ir = 0; ir < s_nRows; ++ir) {
-            const double y = s_rowY0 + ir * s_rowStepY;
-            const double z = (ir % 2) * s_zStaggerRow + (ic % 2) * s_zStaggerCol;
-            const std::string name =
-                "/SHiP/timing_detector/bar_" + std::to_string(ic) + "_" + std::to_string(ir);
-            containerPhys->add(new GeoNameTag(name));
-            containerPhys->add(new GeoIdentifierTag(m_barCount));
-            containerPhys->add(new GeoTransform(GeoTrf::Translate3D(x, y, z)));
-            containerPhys->add(new GeoPhysVol(barLog));
-            ++m_barCount;
-        }
-    }
+    m_barCount = iface.barCount();
 
     return containerPhys;
 }
 
 REGISTER_SUBSYSTEM(TimingDetectorFactory)
-
 }  // namespace SHiPGeometry

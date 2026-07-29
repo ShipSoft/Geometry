@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include "SHiPGeometry/SubsystemDescriptor.h"
 #include "DecayVolume/SBTConfig.h"
+#include "SHiPGeometry/SubsystemDescriptor.h"
 
 #include <string>
 
