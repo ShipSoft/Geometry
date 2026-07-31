@@ -158,7 +158,39 @@ MuonShieldConfig readMuonShieldConfig(const std::string& path) {
             throw std::runtime_error(
                 "MuonShieldConfig: " + where + " has its downstream face (z = " +
                 std::to_string(b.start[2] + b.size[2]) + " mm) beyond the envelope end");
+
+        // The block must also fit the envelope in x/y (clearance vs neighbouring
+        // structures such as TCC8). Uses the widest (taper-aware) transverse
+        // extent; exact for unrotated blocks.
+        const double maxHalfX = std::max(0.5 * b.size[0], farHalfX);
+        const double maxHalfY = std::max(0.5 * b.size[1], farHalfY);
+        if (std::abs(b.start[0]) + maxHalfX > cfg.envelope_half_x_mm + kEps ||
+            std::abs(b.start[1]) + maxHalfY > cfg.envelope_half_y_mm + kEps)
+            throw std::runtime_error("MuonShieldConfig: " + where +
+                                     " extends beyond the envelope in x/y");
     }
+
+    // Distinct blocks must not overlap (touching is allowed). A full 3D
+    // bounding-box test is used rather than a Z-interval one: blocks may share a
+    // Z range when placed at different x/y (e.g. arranged around an aperture).
+    auto blockAabb = [](const MuonShieldBlock& blk) {
+        const double fx = 0.5 * blk.size[0] + blk.size[2] * std::tan(blk.taper_deg[0] * kDegToRad);
+        const double fy = 0.5 * blk.size[1] + blk.size[2] * std::tan(blk.taper_deg[1] * kDegToRad);
+        const double hx = std::max(0.5 * blk.size[0], fx);
+        const double hy = std::max(0.5 * blk.size[1], fy);
+        return std::array<double, 6>{blk.start[0] - hx, blk.start[0] + hx,
+                                     blk.start[1] - hy, blk.start[1] + hy,
+                                     blk.start[2],      blk.start[2] + blk.size[2]};
+    };
+    for (std::size_t i = 0; i < cfg.blocks.size(); ++i)
+        for (std::size_t j = i + 1; j < cfg.blocks.size(); ++j) {
+            const auto a = blockAabb(cfg.blocks[i]);
+            const auto c = blockAabb(cfg.blocks[j]);
+            if (a[1] - c[0] > kEps && c[1] - a[0] > kEps && a[3] - c[2] > kEps &&
+                c[3] - a[2] > kEps && a[5] - c[4] > kEps && c[5] - a[4] > kEps)
+                throw std::runtime_error("MuonShieldConfig: blocks " + std::to_string(i) + " and " +
+                                         std::to_string(j) + " overlap in " + path);
+        }
 
     return cfg;
 }

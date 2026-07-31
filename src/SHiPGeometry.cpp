@@ -17,6 +17,7 @@
 #include "UpstreamTagger/UpstreamTaggerFactory.h"
 
 #include "NeutrinoDetector/NeutrinoDetectorFactory.h"
+#include "NeutrinoDetector/SNDEnvelope.h"
 
 #include <GeoModelKernel/GeoDefinitions.h>
 #include <GeoModelKernel/GeoPhysVol.h>
@@ -51,15 +52,21 @@ GeoPhysVol* SHiPGeometryBuilder::build() {
     // Build the muon shield, with the neutrino detector embedded inside it.
     //
     // The SND is an independent subsystem, but in volume terms it is a daughter
-    // of the muon-shield container: it sits within the shield region (WARM SND
-    // slot 26.40–31.50 m → centre 28.95 m). We build it first, then nest it in
-    // the shield container. The muon-shield block list must leave this slot
-    // free of iron.
+    // of the muon-shield container. Its footprint is declared in SD.toml: we
+    // reserve that box in the shield iron (carved by Boolean subtraction in
+    // build()) and then nest the detector in the resulting cavity. Both the
+    // reservation and the placement come from the same envelope, so the SND
+    // position is defined in exactly one place.
     MuonShieldFactory muonShieldFactory(materials);
+
+    const SNDEnvelope sndEnvelope = readSNDEnvelope();
+    muonShieldFactory.reserveSpace(sndEnvelope.centre_mm, sndEnvelope.size_mm,
+                                   sndEnvelope.rotation_deg);
 
     NeutrinoDetectorFactory neutrinoDetectorFactory(materials);
     GeoPhysVol* neutrinoDetector = neutrinoDetectorFactory.build();
-    muonShieldFactory.embedDaughter(neutrinoDetector, 28.95 * 1000.0, "/SHiP/neutrino_detector");
+    muonShieldFactory.embedDaughter(neutrinoDetector, sndEnvelope.centre_mm[2],
+                                    "/SHiP/neutrino_detector");
 
     // The container is built centred on its own origin, so it is placed at the
     // envelope centre reported by the factory after build().

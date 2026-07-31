@@ -50,10 +50,7 @@ class MuonShieldFactory {
      * daughter's footprint. Call before build().
      *
      * @param daughter        Pre-built volume (centred on its own origin).
-     * @param worldCentreZ_mm
-
-
-     centre where the daughter is placed (mm).
+     * @param worldCentreZ_mm  World-Z centre where the daughter is placed (mm).
      * @param name            Name tag for the placement.
      */
     void embedDaughter(GeoPhysVol* daughter, double worldCentreZ_mm, const std::string& name);
@@ -107,6 +104,10 @@ class MuonShieldFactory {
 
     // World-Z centre of the container, populated by build() from the config.
     double m_centreZ_mm = 0.0;
+
+    // Set once build() has run. reserveSpace()/embedDaughter() are only
+    // meaningful before build(), so they check this and throw otherwise.
+    bool m_built = false;
 };
 
 }  // namespace SHiPGeometry

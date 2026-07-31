@@ -71,7 +71,7 @@ TEST_CASE("MuonShieldDefaultLayout", "[muonshield]") {
     CHECK_THAT(ms->getXToChildVol(0).translation().z(),
                Catch::Matchers::WithinAbs(blockCentreLocalZ, 1e-3));
 
-    // Magnet 6 (index 5) widens in Y → GeoTrd.
+    // Magnet 6 (index 5) is a plain box in the current TRY_2026 config.
     CHECK(dynamic_cast<const GeoBox*>(ms->getChildVol(5)->getLogVol()->getShape()) != nullptr);
 }
 
@@ -88,7 +88,33 @@ TEST_CASE("MuonShieldReservationCarvesIron", "[muonshield]") {
 
     // Magnet 1 (upstream, far from the SND) is untouched → still a plain box.
     CHECK(dynamic_cast<const GeoBox*>(ms->getChildVol(0)->getLogVol()->getShape()) != nullptr);
-    // The last magnet intersects the reservation → its shape is a subtraction.
+    // Both magnets the SND box spans (6 and 7 → indices 5, 6) are carved.
+    CHECK(dynamic_cast<const GeoShapeSubtraction*>(ms->getChildVol(5)->getLogVol()->getShape()) !=
+          nullptr);
+    CHECK(dynamic_cast<const GeoShapeSubtraction*>(ms->getChildVol(6)->getLogVol()->getShape()) !=
+          nullptr);
+}
+
+TEST_CASE("MuonShieldRejectsRotatedBlockOutsideEnvelope", "[muonshield]") {
+    // A block that fits unrotated but whose rotated bounding box exceeds the
+    // envelope is rejected at build() (the factory uses the true 8-corner AABB).
+    const std::string path = writeTempToml(
+        "MS_rot_reject.toml",
+        "envelope_half_x_mm = 1500\nenvelope_half_y_mm = 400\n"
+        "envelope_z_start_m = 0.0\nenvelope_z_end_m = 6.0\n"
+        "[[block]]\nstart = [0,0,2000]\nsize = [2400,200,400]\nrotation = [0,0,90]\n");
+    SHiPMaterials materials;
+    MuonShieldFactory factory(materials, path);
+    CHECK_THROWS_AS(factory.build(), std::runtime_error);
+}
+
+TEST_CASE("MuonShieldRotatedReservationCarves", "[muonshield]") {
+    // A rotated reservation box still intersects and carves the target magnet.
+    SHiPMaterials materials;
+    MuonShieldFactory factory(materials);
+    factory.reserveSpace({0.0, 0.0, 28950.0}, {800.0, 800.0, 5100.0}, {0.0, 0.0, 45.0});
+    GeoPhysVol* ms = factory.build();
+    REQUIRE(ms != nullptr);
     CHECK(dynamic_cast<const GeoShapeSubtraction*>(ms->getChildVol(6)->getLogVol()->getShape()) !=
           nullptr);
 }

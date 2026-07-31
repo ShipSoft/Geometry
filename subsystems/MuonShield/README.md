@@ -28,7 +28,7 @@ time, and the SND is embedded as a daughter that sits in the resulting cavity:
 ```text
 muon_shield (Air envelope, 3520 × 2640 × 27540 mm)   centre z = 18.31 m
  ├─ block_0  magnet 1 (Iron box)
- ├─ …        magnets 2–5 (Iron boxes; magnet 6 is a GeoTrd, widens in Y)
+ ├─ …        magnets 2–6 (Iron boxes)
  ├─ block_5  magnet 6 (Iron − SND box)   ┐ carved by A − B
  ├─ block_6  magnet 7 (Iron − SND box)   ┘ (magnets the reservation intersects)
  └─ neutrino_detector (Air box, 26.40 → 31.50 m)  embedded, sits in the cavity

@@ -175,3 +175,32 @@ TEST_CASE("ConsistencyTest.PositionsSanity", "[consistency]") {
         CHECK(std::abs(it->centreZ - exp.approxZ) < exp.tolerance);
     }
 }
+
+TEST_CASE("ConsistencyTest.NeutrinoDetectorNestedInMuonShield", "[consistency]") {
+    SHiPGeometryBuilder builder;
+    GeoPhysVol* world = builder.build();
+    REQUIRE(world != nullptr);
+
+    // Locate the muon shield among the world's children, and confirm the
+    // neutrino detector is NOT a direct world child (it is nested in the shield).
+    PVConstLink muonShield;
+    bool sndInWorld = false;
+    for (unsigned int i = 0; i < world->getNChildVols(); ++i) {
+        PVConstLink child = world->getChildVol(i);
+        const std::string name = child->getLogVol()->getName();
+        if (name == "/SHiP/muon_shield")
+            muonShield = child;
+        if (name == "/SHiP/neutrino_detector")
+            sndInWorld = true;
+    }
+    REQUIRE(muonShield != nullptr);
+    CHECK_FALSE(sndInWorld);
+
+    // The neutrino detector must appear among the muon shield's children.
+    bool sndInShield = false;
+    for (unsigned int i = 0; i < muonShield->getNChildVols(); ++i) {
+        if (muonShield->getChildVol(i)->getLogVol()->getName() == "/SHiP/neutrino_detector")
+            sndInShield = true;
+    }
+    CHECK(sndInShield);
+}
