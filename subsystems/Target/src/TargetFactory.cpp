@@ -69,10 +69,9 @@ GeoPhysVol* TargetFactory::build() {
     // and rear endcap). The tube is centred on the target-frame He centre,
     // and the target frame sits at (s_targetAreaPosY, s_targetAreaPosZ) in
     // the vacuum box.
-    const double heCentreZ = 0.5 * (s_heZMin + s_heZMax);
     auto* heVolume = createHeVolume();
     GeoTrf::Transform3D heVolumeTrf =
-        GeoTrf::Translate3D(0.0, s_targetAreaPosY, s_targetAreaPosZ + heCentreZ);
+        GeoTrf::Translate3D(0.0, s_targetAreaPosY, s_targetAreaPosZ + s_heCentreZ);
     vacuumBoxPhys->add(new GeoNameTag("/SHiP/target/he_volume"));
     vacuumBoxPhys->add(new GeoIdentifierTag(4));
     vacuumBoxPhys->add(new GeoTransform(heVolumeTrf));
@@ -194,9 +193,8 @@ GeoPhysVol* TargetFactory::createHeVolume() {
 
     // The HeVolume tube is centred on the target-frame He centre; this
     // translation converts a target-frame z centre into the local frame
-    const double heCentreZ = 0.5 * (s_heZMin + s_heZMax);
-    auto spanTrf = [heCentreZ](double z0, double z1) {
-        return GeoTrf::Translate3D(0.0, 0.0, 0.5 * (z0 + z1) - heCentreZ);
+    auto spanTrf = [](double z0, double z1) {
+        return GeoTrf::Translate3D(0.0, 0.0, 0.5 * (z0 + z1) - s_heCentreZ);
     };
     int nextId = 0;
     auto place = [&](GeoPhysVol* child, const std::string& name, GeoTrf::Transform3D trf) {
@@ -221,7 +219,7 @@ GeoPhysVol* TargetFactory::createHeVolume() {
     // target frame, so shift it by the He centre only
     auto* coreLog = new GeoLogVol("/SHiP/target/core_steel", createSteelCoreShape(), steel316L);
     place(new GeoPhysVol(coreLog), "/SHiP/target/core_steel",
-          GeoTrf::Translate3D(0.0, 0.0, -heCentreZ));
+          GeoTrf::Translate3D(0.0, 0.0, -s_heCentreZ));
 
     // Jacket tube and flanges
     auto* jacketTube = new GeoTube(s_jacketRmin, s_jacketRmax, 0.5 * (s_jacketZMax - s_jacketZMin));
@@ -272,7 +270,7 @@ GeoPhysVol* TargetFactory::createHeVolume() {
     }
     auto* endcapLog = new GeoLogVol("/SHiP/target/endcap", endcapPcon, steel316L);
     place(new GeoPhysVol(endcapLog), "/SHiP/target/endcap",
-          GeoTrf::Translate3D(0.0, 0.0, -heCentreZ));
+          GeoTrf::Translate3D(0.0, 0.0, -s_heCentreZ));
 
     return heVolumePhys;
 }
