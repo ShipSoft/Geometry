@@ -118,12 +118,13 @@ class TargetFactory {
     static constexpr double s_heRadius = 237.0 * mm;
     static constexpr double s_heZMin = -37.8 * mm;   // upstream face of the cover plate
     static constexpr double s_heZMax = 1509.7 * mm;  // downstream end of rear endcap
+    static constexpr double s_heCentreZ = 0.5 * (s_heZMin + s_heZMax);
 
     // Tungsten disks: [z start, z end] per disk; 4-5 mm He slits in between
     static constexpr int s_numDisks = 33;
     static constexpr double s_diskRadius = 125.0 * mm;
     static constexpr double s_lastDiskRadius = 157.0 * mm;  // rear block
-    static constexpr std::array<std::array<double, 2>, 33> s_diskZ = {{
+    static constexpr std::array<std::array<double, 2>, s_numDisks> s_diskZ = {{
         {0.0 * mm, 30.0 * mm},    {34.0 * mm, 44.0 * mm},    {48.0 * mm, 56.0 * mm},
         {60.0 * mm, 68.0 * mm},   {72.0 * mm, 80.0 * mm},    {84.0 * mm, 92.0 * mm},
         {96.0 * mm, 104.0 * mm},  {108.0 * mm, 116.0 * mm},  {120.0 * mm, 128.0 * mm},
