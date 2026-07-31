@@ -6,7 +6,9 @@
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoLogVol.h>
+#include <GeoModelKernel/GeoPcon.h>
 #include <GeoModelKernel/GeoPhysVol.h>
+#include <GeoModelKernel/GeoShapeShift.h>
 #include <GeoModelKernel/GeoShapeSubtraction.h>
 #include <GeoModelKernel/GeoTube.h>
 #include <GeoModelKernel/Units.h>
@@ -58,6 +60,32 @@ TEST_CASE("Target2026HeVolume", "[target]") {
     // 33 disks + steel core + jacket + 2 flanges + window + nose
     // + 2 cover rings + endcap
     REQUIRE(heVolume->getNChildVols() == 42u);
+
+    // Jacket tube (child 34): He annulus wall, r 217..225 mm
+    auto* jacketTube =
+        dynamic_cast<const GeoTube*>(heVolume->getChildVol(34)->getLogVol()->getShape());
+    REQUIRE(jacketTube != nullptr);
+    CHECK(jacketTube->getRMin() == Approx(217.0 * mm));
+    CHECK(jacketTube->getRMax() == Approx(225.0 * mm));
+
+    // Front flange (child 35): spans z -23.8..55.2 mm -> half length 39.5 mm
+    auto* flangeFrontTube =
+        dynamic_cast<const GeoTube*>(heVolume->getChildVol(35)->getLogVol()->getShape());
+    REQUIRE(flangeFrontTube != nullptr);
+    CHECK(flangeFrontTube->getZHalfLength() == Approx(39.5 * mm));
+
+    // Rear flange (child 40): spans z 1198.7..1263.7 mm -> half length 32.5 mm
+    auto* flangeBackTube =
+        dynamic_cast<const GeoTube*>(heVolume->getChildVol(40)->getLogVol()->getShape());
+    REQUIRE(flangeBackTube != nullptr);
+    CHECK(flangeBackTube->getZHalfLength() == Approx(32.5 * mm));
+
+    // Rear endcap (child 41): polycone with 6 planes, apex at z 1509.7 mm
+    auto* endcapPcon =
+        dynamic_cast<const GeoPcon*>(heVolume->getChildVol(41)->getLogVol()->getShape());
+    REQUIRE(endcapPcon != nullptr);
+    CHECK(endcapPcon->getNPlanes() == 6u);  // NOLINT(readability/check)
+    CHECK(endcapPcon->getZPlane(5) == Approx(1509.7 * mm));
 }
 
 TEST_CASE("Target2026UpstreamClosure", "[target]") {
@@ -85,6 +113,23 @@ TEST_CASE("Target2026UpstreamClosure", "[target]") {
     REQUIRE(cover->getLogVol()->getName() == "/SHiP/target/cover_plate");
     auto* coverShape = dynamic_cast<const GeoShapeSubtraction*>(cover->getLogVol()->getShape());
     REQUIRE(coverShape != nullptr);
+
+    // Outer plate: 600×650×20 mm box (half-lengths 300/325/10 mm)
+    auto* coverBox = dynamic_cast<const GeoBox*>(coverShape->getOpA());
+    REQUIRE(coverBox != nullptr);
+    CHECK(coverBox->getXHalfLength() == Approx(300.0 * mm));
+    CHECK(coverBox->getYHalfLength() == Approx(325.0 * mm));
+    CHECK(coverBox->getZHalfLength() == Approx(10.0 * mm));
+
+    // Subtracted hole: tube covering the He-container radius (r 237 mm)
+    auto* coverHoleShift = dynamic_cast<const GeoShapeShift*>(coverShape->getOpB());
+    REQUIRE(coverHoleShift != nullptr);
+    auto* coverHole = dynamic_cast<const GeoTube*>(coverHoleShift->getOp());
+    REQUIRE(coverHole != nullptr);
+    CHECK(coverHole->getRMax() == Approx(237.0 * mm));
+    // Note: the cover-plate placement (75 mm below the beam axis) is not
+    // asserted here because getXToChildVol does not return per-child
+    // transforms on the detached root volume.
 }
 
 TEST_CASE("Target2026Disks", "[target]") {
