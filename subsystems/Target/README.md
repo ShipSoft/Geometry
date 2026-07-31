@@ -19,13 +19,17 @@ target_vacuum_box (Vacuum, 160×227.1×300 cm)
 ├── top_shielding (Copper, 160×60×300 cm)
 ├── bottom_shielding (Copper, 160×54.5×300 cm)
 ├── shielding_pedestal (Iron, 107×15×217 cm)
-└── he_volume (PressurisedHe90, tube r=23.7 cm, z=-3.58..150.97 cm)
-    ├── 33× core_N (Tungsten disks, r=12.5 cm; core_33 r=15.7 cm)
-    ├── core_steel (Steel316L, polycone with He grooves subtracted)
-    ├── jacket (Steel316L, tube r=21.7-22.5 cm)
-    ├── flange_front (Steel316L, r=19.5-22.5 cm)
-    ├── flange_back (Steel316L, r=22.5-23.7 cm)
-    └── endcap (Steel316L, 8 mm domed shell as polycone)
+├── he_volume (PressurisedHe90, tube r=23.7 cm, z=-3.78..150.97 cm)
+│   ├── 33× core_N (Tungsten disks, r=12.5 cm; core_33 r=15.7 cm)
+│   ├── core_steel (Steel316L, polycone with He grooves subtracted)
+│   ├── jacket (Steel316L, tube r=21.7-22.5 cm)
+│   ├── flange_front (Steel316L, r=19.5-22.5 cm)
+│   ├── front_window (Steel316L, disc r=14.1 cm, 8 mm)
+│   ├── front_nose (Steel316L, r=14.1-19.5 cm)
+│   ├── cover_ring1, cover_ring2 (Steel316L, cover-plate bore rings)
+│   ├── flange_back (Steel316L, r=22.5-23.7 cm)
+│   └── endcap (Steel316L, 8 mm domed shell as polycone)
+└── cover_plate (Steel316L, 60×65×2 cm plate minus the He container bore)
 ```
 
 All target z coordinates are measured from the front face of the first disk, which is
@@ -54,15 +58,23 @@ Thickness sequence (mm): 30, 10, 15×8, 9, 11, 12, 13, 13, 16, 20, 20, 21, 30, 4
   flow path. Implemented as tube-segment subtractions; the removed volume fills with
   the parent helium.
 - **Jacket**: 8 mm steel tube (r 217–225 mm, z 55.2–1198.7 mm) with front flange
-  (r 195–225 mm, z −35.8–55.2 mm) and rear flange (r 225–237 mm, z 1198.7–1263.7 mm);
+  (r 195–225 mm, z −23.8–55.2 mm) and rear flange (r 225–237 mm, z 1198.7–1263.7 mm);
   the r 207–217 mm gap between core and jacket is a helium annulus.
+- **Upstream closure**: the vessel bore is closed by a dished beam window integral to
+  the front flange part, simplified to a flat disc (r 141 mm, z −33.5–−25.5 mm) that
+  preserves the 8 mm of steel on the beam axis; a nose ring (r 141–195 mm,
+  z −35.8–−23.8 mm) connects the window rim to the flange. An external cover plate
+  (600×650×20 mm, z −37.8–−17.8 mm, stepped bore r 196/226 mm, asymmetric about the
+  beam axis: +250 mm above, −400 mm below) is modelled as two bore rings inside the
+  helium container plus a rectangular box-minus-tube outside it.
 - **Rear endcap**: 8 mm shell (cylinder r 229–237 mm, z 1263.7–1413.7 mm) closed by a
   domed head approximated as a polycone (three cone segments and an apex disc,
   ending at z=1509.7 mm).
 
 Simplifications relative to the CAD model: bolt lugs, key-ways, pipe stubs, fasteners
 and survey hardware are omitted; the flange/jacket boundary is placed at the end of
-the core front step (55.2 mm instead of the CAD's stepped flange bore at 64.2 mm).
+the core front step (55.2 mm instead of the CAD's stepped flange bore at 64.2 mm); the
+beam window dishing is dropped and the window spacer pads are omitted.
 
 ## Materials
 
@@ -72,7 +84,7 @@ the core front step (55.2 mm instead of the CAD's stepped flange bore at 64.2 mm
 | Shielding | Copper | 8.96 |
 | Pedestal | Iron | 7.87 |
 | Disks | Tungsten | 19.3 |
-| Core, jacket, flanges, endcap | Steel316L | 7.99 |
+| Core, jacket, flanges, window, cover plate, endcap | Steel316L | 7.99 |
 | He volume | PressurisedHe90 | 0.00212 |
 
 ## Position in World

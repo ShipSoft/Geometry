@@ -22,8 +22,8 @@ using SHiPGeometry::SHiPMaterials;
 namespace {
 constexpr double mm = GeoModelKernelUnits::mm;
 // Target frame: z = 0 at the front face of the first disk; the HeVolume tube
-// is centred on the middle of its target-frame span [-35.8, 1509.7] mm
-constexpr double heCentreZ = 0.5 * (-35.8 * mm + 1509.7 * mm);
+// is centred on the middle of its target-frame span [-37.8, 1509.7] mm
+constexpr double heCentreZ = 0.5 * (-37.8 * mm + 1509.7 * mm);
 }  // namespace
 
 TEST_CASE("TargetBuilds", "[target]") {
@@ -45,18 +45,46 @@ TEST_CASE("Target2026HeVolume", "[target]") {
     GeoPhysVol* target = factory.build();
     REQUIRE(target != nullptr);
 
-    // Children: proximity, top, bottom, pedestal, he_volume
-    REQUIRE(target->getNChildVols() == 5u);
+    // Children: proximity, top, bottom, pedestal, he_volume, cover_plate
+    REQUIRE(target->getNChildVols() == 6u);
     PVConstLink heVolume = target->getChildVol(4);
     REQUIRE(heVolume->getLogVol()->getName() == "/SHiP/target/he_volume");
 
     auto* heTube = dynamic_cast<const GeoTube*>(heVolume->getLogVol()->getShape());
     REQUIRE(heTube != nullptr);
     CHECK(heTube->getRMax() == Approx(237.0 * mm));
-    CHECK(heTube->getZHalfLength() == Approx(0.5 * (1509.7 * mm + 35.8 * mm)));
+    CHECK(heTube->getZHalfLength() == Approx(0.5 * (1509.7 * mm + 37.8 * mm)));
 
-    // 33 disks + steel core + jacket + 2 flanges + endcap
-    REQUIRE(heVolume->getNChildVols() == 38u);
+    // 33 disks + steel core + jacket + 2 flanges + window + nose
+    // + 2 cover rings + endcap
+    REQUIRE(heVolume->getNChildVols() == 42u);
+}
+
+TEST_CASE("Target2026UpstreamClosure", "[target]") {
+    SHiPMaterials materials;
+    SHiPGeometry::TargetFactory factory(materials);
+    GeoPhysVol* target = factory.build();
+    PVConstLink heVolume = target->getChildVol(4);
+
+    // Child 36 is the beam window: flat disc preserving 8 mm of steel on the
+    // beam axis, z -33.5..-25.5 mm
+    PVConstLink window = heVolume->getChildVol(36);
+    REQUIRE(window->getLogVol()->getName() == "/SHiP/target/front_window");
+    CHECK(window->getLogVol()->getMaterial()->getName() ==  // NOLINT(readability/check)
+          "Steel316L");
+    auto* windowTube = dynamic_cast<const GeoTube*>(window->getLogVol()->getShape());
+    REQUIRE(windowTube != nullptr);
+    CHECK(windowTube->getRMax() == Approx(141.0 * mm));
+    CHECK(2.0 * windowTube->getZHalfLength() == Approx(8.0 * mm));
+    const double zCentre = heVolume->getXToChildVol(36).translation().z() + heCentreZ;
+    CHECK(zCentre == Approx(-29.5 * mm));
+
+    // Child 5 of the vacuum box is the cover plate (box minus hole), centred
+    // 75 mm below the beam axis
+    PVConstLink cover = target->getChildVol(5);
+    REQUIRE(cover->getLogVol()->getName() == "/SHiP/target/cover_plate");
+    auto* coverShape = dynamic_cast<const GeoShapeSubtraction*>(cover->getLogVol()->getShape());
+    REQUIRE(coverShape != nullptr);
 }
 
 TEST_CASE("Target2026Disks", "[target]") {
