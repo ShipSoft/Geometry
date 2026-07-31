@@ -78,6 +78,24 @@ GeoPhysVol* TargetFactory::build() {
     vacuumBoxPhys->add(new GeoTransform(heVolumeTrf));
     vacuumBoxPhys->add(heVolume);
 
+    // Upstream cover plate remainder outside the He container: rectangular
+    // plate, asymmetric about the beam axis, with a central hole covering
+    // the He container radius; the stepped bore is modelled by the rings
+    // inside HeVolume
+    const GeoMaterial* steel316L = m_materials.requireMaterial("Steel316L");
+    auto* coverBox = new GeoBox(s_coverPlateHalfX, s_coverPlateHalfY, s_coverPlateHalfZ);
+    auto* coverHole = new GeoTube(0.0, s_heRadius, s_coverPlateHalfZ + 1.0 * mm);
+    GeoTrf::Transform3D coverHoleTrf = GeoTrf::Translate3D(0.0, -s_coverPlateOffsetY, 0.0);
+    const GeoShape* coverShape = &(coverBox->subtract((*coverHole) << coverHoleTrf));
+    auto* coverLog = new GeoLogVol("/SHiP/target/cover_plate", coverShape, steel316L);
+    const double coverCentreZ = 0.5 * (s_heZMin + s_coverZMax);
+    GeoTrf::Transform3D coverTrf = GeoTrf::Translate3D(0.0, s_targetAreaPosY + s_coverPlateOffsetY,
+                                                       s_targetAreaPosZ + coverCentreZ);
+    vacuumBoxPhys->add(new GeoNameTag("/SHiP/target/cover_plate"));
+    vacuumBoxPhys->add(new GeoIdentifierTag(5));
+    vacuumBoxPhys->add(new GeoTransform(coverTrf));
+    vacuumBoxPhys->add(new GeoPhysVol(coverLog));
+
     return vacuumBoxPhys;
 }
 
@@ -211,10 +229,35 @@ GeoPhysVol* TargetFactory::createHeVolume() {
     place(new GeoPhysVol(jacketLog), "/SHiP/target/jacket", spanTrf(s_jacketZMin, s_jacketZMax));
 
     auto* flangeFrontTube =
-        new GeoTube(s_flangeFrontRmin, s_jacketRmax, 0.5 * (s_jacketZMin - s_heZMin));
+        new GeoTube(s_flangeFrontRmin, s_jacketRmax, 0.5 * (s_jacketZMin - s_flangeFrontZMin));
     auto* flangeFrontLog = new GeoLogVol("/SHiP/target/flange_front", flangeFrontTube, steel316L);
     place(new GeoPhysVol(flangeFrontLog), "/SHiP/target/flange_front",
-          spanTrf(s_heZMin, s_jacketZMin));
+          spanTrf(s_flangeFrontZMin, s_jacketZMin));
+
+    // Beam window and its nose ring closing the vessel upstream
+    auto* windowTube = new GeoTube(0.0, s_windowRmax, 0.5 * (s_windowZMax - s_windowZMin));
+    auto* windowLog = new GeoLogVol("/SHiP/target/front_window", windowTube, steel316L);
+    place(new GeoPhysVol(windowLog), "/SHiP/target/front_window",
+          spanTrf(s_windowZMin, s_windowZMax));
+
+    auto* noseTube =
+        new GeoTube(s_windowRmax, s_flangeFrontRmin, 0.5 * (s_flangeFrontZMin - s_noseZMin));
+    auto* noseLog = new GeoLogVol("/SHiP/target/front_nose", noseTube, steel316L);
+    place(new GeoPhysVol(noseLog), "/SHiP/target/front_nose",
+          spanTrf(s_noseZMin, s_flangeFrontZMin));
+
+    // Cover plate bore rings (the part of the plate within the He container)
+    auto* coverRing1Tube =
+        new GeoTube(s_coverRing1Rmin, s_heRadius, 0.5 * (s_flangeFrontZMin - s_heZMin));
+    auto* coverRing1Log = new GeoLogVol("/SHiP/target/cover_ring1", coverRing1Tube, steel316L);
+    place(new GeoPhysVol(coverRing1Log), "/SHiP/target/cover_ring1",
+          spanTrf(s_heZMin, s_flangeFrontZMin));
+
+    auto* coverRing2Tube =
+        new GeoTube(s_coverRing2Rmin, s_heRadius, 0.5 * (s_coverZMax - s_flangeFrontZMin));
+    auto* coverRing2Log = new GeoLogVol("/SHiP/target/cover_ring2", coverRing2Tube, steel316L);
+    place(new GeoPhysVol(coverRing2Log), "/SHiP/target/cover_ring2",
+          spanTrf(s_flangeFrontZMin, s_coverZMax));
 
     auto* flangeRearTube =
         new GeoTube(s_jacketRmax, s_flangeRearRmax, 0.5 * (s_flangeRearZMax - s_jacketZMax));

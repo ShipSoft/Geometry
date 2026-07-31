@@ -30,7 +30,12 @@ class SHiPMaterials;
  *     polycone) with serpentine He cooling grooves subtracted
  *   - steel jacket tube with front and rear flanges; the gap between
  *     core and jacket is a He annulus
+ *   - upstream beam window (dished membrane simplified to a flat disc
+ *     preserving the 8 mm of steel on the beam axis) with its nose ring,
+ *     and the bore rings of the upstream cover plate
  *   - domed rear endcap (8 mm shell, dome approximated as a polycone)
+ * - Upstream cover plate (rectangular, asymmetric about the beam axis),
+ *   the part outside the He container
  *
  * All target z coordinates are measured from the front face of the first
  * disk, which is the SHiP global origin.
@@ -108,9 +113,10 @@ class TargetFactory {
     // ---- 2026 BDF target (CATIA ST1A07710_01_AB.02) ----
     // All z values below are in the target frame (z = 0 at disk-1 front face).
 
-    // HeVolume: container for disks, steel core, jacket, flanges and endcap
+    // HeVolume: container for disks, steel core, jacket, flanges, beam
+    // window, cover-plate bore rings and endcap
     static constexpr double s_heRadius = 237.0 * mm;
-    static constexpr double s_heZMin = -35.8 * mm;   // upstream face of front flange
+    static constexpr double s_heZMin = -37.8 * mm;   // upstream face of the cover plate
     static constexpr double s_heZMax = 1509.7 * mm;  // downstream end of rear endcap
 
     // Tungsten disks: [z start, z end] per disk; 4-5 mm He slits in between
@@ -172,14 +178,37 @@ class TargetFactory {
 
     // Jacket tube and flanges; He annulus between core (207) and jacket (217).
     // The flange bore matches the core front step, so the flange/jacket
-    // boundary is placed at the end of the step.
+    // boundary is placed at the end of the step. The flange proper starts at
+    // the cover-plate step; upstream of it the outer radius is the r 195
+    // nose that slides into the cover-plate bore.
     static constexpr double s_jacketRmin = 217.0 * mm;
     static constexpr double s_jacketRmax = 225.0 * mm;
     static constexpr double s_jacketZMin = s_coreFrontZMax;
     static constexpr double s_jacketZMax = 1198.7 * mm;
     static constexpr double s_flangeFrontRmin = 195.0 * mm;
+    static constexpr double s_flangeFrontZMin = -23.8 * mm;  // cover-plate step
+    static constexpr double s_noseZMin = -35.8 * mm;         // upstream face of the vessel
     static constexpr double s_flangeRearRmax = 237.0 * mm;
     static constexpr double s_flangeRearZMax = 1263.7 * mm;
+
+    // Beam window: dished membrane closing the bore, simplified to a flat
+    // disc preserving the 8 mm of steel on the beam axis; the r 141-195 nose
+    // ring connects the window rim to the flange
+    static constexpr double s_windowRmax = 141.0 * mm;
+    static constexpr double s_windowZMin = -33.5 * mm;
+    static constexpr double s_windowZMax = -25.5 * mm;
+
+    // Upstream cover plate (600 x 650 x 20 mm, stepped bore r 196/226 mm,
+    // asymmetric about the beam axis: +250 mm above, -400 mm below): the
+    // part within the He container is modelled as two bore rings, the
+    // rectangular remainder as a box-minus-tube outside it
+    static constexpr double s_coverRing1Rmin = 196.0 * mm;
+    static constexpr double s_coverRing2Rmin = 226.0 * mm;
+    static constexpr double s_coverZMax = -17.8 * mm;
+    static constexpr double s_coverPlateHalfX = 300.0 * mm;
+    static constexpr double s_coverPlateHalfY = 325.0 * mm;
+    static constexpr double s_coverPlateHalfZ = 10.0 * mm;
+    static constexpr double s_coverPlateOffsetY = -75.0 * mm;  // plate centre below the axis
 
     // Rear endcap: 8 mm shell, cylindrical section closed by a domed head;
     // polycone planes (z, rmin, rmax) approximating the dome with three cone
