@@ -18,7 +18,7 @@ struct MuonShieldConfig;
  * @brief Factory for the MuonShield geometry.
  *
  * Builds an Air container spanning the muon-shield Z envelope and places an
- * explicit list of iron blocks inside it (from MS.toml). Each block is a box,
+ * explicit list of iron blocks inside it (from muon_shield.toml). Each block is a box,
  * or a symmetric trapezoid/frustum (GeoTrd) when tapered, anchored by its
  * upstream face and optionally rotated.
  *
@@ -27,17 +27,18 @@ struct MuonShieldConfig;
  * the muon shield while keeping it an independent subsystem.
  *
  * The container is built centred on its own origin; SHiPGeometryBuilder places
- * it in the world at centreZ_mm() (the envelope centre from MS.toml).
+ * it in the world at centreZ_mm() (the envelope centre from muon_shield.toml).
  *
  * The config file is resolved at build() time:
- *   1. "MS.toml" relative to the current working directory (works when running
+ *   1. "muon_shield.toml" relative to the current working directory (works when running
  *      from the build directory, where CMake stages the file).
  *   2. The absolute source-tree path baked in via MS_TOML_DEFAULT_PATH.
  *   3. The installed data-dir path via MS_TOML_INSTALL_PATH.
  */
 class MuonShieldFactory {
    public:
-    explicit MuonShieldFactory(SHiPMaterials& materials, std::string configPath = "MS.toml");
+    explicit MuonShieldFactory(SHiPMaterials& materials,
+                               std::string configPath = "muon_shield.toml");
     ~MuonShieldFactory() = default;
 
     /**
@@ -77,7 +78,7 @@ class MuonShieldFactory {
     /**
      * @brief World-Z centre (mm) at which the container should be placed.
      *
-     * Valid only after build() has been called (it is read from MS.toml).
+     * Valid only after build() has been called (it is read from muon_shield.toml).
      */
     double centreZ_mm() const { return m_centreZ_mm; }
 

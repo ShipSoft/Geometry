@@ -24,7 +24,7 @@ using SHiPGeometry::readMuonShieldConfig;
 using SHiPGeometry::SHiPMaterials;
 
 namespace {
-// Write a temp MS.toml with the given body and return its path.
+// Write a temp muon_shield.toml with the given body and return its path.
 std::string writeTempToml(const std::string& name, const std::string& body) {
     std::ofstream out(name);
     out << body;
@@ -33,7 +33,7 @@ std::string writeTempToml(const std::string& name, const std::string& body) {
 }
 }  // namespace
 
-// Default MS.toml: the 7 FairShip TRY_2026 magnets (solid-block approximation)
+// Default muon_shield.toml: the 7 FairShip TRY_2026 magnets (solid-block approximation)
 // inside an auto-sized envelope (4.54–32.08 m, 1760 × 1320 mm half-sizes).
 TEST_CASE("MuonShieldBuilds", "[muonshield]") {
     SHiPMaterials materials;

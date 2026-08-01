@@ -40,7 +40,7 @@ struct MuonShieldBlock {
 /**
  * @brief Configuration for the SHiP muon shield geometry.
  *
- * Populated by readMuonShieldConfig() from an MS.toml file.
+ * Populated by readMuonShieldConfig() from an muon_shield.toml file.
  *
  * The shield is an explicit list of iron @c blocks placed inside an Air
  * @c envelope container. The envelope sizes the container and fixes the
@@ -74,7 +74,7 @@ struct MuonShieldConfig {
 };
 
 /**
- * @brief Parse an MS.toml file and return a MuonShieldConfig.
+ * @brief Parse an muon_shield.toml file and return a MuonShieldConfig.
  *
  * Uses toml++ for parsing. Unknown top-level keys are reported via stderr
  * (helpful when a stale or mistyped key would otherwise be silently ignored),

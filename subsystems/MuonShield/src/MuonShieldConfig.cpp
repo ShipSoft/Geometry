@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 //
-// Muon shield configuration parser. Reads an MS.toml file and populates a
+// Muon shield configuration parser. Reads an muon_shield.toml file and populates a
 // MuonShieldConfig struct. Built on toml++
 // (https://github.com/marzer/tomlplusplus, single-header MIT, provided by the
 // tomlplusplus package), so the file format is standard TOML.

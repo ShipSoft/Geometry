@@ -27,9 +27,9 @@
 #include <string>
 
 // Absolute fallback path baked in by CMake so out-of-source builds always find
-// MS.toml even when the CWD doesn't contain a copy of it.
+// muon_shield.toml even when the CWD doesn't contain a copy of it.
 #ifndef MS_TOML_DEFAULT_PATH
-#define MS_TOML_DEFAULT_PATH "MS.toml"
+#define MS_TOML_DEFAULT_PATH "muon_shield.toml"
 #endif
 // Install-time data directory path, set by CMake during install configuration.
 #ifndef MS_TOML_INSTALL_PATH
