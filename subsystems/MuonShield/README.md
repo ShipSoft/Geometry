@@ -47,10 +47,10 @@ below.
 | Key                  | Fallback | Meaning                                        |
 |----------------------|----------|------------------------------------------------|
 | `block_material`     | "Iron"   | Absorber material (must exist in SHiPMaterials) |
-| `envelope_half_x_mm` | 2100     | Container half-X (mm)                           |
-| `envelope_half_y_mm` | 2300     | Container half-Y (mm)                           |
-| `envelope_z_start_m` | 4.74     | Envelope start along Z (m, world coords)        |
-| `envelope_z_end_m`   | 32.22    | Envelope end along Z (m, world coords)          |
+| `envelope_half_x_mm` | 1760     | Container half-X (mm)                           |
+| `envelope_half_y_mm` | 1320     | Container half-Y (mm)                           |
+| `envelope_z_start_m` | 4.54     | Envelope start along Z (m, world coords)        |
+| `envelope_z_end_m`   | 32.08    | Envelope end along Z (m, world coords)          |
 | `[[block]]`          | —        | One table per iron block (see below)            |
 
 The **Fallback** column is the parser default used only when a key is *omitted*.

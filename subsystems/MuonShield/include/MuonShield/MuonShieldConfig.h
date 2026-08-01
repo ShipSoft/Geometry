@@ -53,13 +53,13 @@ struct MuonShieldConfig {
     std::string block_material = "Iron";
 
     // Container (envelope) transverse half-sizes (mm).
-    double envelope_half_x_mm = 2100.0;
-    double envelope_half_y_mm = 2300.0;
+    double envelope_half_x_mm = 1760.0;
+    double envelope_half_y_mm = 1320.0;
 
     // Envelope Z extent in world coordinates (target-front-face origin, m).
     // This is the Air container and the world placement of the subsystem.
-    double envelope_z_start_m = 4.74;
-    double envelope_z_end_m = 32.22;
+    double envelope_z_start_m = 4.54;
+    double envelope_z_end_m = 32.08;
 
     // The iron blocks. Empty = no iron.
     std::vector<MuonShieldBlock> blocks;
