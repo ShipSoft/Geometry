@@ -70,11 +70,14 @@ GeoPhysVol* assembleGeometry(const std::vector<std::string>& only) {
             return a->desc.z_mm < b->desc.z_mm;
         return a->desc.id < b->desc.id;
     });
-
     for (const SubsystemInfo* info : placed) {
         const SubsystemDescriptor& d = info->desc;
-        placeChild(world, info->build(materials), d.node, d.id,
-                   GeoTrf::Translate3D(d.x_mm, d.y_mm, d.z_mm));
+        GeoVPhysVol* volume = info->build(materials);
+        if (!volume) {
+            throw std::runtime_error("Subsystem '" + std::string(d.name) +
+                                     "' built a null volume.");
+        }
+        placeChild(world, volume, d.node, d.id, GeoTrf::Translate3D(d.x_mm, d.y_mm, d.z_mm));
     }
     return world;
 }
