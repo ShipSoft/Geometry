@@ -34,16 +34,15 @@ target_link_libraries(
 # For SHARED libraries the fix is --no-as-needed on the *consumer's* link line
 # (INTERFACE), where the entries were being dropped. For STATIC libraries that
 # flag does nothing — the objects need --whole-archive instead, which is not
-# wired up here — so warn rather than silently produce an empty registry. This
+# wired up here — so fail rather than silently produce an empty registry. This
 # is orthogonal to platform, so it is checked first and independently.
 if(NOT BUILD_SHARED_LIBS)
     message(
-        WARNING
-        "Static build detected (BUILD_SHARED_LIBS=OFF): subsystem "
-        "self-registration relies on -Wl,--no-as-needed for shared libraries "
-        "and is not wired up for static archives (which would need "
-        "--whole-archive). build_geometry and the tests may find an empty "
-        "subsystem registry at run time. Prefer BUILD_SHARED_LIBS=ON."
+        FATAL_ERROR
+        "BUILD_SHARED_LIBS=OFF is not supported: subsystem self-registration "
+        "relies on -Wl,--no-as-needed for shared libraries and is not wired up "
+        "for static archives (which would need --whole-archive). A static build "
+        "would produce an empty subsystem registry at run time."
     )
 endif()
 

@@ -8,7 +8,7 @@ The TimingDetector subsystem implements 330 scintillator bars (3 columns x 110 r
 
 ## Geometry Tree
 
-```
+```text
 Timing_Detector (Air, 5500×6500×500 mm)
  └─ 330 × scintillator bars (1400×60×10 mm each)
      built from GeoModelXML prototype
@@ -21,7 +21,7 @@ Position in world: z = 95902 mm.
 | Material     | Density      | Usage           |
 |--------------|--------------|-----------------|
 | Air          | 1.29 mg/cm³  | Container volume |
-| Scintillator | 1.023 g/cm³  | Detector bars   |
+| TimDetScint  | 1.023 g/cm³  | Detector bars   |
 
 ## Status
 

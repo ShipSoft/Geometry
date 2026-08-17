@@ -171,10 +171,11 @@ To add a new material, edit `src/SHiPMaterials.cpp`:
    names no subsystem.
 4. **CMake**: add sources/headers to `subsystems/<Name>/CMakeLists.txt`, and
    add the new library to the subsystem list linked by `SHiPGeometry` in
-   `src/CMakeLists.txt`. That target applies `-Wl,--no-as-needed` (as an
-   INTERFACE link option) so the library is kept in each consumer's
-   `DT_NEEDED` and its `REGISTER_SUBSYSTEM` initializer is not dropped by the
-   linker's default `--as-needed`.
+   `src/CMakeLists.txt`. For shared-library builds (the only supported
+   configuration) that target applies `-Wl,--no-as-needed` as an INTERFACE
+   link option, so the library stays in each consumer's `DT_NEEDED` and its
+   `REGISTER_SUBSYSTEM` initializer is not dropped by the linker's default
+   `--as-needed`. Static builds are not supported.
 5. **Docs**: update the subsystem `README.md` with geometry tree, materials,
    and status
 

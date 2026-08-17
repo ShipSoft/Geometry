@@ -23,8 +23,8 @@ if(EXISTS "${_geomodel_dtd}")
     configure_file("${_geomodel_dtd}" "${GMX_OUT_DIR}/geomodel.dtd" COPYONLY)
 else()
     message(
-        WARNING
-        "geomodel.dtd not found at ${_geomodel_dtd}; TimingDetector GMX parsing may fail"
+        FATAL_ERROR
+        "geomodel.dtd not found at ${_geomodel_dtd}; TimingDetector GMX parsing would fail at runtime"
     )
 endif()
 
