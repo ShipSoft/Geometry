@@ -74,7 +74,7 @@ commitizen = "*"
 # repo's 0.27.7 and would reflow CMake files.
 [feature.lint.pypi-dependencies]
 cpplint = "==2.0.2"
-gersemi = "==0.28.0"
+gersemi = "==0.28.1"
 
 [feature.lint.tasks]
 lint = "prek run --all-files"
