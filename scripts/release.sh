@@ -15,9 +15,11 @@ Usage: scripts/release.sh <version>
 
 The script must be run from a clean working tree. It will:
   1. bump the VERSION line in CMakeLists.txt
-  2. regenerate CHANGELOG.md with `git cliff --tag v<version>`
-  3. create commit `chore(release): v<version>`
-  4. create annotated tag `v<version>`
+  2. bump version and date-released in CITATION.cff (if present)
+  3. bump the [package] version in pixi.toml (if present)
+  4. regenerate CHANGELOG.md with `git cliff --tag v<version>`
+  5. create commit `chore(release): v<version>`
+  6. create annotated tag `v<version>`
 
 Pushing is left to the operator:
   git push origin <branch> && git push origin v<version>
@@ -78,9 +80,37 @@ if ! grep -qE "^[[:space:]]*VERSION[[:space:]]+${VERSION//./\\.}([[:space:]]|$)"
     exit 70
 fi
 
+CITATION_FILE="CITATION.cff"
+if [[ -f "${CITATION_FILE}" ]]; then
+    sed -i -E "s/^version: .*/version: ${VERSION}/" "${CITATION_FILE}"
+    sed -i -E "s/^date-released: .*/date-released: \"$(date -u +%Y-%m-%d)\"/" "${CITATION_FILE}"
+fi
+
+# Bump the [package] version in pixi.toml so the source dependency and the
+# conda recipe stay in lockstep with the tag. Guarding on a top-level version
+# key makes this a clean no-op where pixi.toml has no [package] section.
+# Anchored at column 0, it only matches the top-level key, not the inline
+# version = fields of [package.build]/host-dependency tables.
+PIXI_FILE="pixi.toml"
+if [[ -f "${PIXI_FILE}" ]] && grep -qE '^version = "[0-9]+\.[0-9]+\.[0-9]+"' "${PIXI_FILE}"; then
+    sed -i -E "s/^version = \"[0-9]+\.[0-9]+\.[0-9]+\"/version = \"${VERSION}\"/" "${PIXI_FILE}"
+    if ! grep -qE "^version = \"${VERSION//./\\.}\"$" "${PIXI_FILE}"; then
+        echo "error: failed to update version in ${PIXI_FILE}" >&2
+        git checkout -- "${CMAKE_FILE}" "${PIXI_FILE}"
+        [[ -f "${CITATION_FILE}" ]] && git checkout -- "${CITATION_FILE}"
+        exit 70
+    fi
+fi
+
 git cliff --tag "${TAG}" -o CHANGELOG.md
 
 git add "${CMAKE_FILE}" CHANGELOG.md
+if [[ -f "${CITATION_FILE}" ]]; then
+    git add "${CITATION_FILE}"
+fi
+if [[ -f "${PIXI_FILE}" ]] && grep -qE "^version = \"${VERSION//./\\.}\"$" "${PIXI_FILE}"; then
+    git add "${PIXI_FILE}"
+fi
 git commit -m "chore(release): ${TAG}"
 git tag -a "${TAG}" -m "Release ${TAG}"
 
