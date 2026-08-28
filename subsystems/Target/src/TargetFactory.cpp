@@ -4,6 +4,7 @@
 #include "Target/TargetFactory.h"
 
 #include "SHiPGeometry/SHiPMaterials.h"
+#include "SHiPGeometry/SubsystemRegistry.h"
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoDefinitions.h>
@@ -274,5 +275,7 @@ GeoPhysVol* TargetFactory::createHeVolume() {
 
     return heVolumePhys;
 }
+
+REGISTER_SUBSYSTEM(TargetFactory)
 
 }  // namespace SHiPGeometry

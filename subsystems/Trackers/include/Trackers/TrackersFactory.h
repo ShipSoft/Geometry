@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "SHiPGeometry/SubsystemDescriptor.h"
+
 #include <GeoModelKernel/Units.h>
 
 #include <array>
@@ -40,6 +42,13 @@ class TrackersFactory {
     explicit TrackersFactory(SHiPMaterials& materials);
     ~TrackersFactory() = default;
 
+    /// This subsystem's self-description (name, node, id, placement).
+    static SubsystemDescriptor descriptor() {
+        // s_containerCentreZ is in GeoModel's native length unit (mm == 1.0),
+        // which is exactly the millimetre convention SubsystemDescriptor::z_mm
+        // expects, so no conversion is needed here.
+        return {"Trackers", "/SHiP/trackers", 5, 0.0, 0.0, s_containerCentreZ, false};
+    }
     /**
      * @brief Build the Trackers geometry.
      * @return Pointer to the container volume holding all 4 stations.

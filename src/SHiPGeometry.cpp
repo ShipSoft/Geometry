@@ -1,115 +1,104 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
-
+//
+// The assembler. It contains NO subsystem names: every subsystem registers
+// itself (see REGISTER_SUBSYSTEM in each subsystem's .cpp) and this file only
+// iterates whatever registered.
 #include "SHiPGeometry/SHiPGeometry.h"
 
-#include "Calorimeter/CalorimeterFactory.h"
-#include "Cavern/CavernFactory.h"
-#include "DecayVolume/DecayVolumeFactory.h"
-#include "Magnet/MagnetFactory.h"
-#include "MuonShield/MuonShieldFactory.h"
 #include "SHiPGeometry/Placement.h"
 #include "SHiPGeometry/SHiPMaterials.h"
-#include "Target/TargetFactory.h"
-#include "TimingDetector/TimingDetectorFactory.h"
-#include "Trackers/TrackersFactory.h"
-#include "UpstreamTagger/SHiPUBTManager.h"
-#include "UpstreamTagger/UpstreamTaggerFactory.h"
-
-#include "NeutrinoDetector/NeutrinoDetectorFactory.h"
+#include "SHiPGeometry/SubsystemRegistry.h"
 
 #include <GeoModelKernel/GeoDefinitions.h>
 #include <GeoModelKernel/GeoPhysVol.h>
-#include <GeoModelKernel/Units.h>
 
+#include <algorithm>
+#include <stdexcept>
+#include <string>
+#include <vector>
 namespace SHiPGeometry {
-
-SHiPGeometryBuilder::SHiPGeometryBuilder() = default;
-SHiPGeometryBuilder::~SHiPGeometryBuilder() = default;
-
-GeoPhysVol* SHiPGeometryBuilder::build() {
-    // Unit shorthands (GeoModel's native length unit is mm)
-    constexpr double mm = GeoModelKernelUnits::mm;
-    constexpr double cm = GeoModelKernelUnits::cm;
-    constexpr double m = GeoModelKernelUnits::m;
-
-    // Create central materials manager
+GeoPhysVol* assembleGeometry(const std::vector<std::string>& only) {
     SHiPMaterials materials;
-
-    // Build the cavern (world volume)
-    CavernFactory cavernFactory(materials);
-    GeoPhysVol* world = cavernFactory.build();
-
-    // Build and place the Target
-    TargetFactory targetFactory(materials);
-    GeoPhysVol* target = targetFactory.build();
-
-    // Position target in world (from GDML: x=0, y=-14.45cm, z=43.25cm)
-    // Note: These are relative to the cave origin
-    placeChild(world, target, "/SHiP/target", 1, GeoTrf::Translate3D(0.0, -14.45 * cm, 43.25 * cm));
-
-    // Build and place MuonShieldArea
-    // GDML z range: 204–3148.66 cm → centre: 1676.33 cm = 16763.3 mm from world origin
-    MuonShieldFactory muonShieldFactory(materials);
-    GeoPhysVol* muonShield = muonShieldFactory.build();
-    placeChild(world, muonShield, "/SHiP/muon_shield", 2,
-               GeoTrf::Translate3D(0.0, 0.0, 16763.3 * mm));
-
-    // Build and place the Scattering and Neutrino Detector (SND).
-    // Z: 26.40 to 31.50 m (WARM muon-shield configuration) → centre 28.95 m.
-    // The SND sits within the downstream end of the muon-shield region, so its
-    // envelope overlaps the muon-shield container by design (see test_consistency).
-    NeutrinoDetectorFactory neutrinoDetectorFactory(materials);
-    GeoPhysVol* neutrinoDetector = neutrinoDetectorFactory.build();
-    placeChild(world, neutrinoDetector, "/SHiP/neutrino_detector", 9,
-               GeoTrf::Translate3D(0.0, 0.0, 28.95 * m));
-
-    // Build and place UpstreamTagger (sensitive scintillator slab)
-    // Z: 32.52 to 32.92 m → centre: 32.72 m
-    SHiPUBTManager ubtManager;
-    UpstreamTaggerFactory upstreamTaggerFactory(materials);
-    GeoVPhysVol* upstreamTagger = upstreamTaggerFactory.build(&ubtManager);
-    placeChild(world, upstreamTagger, "/SHiP/upstream_tagger", 3,
-               GeoTrf::Translate3D(0.0, 0.0, 32.72 * m));
-
-    // Build and place DecayVolume
-    // Z: 32.92 to 83.32 m → centre: 58.12 m
-    DecayVolumeFactory decayVolumeFactory(materials);
-    GeoPhysVol* decayVolume = decayVolumeFactory.build();
-    placeChild(world, decayVolume, "/SHiP/decay_volume", 4,
-               GeoTrf::Translate3D(0.0, 0.0, 58.12 * m));
-
-    // Build and place Trackers (container with 4 stations).
-    // The factory already handles internal positioning; place the container at
-    // its centre Z (average of station 1 and 4 centres).
-    TrackersFactory trackersFactory(materials);
-    GeoPhysVol* trackers = trackersFactory.build();
-    constexpr double trackersCentreZ = (84.07 + 95.07) / 2.0 * m;
-    placeChild(world, trackers, "/SHiP/trackers", 5,
-               GeoTrf::Translate3D(0.0, 0.0, trackersCentreZ));
-
-    // Build and place Magnet
-    // Z: 87.07 to 92.07 m → centre: 89.57 m
-    MagnetFactory magnetFactory(materials);
-    GeoPhysVol* magnet = magnetFactory.build();
-    placeChild(world, magnet, "/SHiP/magnet", 6, GeoTrf::Translate3D(0.0, 0.0, 89.57 * m));
-
-    // Build and place TimingDetector
-    // Z: 95.902 m (from GDML reference)
-    TimingDetectorFactory timingDetectorFactory(materials);
-    GeoPhysVol* timingDetector = timingDetectorFactory.build();
-    placeChild(world, timingDetector, "/SHiP/timing_detector", 7,
-               GeoTrf::Translate3D(0.0, 0.0, 95.902 * m));
-
-    // Build and place Calorimeter (ECAL + HCAL).
-    // The layer structure is driven by calo.toml; the outer container dimensions
-    // and placement are fixed to match the SHiP subsystem envelope.
-    CalorimeterFactory calorimeterFactory(materials);
-    GeoPhysVol* calorimeter = calorimeterFactory.build();
-    placeChild(world, calorimeter, "/SHiP/calorimeter", 8,
-               GeoTrf::Translate3D(0.0, 0.0, 98.32 * m));
-
+    auto& reg = registry();
+    // Validate any requested names up front, so a typo fails clearly rather
+    // than silently producing a partial geometry.
+    for (const auto& name : only) {
+        if (reg.find(name) == reg.end()) {
+            throw std::runtime_error("Unknown subsystem: '" + name + "'");
+        }
+    }
+    // Require exactly one world (isWorld) subsystem, and require it to build a
+    // GeoPhysVol (needed to hold child volumes). Two isWorld entries would
+    // otherwise be silently resolved to whichever comes first; a mis-typed world
+    // factory would make the cast return nullptr. Fail with the offending
+    // name(s) instead. The build is deferred until after validation.
+    const SubsystemInfo* worldInfo = nullptr;
+    for (const auto& [regName, info] : reg) {
+        if (!info.desc.isWorld) {
+            continue;
+        }
+        if (worldInfo) {
+            throw std::runtime_error("More than one world (isWorld) subsystem registered: '" +
+                                     std::string(worldInfo->desc.name) + "' and '" +
+                                     std::string(info.desc.name) + "'.");
+        }
+        worldInfo = &info;
+    }
+    if (!worldInfo) {
+        throw std::runtime_error("No world (isWorld) subsystem is registered");
+    }
+    GeoPhysVol* world = dynamic_cast<GeoPhysVol*>(worldInfo->build(materials));
+    if (!world) {
+        throw std::runtime_error("World subsystem '" + std::string(worldInfo->desc.name) +
+                                 "' did not build a GeoPhysVol (needed to hold children).");
+    }
+    // Gather the selected non-world subsystems (all, if none requested), then
+    // order them deterministically by (z, id) — independent of registration order.
+    std::vector<const SubsystemInfo*> placed;
+    for (auto& entry : reg) {
+        const SubsystemInfo& info = entry.second;
+        if (info.desc.isWorld)
+            continue;
+        if (only.empty() || std::find(only.begin(), only.end(), entry.first) != only.end()) {
+            placed.push_back(&info);
+        }
+    }
+    std::sort(placed.begin(), placed.end(), [](const SubsystemInfo* a, const SubsystemInfo* b) {
+        if (a->desc.z_mm != b->desc.z_mm)
+            return a->desc.z_mm < b->desc.z_mm;
+        return a->desc.id < b->desc.id;
+    });
+    for (const SubsystemInfo* info : placed) {
+        const SubsystemDescriptor& d = info->desc;
+        GeoVPhysVol* volume = info->build(materials);
+        if (!volume) {
+            throw std::runtime_error("Subsystem '" + std::string(d.name) +
+                                     "' built a null volume.");
+        }
+        placeChild(world, volume, d.node, d.id, GeoTrf::Translate3D(d.x_mm, d.y_mm, d.z_mm));
+    }
     return world;
 }
-
+GeoVPhysVol* buildSubsystem(const std::string& name) {
+    auto& reg = registry();
+    auto it = reg.find(name);
+    if (it == reg.end()) {
+        throw std::runtime_error("Unknown subsystem: '" + name + "'");
+    }
+    SHiPMaterials materials;
+    return it->second.build(materials);
+}
+std::vector<std::string> subsystemNames() {
+    std::vector<std::string> names;
+    for (auto& entry : registry())
+        names.push_back(entry.first);
+    return names;
+}
+// ── Backwards-compatible builder: unchanged interface, delegates to registry ──
+SHiPGeometryBuilder::SHiPGeometryBuilder() = default;
+SHiPGeometryBuilder::~SHiPGeometryBuilder() = default;
+GeoPhysVol* SHiPGeometryBuilder::build() {
+    return assembleGeometry();
+}
 }  // namespace SHiPGeometry

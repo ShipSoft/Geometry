@@ -4,6 +4,7 @@
 #include "NeutrinoDetector/NeutrinoDetectorFactory.h"
 
 #include "SHiPGeometry/SHiPMaterials.h"
+#include "SHiPGeometry/SubsystemRegistry.h"
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoDefinitions.h>
@@ -290,5 +291,7 @@ GeoPhysVol* NeutrinoDetectorFactory::build() {
 
     return containerPhys;
 }
+
+REGISTER_SUBSYSTEM(NeutrinoDetectorFactory)
 
 }  // namespace SHiPGeometry

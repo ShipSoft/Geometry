@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "SHiPGeometry/SubsystemDescriptor.h"
+
 #include <GeoModelKernel/Units.h>
 
 #include <array>
@@ -45,6 +47,10 @@ class TargetFactory {
     explicit TargetFactory(SHiPMaterials& materials);
     ~TargetFactory() = default;
 
+    /// This subsystem's self-description (name, node, id, placement).
+    static SubsystemDescriptor descriptor() {
+        return {"Target", "/SHiP/target", 1, 0.0, -144.5, 432.5, false};
+    }
     /**
      * @brief Build the Target geometry
      * @return Pointer to the target_vacuum_box physical volume

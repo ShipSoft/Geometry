@@ -4,6 +4,7 @@
 #pragma once
 
 #include "DecayVolume/SBTConfig.h"
+#include "SHiPGeometry/SubsystemDescriptor.h"
 
 #include <string>
 
@@ -32,6 +33,10 @@ class DecayVolumeFactory {
     explicit DecayVolumeFactory(SHiPMaterials& materials, std::string configPath = "sbt.toml");
     ~DecayVolumeFactory() = default;
 
+    /// This subsystem's self-description (name, node, id, placement).
+    static SubsystemDescriptor descriptor() {
+        return {"DecayVolume", "/SHiP/decay_volume", 4, 0.0, 0.0, 58120.0, false};
+    }
     /// Build the DecayVolume geometry; returns the air container.
     [[nodiscard]] GeoPhysVol* build();
 

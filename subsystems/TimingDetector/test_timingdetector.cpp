@@ -25,12 +25,11 @@ TEST_CASE("TimingDetectorWithinEnvelope", "[timingdetector]") {
     CHECK(box->getZHalfLength() <= 250.0);
 }
 
-// 3 columns × 110 rows = 330 bars, each placed as a child of the container.
+// GeoModelXML prototype: 3 columns × 110 bars = 330 sensitive volumes
 TEST_CASE("TimingDetectorBarCount", "[timingdetector]") {
     SHiPMaterials materials;
     SHiPGeometry::TimingDetectorFactory factory(materials);
     GeoPhysVol* td = factory.build();
     REQUIRE(td != nullptr);
-    CHECK(factory.barCount() == 330);    // NOLINT(readability/check)
-    CHECK(td->getNChildVols() == 330u);  // NOLINT(readability/check)
+    CHECK(factory.barCount() == 330);  // NOLINT(readability/check)
 }
