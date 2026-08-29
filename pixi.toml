@@ -62,7 +62,7 @@ gdml = { cmd = "gm2gdml -g build/ship_geometry.db -o build/ship_geometry.gdml", 
 [feature.lint.dependencies]
 prek = "*"
 python = ">=3.11"
-clang-format = "22.*"
+clang-format = "23.*"
 codespell = "*"
 cmakelint = "*"
 reuse = "*"
