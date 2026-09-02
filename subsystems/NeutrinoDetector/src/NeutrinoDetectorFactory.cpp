@@ -41,6 +41,7 @@ constexpr int s_veto_n_bars = 7;
 constexpr auto s_veto_shift_y = 9.0 * mm;    // ±stagger of planes 0/1 in Y
 constexpr auto s_veto_plane_gap = 5.0 * mm;  // air gap between plane faces
 constexpr auto s_veto_gap_to_target = 20.0 * mm;
+constexpr auto s_target_gap_to_mgc = 10.0 * mm;
 constexpr auto s_veto_plane_xy = s_veto_n_bars * s_veto_bar_width;  // 420 mm
 constexpr auto s_veto_total_thickness =
     3.0 * s_veto_bar_thickness + 2.0 * s_veto_plane_gap;  // 40 mm
@@ -49,11 +50,23 @@ constexpr auto s_veto_total_thickness =
 constexpr auto s_tgt_plate_xy = 400.0 * mm;
 constexpr auto s_tgt_w = 3.5 * mm;
 constexpr auto s_tgt_si = 0.300 * mm;
+constexpr auto s_tgt_timing = 18.000 * mm;
 constexpr auto s_tgt_w_si_gap = 0.200 * mm;
 constexpr auto s_tgt_si_si_gap = 6.800 * mm;
 constexpr int s_tgt_n_layers = 120;
+constexpr int s_tgt_n_timing_layers = 3;
 constexpr auto s_tgt_pitch =
     s_tgt_w + s_tgt_w_si_gap + s_tgt_si + s_tgt_si_si_gap + s_tgt_si + s_tgt_w_si_gap;  // 11.3 mm
+
+// Medium Granularity Calorimeter: silicon/tungsten (10 layers).
+constexpr auto s_mgc_plate_xy = 500.0 * mm;
+constexpr auto s_mgc_w = 20 * mm;
+constexpr auto s_mgc_si = 0.65 * mm;
+constexpr auto s_mgc_w_si_gap = 0.050 * mm;
+constexpr auto s_mgc_si_si_gap = 0.200 * mm;
+constexpr int s_mgc_n_layers = 10;
+constexpr auto s_mgc_pitch =
+    s_mgc_w + s_mgc_w_si_gap + s_mgc_si + s_mgc_si_si_gap + s_mgc_si + s_mgc_w_si_gap;  //
 
 // HCAL: 3 transverse sections, 14 layers each.
 constexpr auto s_hcal_gap_to_target = 10.0 * mm;
@@ -63,19 +76,20 @@ constexpr int s_hcal_fibre_sublayers = 2;           // staggered sub-layers per 
 constexpr auto s_hcal_fibre_plane =
     s_hcal_fibre_sublayers * s_hcal_fibre_diameter;  // 0.5 mm fibre-plane thickness
 constexpr auto s_hcal_tile_xy = 50.0 * mm;
-constexpr auto s_hcal_tile_thickness = 10.0 * mm;
+constexpr auto s_hcal_tile_thickness = 29.0 * mm;  // 3 cm total gap between iron slabs
 constexpr auto s_hcal_layer =
-    s_hcal_iron + 2.0 * s_hcal_fibre_plane + s_hcal_tile_thickness;  // 61 mm
+    s_hcal_iron + 2.0 * s_hcal_fibre_plane + s_hcal_tile_thickness;  // 80 mm
 constexpr int s_hcal_n_sections = 3;
 constexpr int s_hcal_n_layers = 14;
-constexpr LengthMm s_hcal_section_xy[s_hcal_n_sections] = {400.0 * mm, 500.0 * mm, 600.0 * mm};
+constexpr LengthMm s_hcal_section_xy[s_hcal_n_sections] = {600.0 * mm, 600.0 * mm, 600.0 * mm};
 
 // Longitudinal layout (upstream → downstream), content centred in the container.
-constexpr auto s_tgt_depth = s_tgt_pitch * s_tgt_n_layers;
+constexpr auto s_tgt_depth = s_tgt_pitch * s_tgt_n_layers + s_tgt_n_timing_layers * s_tgt_timing;
+constexpr auto s_mgc_depth = s_mgc_pitch * s_mgc_n_layers;
 constexpr auto s_hcal_depth =
     s_hcal_gap_to_target + s_hcal_n_sections * (s_hcal_layer * s_hcal_n_layers);
-constexpr auto s_content_depth =
-    s_veto_total_thickness + s_veto_gap_to_target + s_tgt_depth + s_hcal_depth;
+constexpr auto s_content_depth = s_veto_total_thickness + s_veto_gap_to_target + s_tgt_depth +
+                                 s_target_gap_to_mgc + s_mgc_depth + s_hcal_depth;
 
 // ── Compile-time validation ──────────────────────────────────────────────
 using SND = NeutrinoDetectorFactory;
@@ -159,6 +173,8 @@ void buildTarget(GeoVPhysVol* mother, const GeoMaterial* tungsten, const GeoMate
                                  new GeoBox(halfXY, halfXY, 0.5 * gm(s_tgt_si)), silicon);
     auto* siYLog = new GeoLogVol(std::string(kBase) + "/target/Si_Y",
                                  new GeoBox(halfXY, halfXY, 0.5 * gm(s_tgt_si)), silicon);
+    auto* TimingLog = new GeoLogVol(std::string(kBase) + "/target/Timing",
+                                    new GeoBox(halfXY, halfXY, 0.5 * gm(s_tgt_timing)), silicon);
 
     LengthMm z = zStart;
     for (int l = 0; l < s_tgt_n_layers; ++l) {
@@ -169,6 +185,33 @@ void buildTarget(GeoVPhysVol* mother, const GeoMaterial* tungsten, const GeoMate
         z += s_tgt_si + s_tgt_si_si_gap;
         placeChild(mother, siYLog, tag + "/Si_Y", l, 0.0 * mm, 0.0 * mm, z + 0.5 * s_tgt_si);
         z += s_tgt_si + s_tgt_w_si_gap;
+        if ((l + 1) % ((s_tgt_n_layers) / (s_tgt_n_timing_layers)) == 0) {  // 40, 80, 120
+            placeChild(mother, TimingLog, tag + "/Timing", l, 0.0 * mm, 0.0 * mm,
+                       z + 0.5 * s_tgt_timing);
+            z += s_tgt_timing;
+        }
+    }
+}
+
+void buildMGC(GeoVPhysVol* mother, const GeoMaterial* tungsten, const GeoMaterial* silicon,
+              LengthMm zStart) {
+    const double halfXY = 0.5 * gm(s_mgc_plate_xy);
+    auto* wLog = new GeoLogVol(std::string(kBase) + "/mgc/W_plate",
+                               new GeoBox(halfXY, halfXY, 0.5 * gm(s_mgc_w)), tungsten);
+    auto* siXLog = new GeoLogVol(std::string(kBase) + "/mgc/Si_X",
+                                 new GeoBox(halfXY, halfXY, 0.5 * gm(s_mgc_si)), silicon);
+    auto* siYLog = new GeoLogVol(std::string(kBase) + "/mgc/Si_Y",
+                                 new GeoBox(halfXY, halfXY, 0.5 * gm(s_mgc_si)), silicon);
+
+    LengthMm z = zStart;
+    for (int l = 0; l < s_mgc_n_layers; ++l) {
+        const std::string tag = std::string(kBase) + "/mgc/L" + std::to_string(l);
+        placeChild(mother, wLog, tag + "/W", l, 0.0 * mm, 0.0 * mm, z + 0.5 * s_mgc_w);
+        z += s_mgc_w + s_mgc_w_si_gap;
+        placeChild(mother, siXLog, tag + "/Si_X", l, 0.0 * mm, 0.0 * mm, z + 0.5 * s_mgc_si);
+        z += s_mgc_si + s_mgc_si_si_gap;
+        placeChild(mother, siYLog, tag + "/Si_Y", l, 0.0 * mm, 0.0 * mm, z + 0.5 * s_mgc_si);
+        z += s_mgc_si + s_mgc_w_si_gap;
     }
 }
 
@@ -311,13 +354,14 @@ GeoPhysVol* NeutrinoDetectorFactory::build() {
     auto* containerPhys = new GeoPhysVol(containerLog);
 
     const LengthMm zStart = -0.5 * s_content_depth;
-
     const LengthMm vetoDownstreamFace = zStart + s_veto_total_thickness;
     const LengthMm targetStart = vetoDownstreamFace + s_veto_gap_to_target;
-    const LengthMm hcalStart = targetStart + s_tgt_depth;
+    const LengthMm mgcStart = targetStart + s_tgt_depth + s_target_gap_to_mgc;
+    const LengthMm hcalStart = targetStart + s_tgt_depth + s_target_gap_to_mgc + s_mgc_depth;
 
     buildVeto(containerPhys, pvt, vetoDownstreamFace);
     buildTarget(containerPhys, tungsten, silicon, targetStart);
+    buildMGC(containerPhys, tungsten, silicon, mgcStart);
     buildHCal(containerPhys, air, iron, polystyrene, hcalStart);
 
     return containerPhys;
