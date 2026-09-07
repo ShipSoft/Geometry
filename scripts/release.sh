@@ -66,52 +66,95 @@ if git rev-parse --verify --quiet "refs/tags/${TAG}" >/dev/null; then
     exit 65
 fi
 
+# Everything below mutates the working tree. Any failure -- a read-only file, a
+# `git cliff` error, an interrupted commit -- must leave the repository as we
+# found it, so record each file as it is first touched and restore the lot on a
+# non-zero exit. `git checkout HEAD --` (rather than `git checkout --`) also
+# resets the index, covering failures after the files have been staged.
+RELEASE_FILES=()
+restore_release_files() {
+    local status=$?
+    if [[ ${status} -eq 0 ]]; then
+        return 0
+    fi
+    local file
+    for file in ${RELEASE_FILES[@]+"${RELEASE_FILES[@]}"}; do
+        # Best effort, one file at a time: a path git cannot restore (an
+        # as-yet-untracked CHANGELOG.md, say) must not block the others.
+        git checkout HEAD -- "${file}" 2>/dev/null || true
+    done
+    return 0
+}
+trap restore_release_files EXIT
+
 CMAKE_FILE="CMakeLists.txt"
 if ! grep -qE '^[[:space:]]*VERSION[[:space:]]+[0-9]+\.[0-9]+\.[0-9]+' "${CMAKE_FILE}"; then
     echo "error: could not find VERSION line in ${CMAKE_FILE}" >&2
     exit 70
 fi
 
+RELEASE_FILES+=("${CMAKE_FILE}")
 sed -i -E "s/^([[:space:]]*VERSION[[:space:]]+)[0-9]+\.[0-9]+\.[0-9]+/\1${VERSION}/" "${CMAKE_FILE}"
 
 if ! grep -qE "^[[:space:]]*VERSION[[:space:]]+${VERSION//./\\.}([[:space:]]|$)" "${CMAKE_FILE}"; then
     echo "error: failed to update VERSION in ${CMAKE_FILE}" >&2
-    git checkout -- "${CMAKE_FILE}"
     exit 70
 fi
 
+# A present-but-unbumpable CITATION.cff is an error, not a silent no-op: the
+# release commit would otherwise stage a stale citation version.
 CITATION_FILE="CITATION.cff"
 if [[ -f "${CITATION_FILE}" ]]; then
+    if ! grep -qE '^version: ' "${CITATION_FILE}"; then
+        echo "error: could not find version line in ${CITATION_FILE}" >&2
+        exit 70
+    fi
+    RELEASE_FILES+=("${CITATION_FILE}")
     sed -i -E "s/^version: .*/version: ${VERSION}/" "${CITATION_FILE}"
     sed -i -E "s/^date-released: .*/date-released: \"$(date -u +%Y-%m-%d)\"/" "${CITATION_FILE}"
-fi
-
-# Bump the [package] version in pixi.toml so the source dependency and the
-# conda recipe stay in lockstep with the tag. Guarding on a top-level version
-# key makes this a clean no-op where pixi.toml has no [package] section.
-# Anchored at column 0, it only matches the top-level key, not the inline
-# version = fields of [package.build]/host-dependency tables.
-PIXI_FILE="pixi.toml"
-if [[ -f "${PIXI_FILE}" ]] && grep -qE '^version = "[0-9]+\.[0-9]+\.[0-9]+"' "${PIXI_FILE}"; then
-    sed -i -E "s/^version = \"[0-9]+\.[0-9]+\.[0-9]+\"/version = \"${VERSION}\"/" "${PIXI_FILE}"
-    if ! grep -qE "^version = \"${VERSION//./\\.}\"$" "${PIXI_FILE}"; then
-        echo "error: failed to update version in ${PIXI_FILE}" >&2
-        git checkout -- "${CMAKE_FILE}" "${PIXI_FILE}"
-        [[ -f "${CITATION_FILE}" ]] && git checkout -- "${CITATION_FILE}"
+    if ! grep -qE "^version: ${VERSION//./\\.}$" "${CITATION_FILE}"; then
+        echo "error: failed to update version in ${CITATION_FILE}" >&2
         exit 70
     fi
 fi
 
+# Bump the [package] version in pixi.toml so the source dependency and the
+# conda recipe stay in lockstep with the tag. A pixi.toml without a [package]
+# section has no version to bump, so the top-level key being absent is a clean
+# no-op; but exactly one must match when it is present, because anything else
+# means the anchor no longer picks out the key we think it does -- and a silent
+# skip here would tag a release carrying a stale package version. Anchored at
+# column 0, it never matches the inline version = fields of
+# [package.build]/host-dependency tables.
+PIXI_FILE="pixi.toml"
+if [[ -f "${PIXI_FILE}" ]]; then
+    PIXI_MATCHES="$(grep -cE '^version = "[0-9]+\.[0-9]+\.[0-9]+"$' "${PIXI_FILE}" || true)"
+    if [[ "${PIXI_MATCHES}" -gt 1 ]]; then
+        echo "error: expected at most one top-level version key in ${PIXI_FILE} (found ${PIXI_MATCHES})" >&2
+        exit 70
+    fi
+    if [[ "${PIXI_MATCHES}" -eq 1 ]]; then
+        RELEASE_FILES+=("${PIXI_FILE}")
+        sed -i -E "s/^version = \"[0-9]+\.[0-9]+\.[0-9]+\"$/version = \"${VERSION}\"/" "${PIXI_FILE}"
+        if ! grep -qE "^version = \"${VERSION//./\\.}\"$" "${PIXI_FILE}"; then
+            echo "error: failed to update version in ${PIXI_FILE}" >&2
+            exit 70
+        fi
+    elif grep -qE '^\[package\]' "${PIXI_FILE}"; then
+        echo "error: ${PIXI_FILE} has a [package] section but no bumpable top-level version key" >&2
+        exit 70
+    fi
+fi
+
+RELEASE_FILES+=("CHANGELOG.md")
 git cliff --tag "${TAG}" -o CHANGELOG.md
 
-git add "${CMAKE_FILE}" CHANGELOG.md
-if [[ -f "${CITATION_FILE}" ]]; then
-    git add "${CITATION_FILE}"
-fi
-if [[ -f "${PIXI_FILE}" ]] && grep -qE "^version = \"${VERSION//./\\.}\"$" "${PIXI_FILE}"; then
-    git add "${PIXI_FILE}"
-fi
+git add "${RELEASE_FILES[@]}"
 git commit -m "chore(release): ${TAG}"
+# Committed: those files are no longer ours to restore, so a failing `git tag`
+# must not roll the release commit's contents back.
+trap - EXIT
+
 git tag -a "${TAG}" -m "Release ${TAG}"
 
 cat <<EOF
