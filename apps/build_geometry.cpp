@@ -28,6 +28,15 @@
 #include <system_error>
 #include <vector>
 
+/**
+ * @brief Entry point: parse the tokens, build, and serialise to SQLite.
+ *
+ * @param argc Argument count.
+ * @param argv Tokens: `--list`, an output file ending in `.db`, and/or any
+ *             number of subsystem names as spelled by `--list`.
+ * @return 0 on success, 1 on an unknown subsystem, a null geometry, or a
+ *         filesystem error preparing the output file.
+ */
 int main(int argc, char* argv[]) {
     std::string outputFile;
     std::vector<std::string> names;  // requested subsystem(s)
