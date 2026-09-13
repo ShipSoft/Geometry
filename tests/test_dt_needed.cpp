@@ -1,0 +1,43 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
+// Copyright (C) CERN for the benefit of the SHiP Collaboration
+//
+// Check that loading libSHiPGeometry on its own pulls in every subsystem
+// library, i.e. that the subsystems are in libSHiPGeometry's own DT_NEEDED.
+//
+// Usage: test_dt_needed <path/to/libSHiPGeometry.so> <subsystem soname> ...
+//
+// This executable deliberately does not link SHiPGeometry: a CMake-linked
+// consumer gets -Wl,--no-as-needed on its own link line and finds the
+// subsystems either way, which is why the registry tests cannot catch a
+// library whose own link line dropped them. Here the library is dlopen()ed, as
+// a plugin or a hand-written -lSHiPGeometry would see it, and each subsystem
+// must then already be resident (RTLD_NOLOAD loads nothing itself).
+
+#include <dlfcn.h>
+#include <iostream>
+
+// The paths come from ctest, not from an untrusted user, and the test is
+// single-threaded.
+// NOLINTBEGIN(clang-analyzer-optin.taint.GenericTaint,concurrency-mt-unsafe)
+int main(int argc, char* argv[]) {
+    if (argc < 3) {
+        std::cerr << "Usage: " << argv[0] << " <libSHiPGeometry> <subsystem soname> ...\n";
+        return 2;
+    }
+
+    if (dlopen(argv[1], RTLD_NOW | RTLD_LOCAL) == nullptr) {
+        std::cerr << "Could not load " << argv[1] << ": " << dlerror() << "\n";
+        return 1;
+    }
+
+    int missing = 0;
+    for (int i = 2; i < argc; ++i) {
+        if (dlopen(argv[i], RTLD_NOW | RTLD_NOLOAD) == nullptr) {
+            std::cerr << argv[i] << " was not loaded with " << argv[1]
+                      << ": it is missing from its DT_NEEDED\n";
+            ++missing;
+        }
+    }
+    return missing == 0 ? 0 : 1;
+}
+// NOLINTEND(clang-analyzer-optin.taint.GenericTaint,concurrency-mt-unsafe)
