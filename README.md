@@ -179,11 +179,12 @@ To add a new material, edit `src/SHiPMaterials.cpp`:
 4. **CMake**: add sources/headers to `subsystems/<Name>/CMakeLists.txt`, and
    add `<Name>` to `SHIP_SUBSYSTEMS` in the top-level `CMakeLists.txt`. That
    list drives the subdirectory walk, the install rules, and the libraries
-   `SHiPGeometry` links. `SHiPGeometry` puts `-Wl,--no-as-needed` among its
-   PUBLIC link libraries, directly before the subsystems, so each one stays
-   in `DT_NEEDED` and its `REGISTER_SUBSYSTEM` initializer is not dropped by
-   the linker's default `--as-needed`. Only shared-library builds are
-   supported.
+   `SHiPGeometry` links, and `test_registry` requires every entry to have
+   registered itself under that name. `SHiPGeometry` puts `-Wl,--no-as-needed`
+   among its PUBLIC link libraries, directly before the subsystems, so each
+   one stays in `DT_NEEDED` and its `REGISTER_SUBSYSTEM` initializer is not
+   dropped by the linker's default `--as-needed`. Only shared-library builds
+   are supported.
 5. **Docs**: update the subsystem `README.md` with geometry tree, materials,
    and status
 
