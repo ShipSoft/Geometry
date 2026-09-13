@@ -3,6 +3,10 @@
 
 #pragma once
 
+#include "SHiPGeometry/SubsystemDescriptor.h"
+
+#include <GeoModelKernel/Units.h>
+
 class GeoVPhysVol;
 
 namespace SHiPGeometry {
@@ -54,6 +58,15 @@ class UpstreamTaggerFactory {
     explicit UpstreamTaggerFactory(SHiPMaterials& materials);
     ~UpstreamTaggerFactory() = default;
 
+    /**
+     * @brief This subsystem's self-description (name, node, id, placement).
+     *
+     * Z: 32.52 to 32.92 m, so the container is centred at z = 32.72 m.
+     */
+    static SubsystemDescriptor descriptor() {
+        using GeoModelKernelUnits::m;
+        return {"UpstreamTagger", "/SHiP/upstream_tagger", 3, 0.0, 0.0, 32.72 * m, false};
+    }
     /**
      * @brief Build the UpstreamTagger geometry.
      * @param manager Optional manager to register the container tree-top; may be null.

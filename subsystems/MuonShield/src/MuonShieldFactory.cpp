@@ -4,6 +4,7 @@
 #include "MuonShield/MuonShieldFactory.h"
 
 #include "SHiPGeometry/SHiPMaterials.h"
+#include "SHiPGeometry/SubsystemRegistry.h"
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoDefinitions.h>
@@ -180,5 +181,7 @@ GeoPhysVol* MuonShieldFactory::build() {
 
     return areaPhys;
 }
+
+REGISTER_SUBSYSTEM(MuonShieldFactory)
 
 }  // namespace SHiPGeometry

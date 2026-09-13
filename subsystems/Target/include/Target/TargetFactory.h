@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "SHiPGeometry/SubsystemDescriptor.h"
+
 #include <GeoModelKernel/Units.h>
 
 #include <array>
@@ -44,6 +46,16 @@ class TargetFactory {
    public:
     explicit TargetFactory(SHiPMaterials& materials);
     ~TargetFactory() = default;
+
+    /**
+     * @brief This subsystem's self-description (name, node, id, placement).
+     *
+     * From the GDML: x = 0, y = -14.45 cm, z = 43.25 cm, relative to the cave
+     * origin.
+     */
+    static SubsystemDescriptor descriptor() {
+        return {"Target", "/SHiP/target", 1, 0.0, -14.45 * cm, 43.25 * cm, false};
+    }
 
     /**
      * @brief Build the Target geometry

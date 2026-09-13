@@ -3,6 +3,10 @@
 
 #pragma once
 
+#include "SHiPGeometry/SubsystemDescriptor.h"
+
+#include <GeoModelKernel/Units.h>
+
 class GeoPhysVol;
 
 namespace SHiPGeometry {
@@ -21,13 +25,22 @@ class SHiPMaterials;
  * material actually is (see SBTEnvelope.h), so that it can neither overlap the
  * structure and sensors nor leave an unphysical margin behind.
  *
- * Z: 32.92 to 83.32 m -> centre 58.12 m; placement handled by SHiPGeometry.
+ * Placement: see descriptor().
  */
 class DecayVolumeFactory {
    public:
     explicit DecayVolumeFactory(SHiPMaterials& materials);
     ~DecayVolumeFactory() = default;
 
+    /**
+     * @brief This subsystem's self-description (name, node, id, placement).
+     *
+     * Z: 32.92 to 83.32 m, so the container is centred at z = 58.12 m.
+     */
+    static SubsystemDescriptor descriptor() {
+        using GeoModelKernelUnits::m;
+        return {"DecayVolume", "/SHiP/decay_volume", 4, 0.0, 0.0, 58.12 * m, false};
+    }
     /// Build the DecayVolume geometry; returns the air container.
     [[nodiscard]] GeoPhysVol* build();
 
