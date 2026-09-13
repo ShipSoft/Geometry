@@ -8,6 +8,7 @@
 #include "Calorimeter/CalorimeterConfig.h"
 #include "SHiPGeometry/ConfigPath.h"
 #include "SHiPGeometry/SHiPMaterials.h"
+#include "SHiPGeometry/SubsystemRegistry.h"
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoDefinitions.h>
@@ -350,5 +351,7 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, const CalorimeterConf
                     .absorberNeedsEnvelope = false,
                     .incrementGlobalOnAirGap = true});
 }
+
+REGISTER_SUBSYSTEM(CalorimeterFactory)
 
 }  // namespace SHiPGeometry

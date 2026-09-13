@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "SHiPGeometry/SubsystemDescriptor.h"
+
 class GeoPhysVol;
 
 namespace SHiPGeometry {
@@ -49,6 +51,10 @@ class NeutrinoDetectorFactory {
     /// Defaulted destructor.
     ~NeutrinoDetectorFactory() = default;
 
+    /// This subsystem's self-description (name, node, id, placement).
+    static SubsystemDescriptor descriptor() {
+        return {"NeutrinoDetector", "/SHiP/neutrino_detector", 9, 0.0, 0.0, 28950.0, false};
+    }
     /// Build the SND geometry; returns the air container.
     [[nodiscard]] GeoPhysVol* build();
 
