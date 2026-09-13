@@ -3,6 +3,10 @@
 
 #pragma once
 
+#include "SHiPGeometry/SubsystemDescriptor.h"
+
+#include <GeoModelKernel/Units.h>
+
 class GeoPhysVol;
 
 namespace SHiPGeometry {
@@ -49,6 +53,18 @@ class NeutrinoDetectorFactory {
     /// Defaulted destructor.
     ~NeutrinoDetectorFactory() = default;
 
+    /**
+     * @brief This subsystem's self-description (name, node, id, placement).
+     *
+     * Z: 26.40 to 31.50 m (WARM muon-shield configuration), so the container is
+     * centred at z = 28.95 m. The SND sits within the downstream end of the
+     * muon-shield region, so its envelope overlaps the muon-shield container by
+     * design (see test_consistency).
+     */
+    static SubsystemDescriptor descriptor() {
+        using GeoModelKernelUnits::m;
+        return {"NeutrinoDetector", "/SHiP/neutrino_detector", 9, 0.0, 0.0, 28.95 * m, false};
+    }
     /// Build the SND geometry; returns the air container.
     [[nodiscard]] GeoPhysVol* build();
 

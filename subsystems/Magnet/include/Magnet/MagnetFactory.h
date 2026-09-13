@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "SHiPGeometry/SubsystemDescriptor.h"
+
 #include <GeoModelKernel/Units.h>
 
 #include <string>
@@ -26,6 +28,15 @@ class MagnetFactory {
     explicit MagnetFactory(SHiPMaterials& materials);
     ~MagnetFactory() = default;
 
+    /**
+     * @brief This subsystem's self-description (name, node, id, placement).
+     *
+     * Z: 87.07 to 92.07 m, so the container is centred at z = 89.57 m.
+     */
+    static SubsystemDescriptor descriptor() {
+        using GeoModelKernelUnits::m;
+        return {"Magnet", "/SHiP/magnet", 6, 0.0, 0.0, 89.57 * m, false};
+    }
     /**
      * @brief Build the Magnet geometry
      * @return Pointer to the physical volume

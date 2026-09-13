@@ -3,6 +3,10 @@
 
 #pragma once
 
+#include "SHiPGeometry/SubsystemDescriptor.h"
+
+#include <GeoModelKernel/Units.h>
+
 class GeoPhysVol;
 
 namespace SHiPGeometry {
@@ -21,6 +25,16 @@ class CalorimeterFactory {
     explicit CalorimeterFactory(SHiPMaterials& materials);
     ~CalorimeterFactory() = default;
 
+    /**
+     * @brief This subsystem's self-description (name, node, id, placement).
+     *
+     * The container is fixed to the SHiP subsystem envelope, centred at
+     * z = 98.32 m.
+     */
+    static SubsystemDescriptor descriptor() {
+        using GeoModelKernelUnits::m;
+        return {"Calorimeter", "/SHiP/calorimeter", 8, 0.0, 0.0, 98.32 * m, false};
+    }
     /** Build and return the calorimeter container volume. */
     [[nodiscard]] GeoPhysVol* build();
 

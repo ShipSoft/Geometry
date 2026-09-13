@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "SHiPGeometry/SubsystemDescriptor.h"
+
 #include <GeoModelKernel/Units.h>
 
 class GeoPhysVol;
@@ -26,6 +28,16 @@ class MuonShieldFactory {
     ~MuonShieldFactory() = default;
 
     [[nodiscard]] GeoPhysVol* build();
+
+    /**
+     * @brief This subsystem's self-description (name, node, id, placement).
+     *
+     * The GDML MuonShieldArea spans z = 204 to 3148.66 cm, so the container
+     * is centred at 1676.33 cm = 16763.3 mm from the world origin.
+     */
+    static SubsystemDescriptor descriptor() {
+        return {"MuonShield", "/SHiP/muon_shield", 2, 0.0, 0.0, 16763.3 * mm, false};
+    }
 
    private:
     SHiPMaterials& m_materials;
