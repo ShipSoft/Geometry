@@ -21,6 +21,10 @@ target_link_libraries(
 )
 catch_discover_tests(test_consistency)
 
+add_executable(test_registry test_registry.cpp)
+target_link_libraries(test_registry PRIVATE SHiPGeometry Catch2::Catch2WithMain)
+catch_discover_tests(test_registry)
+
 add_executable(test_configpath test_configpath.cpp)
 target_link_libraries(
     test_configpath
