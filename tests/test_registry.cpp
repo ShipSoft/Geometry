@@ -10,7 +10,6 @@
 
 #include <algorithm>
 #include <catch2/catch_test_macros.hpp>
-#include <cstddef>
 #include <limits>
 #include <set>
 #include <stdexcept>
@@ -44,6 +43,20 @@ std::string someNonWorldName() {
         }
     }
     return {};
+}
+
+// The number of children the world volume owns before any subsystem is placed.
+// CavernFactory::build() returns a world that already contains the cavern rock,
+// so child counts must be measured against this baseline rather than zero.
+// Selecting only the world yields it: assembleGeometry() always builds the
+// world, and skips isWorld entries when collecting subsystems to place.
+unsigned int worldOwnChildCount() {
+    const std::string world = worldName();
+    if (world.empty()) {
+        return 0;
+    }
+    GeoPhysVol* bare = assembleGeometry({world});
+    return bare ? bare->getNChildVols() : 0;
 }
 
 }  // namespace
@@ -118,20 +131,25 @@ TEST_CASE("RegistryTest.AssembleGeometryPlacesOnlyTheSelection", "[registry]") {
     const std::string name = someNonWorldName();
     REQUIRE(!name.empty());
 
+    const unsigned int baseline = worldOwnChildCount();
+
     GeoPhysVol* world = assembleGeometry({name});
     REQUIRE(world != nullptr);
 
-    // The world is always built; the selection controls its children.
-    INFO("Selecting " << name << " should place exactly one child");
-    CHECK(world->getNChildVols() == 1u);  // NOLINT(readability/check)
+    // The world is always built; the selection controls what is added to it.
+    INFO("Selecting " << name << " should add one child to the world's own " << baseline);
+    CHECK(world->getNChildVols() == baseline + 1);
 }
 
 TEST_CASE("RegistryTest.EmptySelectionPlacesEveryNonWorldSubsystem", "[registry]") {
+    const unsigned int baseline = worldOwnChildCount();
+
     GeoPhysVol* world = assembleGeometry();
     REQUIRE(world != nullptr);
 
-    const std::size_t expected = registry().size() - 1;  // every entry but the world
-    INFO("Registry holds " << registry().size() << " subsystems including the world");
+    const auto expected = baseline + static_cast<unsigned int>(registry().size() - 1);
+    INFO("Registry holds " << registry().size() << " subsystems including the world, which owns "
+                           << baseline << " child(ren) of its own");
     CHECK(world->getNChildVols() == expected);
 }
 
@@ -160,8 +178,8 @@ TEST_CASE("RegistryTest.PlacementsFollowDescriptorZOrder", "[registry]") {
     double previousZ = -std::numeric_limits<double>::max();
     for (unsigned int i = 0; i < world->getNChildVols(); ++i) {
         const double z = world->getXToChildVol(i).translation().z();
-        INFO("Child " << i << " (" << world->getChildVol(i)->getLogVol()->getName() << ") at z=" << z
-                      << ", previous at z=" << previousZ);
+        INFO("Child " << i << " (" << world->getChildVol(i)->getLogVol()->getName()
+                      << ") at z=" << z << ", previous at z=" << previousZ);
         CHECK(z >= previousZ);
         previousZ = z;
     }
