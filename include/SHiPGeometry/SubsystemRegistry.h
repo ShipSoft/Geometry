@@ -19,10 +19,16 @@ namespace SHiPGeometry {
 
 class SHiPMaterials;
 
-/// A registered subsystem: its descriptor plus how to build it (local frame).
+/**
+ * @brief A registered subsystem: its descriptor plus how to build it.
+ *
+ * One entry per subsystem in the global registry(). The callback builds the
+ * subsystem in its own local frame; the descriptor says where that frame goes
+ * in the world.
+ */
 struct SubsystemInfo {
-    SubsystemDescriptor desc;
-    std::function<GeoVPhysVol*(SHiPMaterials&)> build;
+    SubsystemDescriptor desc;                           ///< name, tree node, id and placement
+    std::function<GeoVPhysVol*(SHiPMaterials&)> build;  ///< builds it in its local frame
 };
 
 /**
@@ -38,11 +44,20 @@ inline std::map<std::string, SubsystemInfo>& registry() {
     return instance;
 }
 
-/// Add a subsystem to the registry. Returns true (usable as a static
-/// initialiser). A duplicate name is a programming error (two subsystems
-/// declaring the same descriptor name): it is reported and aborts, rather
-/// than being silently dropped by emplace(). Runs at static-init, so this
-/// diagnoses to stderr and aborts instead of throwing.
+/**
+ * @brief Add a subsystem to the registry.
+ *
+ * A duplicate name is a programming error (two subsystems declaring the same
+ * descriptor name) and aborts with a diagnostic, rather than being silently
+ * dropped by emplace(). This runs during static initialisation, before main()
+ * and before any handler could catch it, so it reports to stderr and calls
+ * std::abort() instead of throwing. That also keeps this header free of any
+ * logging dependency, which would otherwise become public to every consumer.
+ *
+ * @param desc  The subsystem's self-description; desc.name must be unique.
+ * @param build Callback building the subsystem in its own local frame.
+ * @return Always true, so the call is usable as a static initialiser.
+ */
 inline bool registerSubsystem(const SubsystemDescriptor& desc,
                               std::function<GeoVPhysVol*(SHiPMaterials&)> build) {
     const auto result = registry().emplace(desc.name, SubsystemInfo{desc, std::move(build)});
@@ -58,16 +73,41 @@ inline bool registerSubsystem(const SubsystemDescriptor& desc,
 
 // ── Generic consumers — these name no subsystem ─────────────────────────────
 
-/// Assemble the world plus a selection of subsystems (empty selection = all),
-/// each placed at its own declared position. Unknown names throw
-/// std::runtime_error. Returns the world volume.
+/**
+ * @brief Assemble the world plus a selection of registered subsystems.
+ *
+ * The world (the registered subsystem whose descriptor sets isWorld) is always
+ * built. Every selected subsystem is placed into it at the translation its own
+ * descriptor declares, in a deterministic order sorted by (z, id) so the result
+ * does not depend on registration order.
+ *
+ * @param only Subsystem names to place; an empty selection places all of them.
+ * @return The world physical volume, owning the placed subsystems.
+ * @throws std::runtime_error if a name is not registered, if no world is
+ *         registered, if more than one is, or if a factory builds nothing.
+ */
 GeoPhysVol* assembleGeometry(const std::vector<std::string>& only = {});
 
-/// Build a single subsystem on its own, in its local frame (no world, no
-/// placement). Throws std::runtime_error if the name is not registered.
+/**
+ * @brief Build a single subsystem on its own, in its local frame.
+ *
+ * No world is created and no placement is applied, so the result sits at the
+ * origin rather than at its position in the detector.
+ *
+ * @param name The subsystem name, as returned by subsystemNames().
+ * @return The subsystem's volume in its local frame.
+ * @throws std::runtime_error if the name is not registered.
+ */
 GeoVPhysVol* buildSubsystem(const std::string& name);
 
-/// The names of all registered subsystems (including the world), sorted.
+/**
+ * @brief The names of every registered subsystem, sorted.
+ *
+ * Includes the world, so the result is the full set of names accepted by
+ * buildSubsystem() and assembleGeometry().
+ *
+ * @return Sorted subsystem names.
+ */
 std::vector<std::string> subsystemNames();
 
 }  // namespace SHiPGeometry
