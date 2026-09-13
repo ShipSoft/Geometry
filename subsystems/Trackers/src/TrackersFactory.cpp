@@ -4,6 +4,7 @@
 #include "Trackers/TrackersFactory.h"
 
 #include "SHiPGeometry/SHiPMaterials.h"
+#include "SHiPGeometry/SubsystemRegistry.h"
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoDefinitions.h>
@@ -313,5 +314,7 @@ GeoPhysVol* TrackersFactory::buildTrackerMagnet() {
 
     return phys;
 }
+
+REGISTER_SUBSYSTEM(TrackersFactory)
 
 }  // namespace SHiPGeometry
