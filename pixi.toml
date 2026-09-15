@@ -63,7 +63,7 @@ cmake -S . -B build -G Ninja \
 """ }
 build = { cmd = "cmake --build build -j", depends-on = ["configure"] }
 test = { cmd = "ctest --test-dir build --output-on-failure", depends-on = ["build"] }
-geometry = { cmd = "./build/apps/build_geometry build/ship_geometry.db", depends-on = ["build"] }
+geometry = { cmd = "./build/apps/build_geometry -o build/ship_geometry.db", depends-on = ["build"] }
 gdml = { cmd = "gm2gdml -g build/ship_geometry.db -o build/ship_geometry.gdml", depends-on = ["geometry"] }
 
 # Linting / formatting toolchain. prek orchestrates the hooks; the tools come
