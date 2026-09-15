@@ -67,6 +67,10 @@ set(SHIP_SUBSYSTEMS
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 include(ShipAddSubsystem)
 
+# ship_add_toml_config(): shared TOML config staging/link/defines/install used
+# by the config-driven subsystems.
+include(ShipAddTomlConfig)
+
 # Add subdirectories
 add_subdirectory(src)
 add_subdirectory(subsystems)
