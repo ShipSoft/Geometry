@@ -31,11 +31,16 @@ target_link_libraries(
 # default --as-needed drops the library from the DT_NEEDED of every executable
 # that links SHiPGeometry, and the registration never runs.
 #
-# For SHARED libraries the fix is --no-as-needed on the *consumer's* link line
-# (INTERFACE), where the entries were being dropped. For STATIC libraries that
-# flag does nothing — the objects need --whole-archive instead, which is not
-# wired up here — so fail rather than silently produce an empty registry. This
-# is orthogonal to platform, so it is checked first and independently.
+# For SHARED libraries the fix is --no-as-needed, applied PUBLIC so that it
+# lands on this library's own link line as well as on every consumer's. Its own
+# line matters: nothing in SHiPGeometry.cpp names a subsystem symbol, so without
+# the flag the subsystems drop out of libSHiPGeometry's DT_NEEDED and any
+# consumer that does not inherit the CMake interface (dlopen, a hand-written
+# -lSHiPGeometry, pkg-config, a plugin) loads a library with an empty registry.
+# For STATIC libraries the flag does nothing — the objects need --whole-archive
+# instead, which is not wired up here — so fail rather than silently produce an
+# empty registry. This is orthogonal to platform, so it is checked first and
+# independently.
 if(NOT BUILD_SHARED_LIBS)
     message(
         FATAL_ERROR
@@ -49,5 +54,5 @@ endif()
 # --no-as-needed is a GNU/binutils flag; Apple's ld neither needs nor accepts
 # it (Mach-O has no --as-needed stripping to undo).
 if(UNIX AND NOT APPLE)
-    target_link_options(SHiPGeometry INTERFACE "-Wl,--no-as-needed")
+    target_link_options(SHiPGeometry PUBLIC "-Wl,--no-as-needed")
 endif()
