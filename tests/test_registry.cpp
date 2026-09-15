@@ -171,12 +171,17 @@ TEST_CASE("RegistryTest.PlacementOrderIsDeterministic", "[registry]") {
 }
 
 TEST_CASE("RegistryTest.PlacementsFollowDescriptorZOrder", "[registry]") {
+    // Measured from the world's own children onwards: the cavern rock is placed
+    // by CavernFactory::build() itself and is never sorted by assembleGeometry(),
+    // so including it would test the cavern z-origin rather than the ordering.
+    const unsigned int baseline = worldOwnChildCount();
+
     GeoPhysVol* world = assembleGeometry();
     REQUIRE(world != nullptr);
-    REQUIRE(world->getNChildVols() >= 2u);
+    REQUIRE(world->getNChildVols() >= baseline + 2u);
 
     double previousZ = -std::numeric_limits<double>::max();
-    for (unsigned int i = 0; i < world->getNChildVols(); ++i) {
+    for (unsigned int i = baseline; i < world->getNChildVols(); ++i) {
         const double z = world->getXToChildVol(i).translation().z();
         INFO("Child " << i << " (" << world->getChildVol(i)->getLogVol()->getName()
                       << ") at z=" << z << ", previous at z=" << previousZ);
