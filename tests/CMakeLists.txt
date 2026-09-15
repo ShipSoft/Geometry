@@ -37,7 +37,7 @@ add_test(
     NAME OverlapCheck
     COMMAND
         bash -c
-        "$<TARGET_FILE:build_geometry> ship_test_overlap.db &&
+        "$<TARGET_FILE:build_geometry> -o ship_test_overlap.db &&
     $<TARGET_FILE:validate_geometry> ship_test_overlap.db"
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
