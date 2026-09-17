@@ -23,11 +23,12 @@ An [automatic class reference](https://shipsoft.github.io/Geometry/) is built us
 
 Every dimensional literal (length or angle) in the code carries an explicit
 `GeoModelKernelUnits` unit, e.g. `3000.0 * GeoModelKernelUnits::mm` or
-`90.0 * deg` — either at its definition or, for config-driven values with an
-`_mm` suffix, at the point of conversion into GeoModel units. GeoModel's
-native length unit is mm (`GeoModelKernelUnits::mm == 1.0`), so the
-annotations are numerically free; they exist to make the unit of every
-quantity explicit at the point where it is written.
+`90.0 * deg` — either at its definition or, for values with an `_mm` suffix
+or an "all lengths in mm" contract, at the point of conversion into GeoModel
+units. GeoModel's native length unit is mm
+(`GeoModelKernelUnits::mm == 1.0`), so the annotations are numerically free;
+they exist to make the unit of every quantity explicit at the point where it
+is written.
 
 ## Implementation Status
 
@@ -42,7 +43,7 @@ quantity explicit at the point where it is written.
 | [TimingDetector](subsystems/TimingDetector/README.md) | Complete | 330 scintillator bars via GeoModelXML |
 | [UpstreamTagger](subsystems/UpstreamTagger/README.md) | Simulation-ready | Segmented tile plane, 16300 polystyrene tiles (fine 20 mm + coarse 40 mm) |
 | [Trackers](subsystems/Trackers/README.md) | Complete | 4 stations, 4 stereo views each, 9600 straw tubes |
-| [Calorimeter](subsystems/Calorimeter/README.md) | Simulation-ready | ECAL + HCAL sampling layers driven by `calo.toml` (Pb/PVT/HPL + Fe/PVT) |
+| [Calorimeter](subsystems/Calorimeter/README.md) | Simulation-ready | ECAL + HCAL sampling layers (Pb/PVT/HPL + Fe/PVT) |
 
 ## Building
 
