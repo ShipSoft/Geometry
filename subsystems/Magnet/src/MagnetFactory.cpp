@@ -4,6 +4,7 @@
 #include "Magnet/MagnetFactory.h"
 
 #include "SHiPGeometry/SHiPMaterials.h"
+#include "SHiPGeometry/SubsystemRegistry.h"
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoDefinitions.h>
@@ -119,5 +120,7 @@ GeoPhysVol* MagnetFactory::createVerticalConnector(const std::string& name) {
     auto* connectorLog = new GeoLogVol(name, connectorBox, aluminium);
     return new GeoPhysVol(connectorLog);
 }
+
+REGISTER_SUBSYSTEM(MagnetFactory)
 
 }  // namespace SHiPGeometry

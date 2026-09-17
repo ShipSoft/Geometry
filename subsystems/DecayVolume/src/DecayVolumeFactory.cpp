@@ -9,6 +9,7 @@
 #include "DecayVolume/SBTStructureBuilder.h"
 #include "SHiPGeometry/ConfigPath.h"
 #include "SHiPGeometry/SHiPMaterials.h"
+#include "SHiPGeometry/SubsystemRegistry.h"
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoLogVol.h>
@@ -116,5 +117,7 @@ GeoPhysVol* DecayVolumeFactory::build() {
 
     return container;
 }
+
+REGISTER_SUBSYSTEM(DecayVolumeFactory)
 
 }  // namespace SHiPGeometry

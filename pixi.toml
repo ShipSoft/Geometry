@@ -36,6 +36,7 @@ sqlite = "*"
 tomlplusplus = "*"
 eigen-abi-devel = "*"
 nlohmann_json = "*"
+spdlog = "*"
 
 [dependencies]
 cxx-compiler = "*"
@@ -48,6 +49,7 @@ tomlplusplus = "*"
 geomodel = ">=6.22"
 eigen-abi-devel = "*"
 nlohmann_json = "*"
+spdlog = "*"
 
 [tasks]
 # CMAKE_PREFIX_PATH is passed explicitly: conda-forge's cxx-compiler 2.x dropped
