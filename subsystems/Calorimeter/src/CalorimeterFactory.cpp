@@ -5,8 +5,7 @@
 
 #include "Calorimeter/CaloBarLayer.h"
 #include "Calorimeter/CaloFibreHPLayer.h"
-#include "Calorimeter/CalorimeterConfig.h"
-#include "SHiPGeometry/ConfigPath.h"
+#include "Calorimeter/CalorimeterConstants.h"
 #include "SHiPGeometry/SHiPMaterials.h"
 
 #include <GeoModelKernel/GeoBox.h>
@@ -18,137 +17,46 @@
 #include <GeoModelKernel/GeoTransform.h>
 #include <GeoModelKernel/Units.h>
 
-#include <cmath>
 #include <format>
-#include <stdexcept>
+#include <span>
 #include <string>
-
-// Absolute fallback path baked in by CMake so out-of-source builds always
-// find calo.toml even when the CWD doesn't contain a copy of it.
-#ifndef CALO_TOML_DEFAULT_PATH
-#define CALO_TOML_DEFAULT_PATH "calo.toml"
-#endif
-// Install-time data directory path, set by CMake during install configuration.
-#ifndef CALO_TOML_INSTALL_PATH
-#define CALO_TOML_INSTALL_PATH ""
-#endif
 
 namespace SHiPGeometry {
 
 using namespace GeoModelKernelUnits;
 
-// Bar pitch (physical constant, independent of plate size)
-static constexpr double kWidePVTBarPitch_mm = 60.0;
-static constexpr double kThinPSBarPitch_mm = 10.0;
+// ── constructor ──────────────────────────────────────────────────────────────
 
-// ── file-scope helper ────────────────────────────────────────────────────────
-
-static std::string resolveTomlPath(const std::string& path) {
-    return resolveConfigPath(path, CALO_TOML_DEFAULT_PATH, CALO_TOML_INSTALL_PATH);
-}
-
-// ── constructor / accessors ──────────────────────────────────────────────────
-
-CalorimeterFactory::CalorimeterFactory(SHiPMaterials& materials, std::string configPath)
-    : m_materials(materials), m_configPath(std::move(configPath)) {}
-
-// ── totalStackZ ──────────────────────────────────────────────────────────────
-
-double CalorimeterFactory::totalStackZ(const CalorimeterConfig& cfg) {
-    auto sectionZ = [&](const std::vector<int>& codes, double absorberThickness) {
-        double z = 0.0;
-        for (int code : codes) {
-            switch (static_cast<LayerCode>(code)) {
-                case LayerCode::Absorber:
-                    z += absorberThickness;
-                    break;
-                case LayerCode::WidePVT_H:
-                case LayerCode::WidePVT_V:
-                case LayerCode::ThinPS_H:
-                case LayerCode::ThinPS_V:
-                    z += cfg.scint_thickness_mm;
-                    break;
-                case LayerCode::FibreHPL_Y:
-                case LayerCode::FibreHPL_X:
-                    z += cfg.hpl_thickness_mm;
-                    break;
-                case LayerCode::AirGap:
-                    z += cfg.airgap_mm;
-                    break;
-                default:
-                    throw std::runtime_error(
-                        std::format("CalorimeterFactory: unknown layer code: {}", code));
-            }
-        }
-        return z;
-    };
-    return sectionZ(cfg.layers, cfg.lead_thickness_mm) + cfg.gap_ecal_hcal_mm +
-           sectionZ(cfg.layers2, cfg.iron_thickness_mm);
-}
+CalorimeterFactory::CalorimeterFactory(SHiPMaterials& materials) : m_materials(materials) {}
 
 // ── build ────────────────────────────────────────────────────────────────────
 
 GeoPhysVol* CalorimeterFactory::build() {
-    const CalorimeterConfig cfg = readCaloConfig(resolveTomlPath(m_configPath));
-
     GeoMaterial* air = m_materials.requireMaterial("Air");
 
     // Fixed-size container — must match the SHiP subsystem envelope so that
     // the geometry consistency tests and the overlap check pass.
-    auto* containerBox = new GeoBox(s_containerHalfX, s_containerHalfY, s_containerHalfZ);
+    auto* containerBox =
+        new GeoBox(Calo::kContainerHalfX, Calo::kContainerHalfY, Calo::kContainerHalfZ);
     auto* containerLog = new GeoLogVol("/SHiP/calorimeter", containerBox, air);
     auto* containerPhys = new GeoPhysVol(containerLog);
 
-    // Module pitch (0 → use plate size, modules touch)
-    const double pitchX = cfg.module_pitch_x_mm > 0.0 ? cfg.module_pitch_x_mm : cfg.plate_xy_mm;
-    const double pitchY = cfg.module_pitch_y_mm > 0.0 ? cfg.module_pitch_y_mm : cfg.plate_xy_mm;
+    const double x0 = -0.5 * (Calo::kModuleNX - 1) * Calo::kModulePitchX;
+    const double y0 = -0.5 * (Calo::kModuleNY - 1) * Calo::kModulePitchY;
 
-    // ── Validate that the config fits inside the fixed container ─────────────
-    const double stackZ = totalStackZ(cfg);
-    const double maxHalfX = 0.5 * cfg.plate_xy_mm + 0.5 * (cfg.module_nx - 1) * pitchX;
-    const double maxHalfY = 0.5 * cfg.plate_xy_mm + 0.5 * (cfg.module_ny - 1) * pitchY;
-    if (stackZ > 2.0 * s_containerHalfZ)
-        throw std::runtime_error(std::format(
-            "CalorimeterFactory: calo.toml total stack Z ({} mm) exceeds container Z ({} mm). "
-            "Reduce layer thicknesses or number of layers.",
-            stackZ, 2.0 * s_containerHalfZ));
-    if (maxHalfX > s_containerHalfX)
-        throw std::runtime_error(std::format(
-            "CalorimeterFactory: calo.toml module array half-X ({} mm) exceeds container half-X "
-            "({} mm). Reduce plate_xy_mm, module_nx, or module_pitch_x_mm.",
-            maxHalfX, s_containerHalfX));
-    if (maxHalfY > s_containerHalfY)
-        throw std::runtime_error(std::format(
-            "CalorimeterFactory: calo.toml module array half-Y ({} mm) exceeds container half-Y "
-            "({} mm). Reduce plate_xy_mm, module_ny, or module_pitch_y_mm.",
-            maxHalfY, s_containerHalfY));
-
-    const double x0 = -0.5 * (cfg.module_nx - 1) * pitchX;
-    const double y0 = -0.5 * (cfg.module_ny - 1) * pitchY;
-
-    for (int iy = 0; iy < cfg.module_ny; ++iy)
-        for (int ix = 0; ix < cfg.module_nx; ++ix)
-            buildStack(containerPhys, cfg, ix, iy, x0 + ix * pitchX, y0 + iy * pitchY);
+    for (int iy = 0; iy < Calo::kModuleNY; ++iy)
+        for (int ix = 0; ix < Calo::kModuleNX; ++ix)
+            buildStack(containerPhys, ix, iy, x0 + ix * Calo::kModulePitchX,
+                       y0 + iy * Calo::kModulePitchY);
 
     return containerPhys;
 }
 
 // ── buildStack ───────────────────────────────────────────────────────────────
 
-void CalorimeterFactory::buildStack(GeoPhysVol* container, const CalorimeterConfig& cfg,
-                                    int moduleX, int moduleY, double offsetX,
+void CalorimeterFactory::buildStack(GeoPhysVol* container, int moduleX, int moduleY, double offsetX,
                                     double offsetY) const {
-    // Compute bar counts from configurable plate size
-    if (std::fmod(cfg.plate_xy_mm, kWidePVTBarPitch_mm) != 0.0)
-        throw std::runtime_error(std::format(
-            "CalorimeterFactory: plate_xy_mm ({}) is not divisible by wide PVT bar pitch ({} mm)",
-            cfg.plate_xy_mm, kWidePVTBarPitch_mm));
-    if (std::fmod(cfg.plate_xy_mm, kThinPSBarPitch_mm) != 0.0)
-        throw std::runtime_error(std::format(
-            "CalorimeterFactory: plate_xy_mm ({}) is not divisible by thin PS bar pitch ({} mm)",
-            cfg.plate_xy_mm, kThinPSBarPitch_mm));
-    const int widePVTBarCount = static_cast<int>(cfg.plate_xy_mm / kWidePVTBarPitch_mm);
-    const int thinPSBarCount = static_cast<int>(cfg.plate_xy_mm / kThinPSBarPitch_mm);
+    using Calo::LayerCode;
 
     GeoMaterial* leadMat = m_materials.requireMaterial("Lead");
     GeoMaterial* ironMat = m_materials.requireMaterial("Iron");
@@ -157,15 +65,15 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, const CalorimeterConf
     GeoMaterial* alMat = m_materials.requireMaterial("Aluminium");
     GeoMaterial* airMat = m_materials.requireMaterial("Air");
 
-    const double plateXY = cfg.plate_xy_mm * mm;
-    const double leadZ = cfg.lead_thickness_mm * mm;
-    const double scintZ = cfg.scint_thickness_mm * mm;
-    const double hplZ = cfg.hpl_thickness_mm * mm;
-    const double ironZ = cfg.iron_thickness_mm * mm;
-    const double airGapZ = cfg.airgap_mm * mm;
+    const double plateXY = Calo::kPlateXY * mm;
+    const double leadZ = Calo::kLeadThickness * mm;
+    const double scintZ = Calo::kScintThickness * mm;
+    const double hplZ = Calo::kHplThickness * mm;
+    const double ironZ = Calo::kIronThickness * mm;
+    const double airGapZ = Calo::kAirGap * mm;
 
-    const double wideW = kWidePVTBarPitch_mm * mm;
-    const double thinW = kThinPSBarPitch_mm * mm;
+    const double wideW = Calo::kWidePVTBarPitch * mm;
+    const double thinW = Calo::kThinPSBarPitch * mm;
 
     const std::string moduleTag = std::format("_MX{}Y{}", moduleX, moduleY);
 
@@ -183,10 +91,8 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, const CalorimeterConf
     auto* thinVLog = new GeoLogVol("/SHiP/calorimeter/thin_ps_v" + moduleTag,
                                    new GeoBox(0.5 * thinW, 0.5 * plateXY, 0.5 * scintZ), psMat);
 
-    // z cursor: start at -halfContainerZ if centering, else 0
-    // We centre within the fixed container (halfZ = s_containerHalfZ).
-    const double totalZ = totalStackZ(cfg);
-    double zCursor = cfg.center_stack ? -0.5 * totalZ * mm : -s_containerHalfZ;
+    // z cursor: the layer stack is centred at z=0 in the container volume.
+    double zCursor = -0.5 * Calo::kTotalStackZ * mm;
 
     int layerId = 0;  // monotonic identifier used for GeoIdentifierTag
 
@@ -207,7 +113,7 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, const CalorimeterConf
     // Describes one calorimeter section (ECAL or HCAL)
     struct SectionDescriptor {
         std::string_view prefix;  // "ecal" or "hcal"
-        const std::vector<int>& layerCodes;
+        std::span<const LayerCode> layerCodes;
         GeoLogVol* absorberLog;
         double absorberHalfZ;
         bool absorberNeedsEnvelope;    // ECAL lead: true, HCAL iron: false
@@ -218,11 +124,11 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, const CalorimeterConf
         int globalLayerIdx = 0, scintLayerIdx = 0;
         int absorberIdx = 0;
 
-        for (int code : sec.layerCodes) {
+        for (LayerCode code : sec.layerCodes) {
             const auto basePath =
                 std::format("/SHiP/calorimeter/{}/gl{}", sec.prefix, globalLayerIdx);
 
-            switch (static_cast<LayerCode>(code)) {
+            switch (code) {
                 case LayerCode::Absorber: {
                     if (sec.absorberNeedsEnvelope) {
                         const auto volumeName = std::format("{}_lead{}", basePath, moduleTag);
@@ -250,8 +156,9 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, const CalorimeterConf
                     const auto volumeName =
                         std::format("{}_sl{}_wide_pvt_h{}", basePath, scintLayerIdx, moduleTag);
                     auto* env = makeEnv(volumeName, 0.5 * scintZ, zCursor + 0.5 * scintZ);
-                    CaloBar::placeLayer(env, wideHLog, kWidePVTBarPitch_mm, widePVTBarCount, 0.0,
-                                        volumeName.c_str(), iWideH, BarAxis::AlongY, moduleTag);
+                    CaloBar::placeLayer(env, wideHLog, Calo::kWidePVTBarPitch,
+                                        Calo::kWidePVTBarCount, 0.0, volumeName.c_str(), iWideH,
+                                        BarAxis::AlongY, moduleTag);
                     zCursor += scintZ;
                     ++iWideH;
                     ++globalLayerIdx;
@@ -262,8 +169,9 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, const CalorimeterConf
                     const auto volumeName =
                         std::format("{}_sl{}_wide_pvt_v{}", basePath, scintLayerIdx, moduleTag);
                     auto* env = makeEnv(volumeName, 0.5 * scintZ, zCursor + 0.5 * scintZ);
-                    CaloBar::placeLayer(env, wideVLog, kWidePVTBarPitch_mm, widePVTBarCount, 0.0,
-                                        volumeName.c_str(), iWideV, BarAxis::AlongX, moduleTag);
+                    CaloBar::placeLayer(env, wideVLog, Calo::kWidePVTBarPitch,
+                                        Calo::kWidePVTBarCount, 0.0, volumeName.c_str(), iWideV,
+                                        BarAxis::AlongX, moduleTag);
                     zCursor += scintZ;
                     ++iWideV;
                     ++globalLayerIdx;
@@ -274,8 +182,9 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, const CalorimeterConf
                     const auto volumeName =
                         std::format("{}_sl{}_thin_ps_h{}", basePath, scintLayerIdx, moduleTag);
                     auto* env = makeEnv(volumeName, 0.5 * scintZ, zCursor + 0.5 * scintZ);
-                    CaloBar::placeLayer(env, thinHLog, kThinPSBarPitch_mm, thinPSBarCount, 0.0,
-                                        volumeName.c_str(), iThinH, BarAxis::AlongY, moduleTag);
+                    CaloBar::placeLayer(env, thinHLog, Calo::kThinPSBarPitch, Calo::kThinPSBarCount,
+                                        0.0, volumeName.c_str(), iThinH, BarAxis::AlongY,
+                                        moduleTag);
                     zCursor += scintZ;
                     ++iThinH;
                     ++globalLayerIdx;
@@ -286,8 +195,9 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, const CalorimeterConf
                     const auto volumeName =
                         std::format("{}_sl{}_thin_ps_v{}", basePath, scintLayerIdx, moduleTag);
                     auto* env = makeEnv(volumeName, 0.5 * scintZ, zCursor + 0.5 * scintZ);
-                    CaloBar::placeLayer(env, thinVLog, kThinPSBarPitch_mm, thinPSBarCount, 0.0,
-                                        volumeName.c_str(), iThinV, BarAxis::AlongX, moduleTag);
+                    CaloBar::placeLayer(env, thinVLog, Calo::kThinPSBarPitch, Calo::kThinPSBarCount,
+                                        0.0, volumeName.c_str(), iThinV, BarAxis::AlongX,
+                                        moduleTag);
                     zCursor += scintZ;
                     ++iThinV;
                     ++globalLayerIdx;
@@ -299,8 +209,8 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, const CalorimeterConf
                         std::format("{}_sl{}_hpl_y{}", basePath, scintLayerIdx, moduleTag);
                     auto* env = makeEnv(volumeName, 0.5 * hplZ, zCursor + 0.5 * hplZ);
                     CaloFibreHP::buildLayer(env, alMat, psMat, volumeName, 0.0, iHPL,
-                                            cfg.plate_xy_mm, cfg.hpl_thickness_mm,
-                                            cfg.fiber_diameter_mm, cfg.fiber_core_diameter_mm, true,
+                                            Calo::kPlateXY, Calo::kHplThickness,
+                                            Calo::kFiberDiameter, Calo::kFiberCoreDiameter, true,
                                             moduleTag);
                     zCursor += hplZ;
                     ++iHPL;
@@ -313,9 +223,9 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, const CalorimeterConf
                         std::format("{}_sl{}_hpl_x{}", basePath, scintLayerIdx, moduleTag);
                     auto* env = makeEnv(volumeName, 0.5 * hplZ, zCursor + 0.5 * hplZ);
                     CaloFibreHP::buildLayer(env, alMat, psMat, volumeName, 0.0, iHPL,
-                                            cfg.plate_xy_mm, cfg.hpl_thickness_mm,
-                                            cfg.fiber_diameter_mm, cfg.fiber_core_diameter_mm,
-                                            false, moduleTag);
+                                            Calo::kPlateXY, Calo::kHplThickness,
+                                            Calo::kFiberDiameter, Calo::kFiberCoreDiameter, false,
+                                            moduleTag);
                     zCursor += hplZ;
                     ++iHPL;
                     ++globalLayerIdx;
@@ -327,24 +237,21 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, const CalorimeterConf
                     if (sec.incrementGlobalOnAirGap)
                         ++globalLayerIdx;
                     break;
-                default:
-                    throw std::runtime_error(
-                        std::format("CalorimeterFactory: unknown layer code: {}", code));
             }
         }
     };
 
     processSection({.prefix = "ecal",
-                    .layerCodes = cfg.layers,
+                    .layerCodes = Calo::kEcalLayers,
                     .absorberLog = leadLog,
                     .absorberHalfZ = 0.5 * leadZ,
                     .absorberNeedsEnvelope = true,
                     .incrementGlobalOnAirGap = false});
 
-    zCursor += cfg.gap_ecal_hcal_mm * mm;
+    zCursor += Calo::kGapEcalHcal * mm;
 
     processSection({.prefix = "hcal",
-                    .layerCodes = cfg.layers2,
+                    .layerCodes = Calo::kHcalLayers,
                     .absorberLog = ironLog,
                     .absorberHalfZ = 0.5 * ironZ,
                     .absorberNeedsEnvelope = false,
