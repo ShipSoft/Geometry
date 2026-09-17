@@ -3,60 +3,33 @@
 
 #pragma once
 
-#include <GeoModelKernel/Units.h>
-
-#include <string>
-
 class GeoPhysVol;
 
 namespace SHiPGeometry {
 
 class SHiPMaterials;
-struct CalorimeterConfig;
 
 /**
  * @brief Factory for the Calorimeter (ECAL + HCAL) geometry.
  *
  * Creates a fixed-size container volume matching the SHiP envelope
  * (3.00 × 3.50 × 1.45 m half-sizes, centred at Z = 98 320 mm) and fills
- * it with the real layer-by-layer geometry driven by calo.toml.
- *
- * The config file is resolved at build() time:
- *   1. "calo.toml" relative to the current working directory (works when
- *      running from the build directory, where CMake stages the file).
- *   2. The absolute source-tree path baked in at compile time via
- *      CALO_TOML_DEFAULT_PATH (always valid during development).
+ * it with the layer-by-layer geometry defined in CalorimeterConstants.h.
  */
 class CalorimeterFactory {
    public:
-    explicit CalorimeterFactory(SHiPMaterials& materials, std::string configPath = "calo.toml");
+    explicit CalorimeterFactory(SHiPMaterials& materials);
     ~CalorimeterFactory() = default;
 
     /** Build and return the calorimeter container volume. */
     [[nodiscard]] GeoPhysVol* build();
 
-    /**
-     * @brief Compute the total Z extent of one ECAL+gap+HCAL stack (mm).
-     *
-     * Public so tests and placement code can query the stack thickness
-     * independently of a full build().
-     */
-    static double totalStackZ(const CalorimeterConfig& cfg);
-
    private:
     SHiPMaterials& m_materials;
-    std::string m_configPath;
 
     /** Place one NX×NY tiled stack of layers inside @p container. */
-    void buildStack(GeoPhysVol* container, const CalorimeterConfig& cfg, int moduleX, int moduleY,
-                    double offsetX, double offsetY) const;
-
-    // ── Fixed container dimensions ──────────────────────────────────────
-    // These match the SHiP subsystem envelope from subsystem_envelopes.csv
-    // and must not change — tests and the consistency check depend on them.
-    static constexpr double s_containerHalfX = 3000.0 * GeoModelKernelUnits::mm;  // 3.00 m
-    static constexpr double s_containerHalfY = 3500.0 * GeoModelKernelUnits::mm;  // 3.50 m
-    static constexpr double s_containerHalfZ = 1450.0 * GeoModelKernelUnits::mm;  // 1.45 m
+    void buildStack(GeoPhysVol* container, int moduleX, int moduleY, double offsetX,
+                    double offsetY) const;
 };
 
 }  // namespace SHiPGeometry
