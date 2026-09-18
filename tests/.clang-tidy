@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: CERN for the benefit of the SHiP Collaboration
+# SPDX-License-Identifier: LGPL-3.0-or-later
+#
+# Layered on top of the synced .clang-tidy at the repository root, which
+# config-sync owns. This file is ours.
+#
+# Catch2 is a macro-heavy framework and clang-tidy reports its expansions
+# against the test that used them, so these three fire on essentially every
+# assertion and test case without saying anything about the test:
+#
+#   cppcoreguidelines-avoid-do-while       REQUIRE and CHECK expand to do-while
+#   bugprone-throwing-static-initialization / cert-err58-cpp
+#                                          TEST_CASE registers via a static
+#   misc-use-anonymous-namespace           the same static registration objects
+#
+# Everything else still applies here; test code is code.
+InheritParentConfig: true
+Checks: >
+  -bugprone-throwing-static-initialization,
+  -cert-err58-cpp,
+  -cppcoreguidelines-avoid-do-while,
+  -misc-use-anonymous-namespace,
