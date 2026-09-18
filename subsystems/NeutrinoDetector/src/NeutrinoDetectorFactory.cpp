@@ -55,8 +55,8 @@ constexpr double s_tgt_pitch =
 
 // Medium Granularity Calorimeter: silicon/tungsten (10 layers).
 constexpr double s_mgc_plate_xy = 500.0;
-constexpr double s_mgc_w = 23;
-constexpr double s_mgc_si = 0.35;
+constexpr double s_mgc_w = 20;
+constexpr double s_mgc_si = 0.65;
 constexpr double s_mgc_w_si_gap = 0.050;
 constexpr double s_mgc_si_si_gap = 0.200;
 constexpr int s_mgc_n_layers = 10;
@@ -70,13 +70,13 @@ constexpr double s_hcal_fibre_diameter = 0.250;  // round scintillating fibre
 constexpr int s_hcal_fibre_sublayers = 2;        // staggered sub-layers per plane
 constexpr double s_hcal_fibre_plane =
     s_hcal_fibre_sublayers * s_hcal_fibre_diameter;  // 0.5 mm fibre-plane thickness
-constexpr double s_hcal_tile_xy = 50.0;
-constexpr double s_hcal_tile_thickness = 10.0;
+constexpr double s_hcal_tile_xy = 55.0;
+constexpr double s_hcal_tile_thickness = 29.0; //3 cm total gap between iron slabs
 constexpr double s_hcal_layer =
-    s_hcal_iron + 2.0 * s_hcal_fibre_plane + s_hcal_tile_thickness;  // 61
+    s_hcal_iron + 2.0 * s_hcal_fibre_plane + s_hcal_tile_thickness;  // 80
 constexpr int s_hcal_n_sections = 3;
 constexpr int s_hcal_n_layers = 14;
-constexpr double s_hcal_section_xy[s_hcal_n_sections] = {400.0, 500.0, 600.0};
+constexpr double s_hcal_section_xy[s_hcal_n_sections] = {600.0, 600.0, 600.0};
 
 /// Place one shared log volume as a child with a per-instance name, copy id,
 /// and position (coordinates in mm; converted to GeoModel units here).
