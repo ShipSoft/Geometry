@@ -10,6 +10,7 @@
 #include "MuonShield/MuonShieldFactory.h"
 #include "SHiPGeometry/Placement.h"
 #include "SHiPGeometry/SHiPMaterials.h"
+#include "SHiPGeometry/Units.h"
 #include "Target/TargetFactory.h"
 #include "TimingDetector/TimingDetectorFactory.h"
 #include "Trackers/TrackersFactory.h"
@@ -20,7 +21,6 @@
 
 #include <GeoModelKernel/GeoDefinitions.h>
 #include <GeoModelKernel/GeoPhysVol.h>
-#include <GeoModelKernel/Units.h>
 
 namespace SHiPGeometry {
 
@@ -28,10 +28,10 @@ SHiPGeometryBuilder::SHiPGeometryBuilder() = default;
 SHiPGeometryBuilder::~SHiPGeometryBuilder() = default;
 
 GeoPhysVol* SHiPGeometryBuilder::build() {
-    // Unit shorthands (GeoModel's native length unit is mm)
-    constexpr double mm = GeoModelKernelUnits::mm;
-    constexpr double cm = GeoModelKernelUnits::cm;
-    constexpr double m = GeoModelKernelUnits::m;
+    using units::cm;
+    using units::gm;
+    using units::m;
+    using units::mm;
 
     // Create central materials manager
     SHiPMaterials materials;
@@ -46,14 +46,15 @@ GeoPhysVol* SHiPGeometryBuilder::build() {
 
     // Position target in world (from GDML: x=0, y=-14.45cm, z=43.25cm)
     // Note: These are relative to the cave origin
-    placeChild(world, target, "/SHiP/target", 1, GeoTrf::Translate3D(0.0, -14.45 * cm, 43.25 * cm));
+    placeChild(world, target, "/SHiP/target", 1,
+               GeoTrf::Translate3D(0.0, gm(-14.45 * cm), gm(43.25 * cm)));
 
     // Build and place MuonShieldArea
     // GDML z range: 204–3148.66 cm → centre: 1676.33 cm = 16763.3 mm from world origin
     MuonShieldFactory muonShieldFactory(materials);
     GeoPhysVol* muonShield = muonShieldFactory.build();
     placeChild(world, muonShield, "/SHiP/muon_shield", 2,
-               GeoTrf::Translate3D(0.0, 0.0, 16763.3 * mm));
+               GeoTrf::Translate3D(0.0, 0.0, gm(16763.3 * mm)));
 
     // Build and place the Scattering and Neutrino Detector (SND).
     // Z: 26.40 to 31.50 m (WARM muon-shield configuration) → centre 28.95 m.
@@ -62,7 +63,7 @@ GeoPhysVol* SHiPGeometryBuilder::build() {
     NeutrinoDetectorFactory neutrinoDetectorFactory(materials);
     GeoPhysVol* neutrinoDetector = neutrinoDetectorFactory.build();
     placeChild(world, neutrinoDetector, "/SHiP/neutrino_detector", 9,
-               GeoTrf::Translate3D(0.0, 0.0, 28.95 * m));
+               GeoTrf::Translate3D(0.0, 0.0, gm(28.95 * m)));
 
     // Build and place UpstreamTagger (sensitive scintillator slab)
     // Z: 32.52 to 32.92 m → centre: 32.72 m
@@ -70,36 +71,36 @@ GeoPhysVol* SHiPGeometryBuilder::build() {
     UpstreamTaggerFactory upstreamTaggerFactory(materials);
     GeoVPhysVol* upstreamTagger = upstreamTaggerFactory.build(&ubtManager);
     placeChild(world, upstreamTagger, "/SHiP/upstream_tagger", 3,
-               GeoTrf::Translate3D(0.0, 0.0, 32.72 * m));
+               GeoTrf::Translate3D(0.0, 0.0, gm(32.72 * m)));
 
     // Build and place DecayVolume
     // Z: 32.92 to 83.32 m → centre: 58.12 m
     DecayVolumeFactory decayVolumeFactory(materials);
     GeoPhysVol* decayVolume = decayVolumeFactory.build();
     placeChild(world, decayVolume, "/SHiP/decay_volume", 4,
-               GeoTrf::Translate3D(0.0, 0.0, 58.12 * m));
+               GeoTrf::Translate3D(0.0, 0.0, gm(58.12 * m)));
 
     // Build and place Trackers (container with 4 stations).
     // The factory already handles internal positioning; place the container at
     // its centre Z (average of station 1 and 4 centres).
     TrackersFactory trackersFactory(materials);
     GeoPhysVol* trackers = trackersFactory.build();
-    constexpr double trackersCentreZ = (84.07 + 95.07) / 2.0 * m;
+    constexpr auto trackersCentreZ = (84.07 + 95.07) / 2.0 * m;
     placeChild(world, trackers, "/SHiP/trackers", 5,
-               GeoTrf::Translate3D(0.0, 0.0, trackersCentreZ));
+               GeoTrf::Translate3D(0.0, 0.0, gm(trackersCentreZ)));
 
     // Build and place Magnet
     // Z: 87.07 to 92.07 m → centre: 89.57 m
     MagnetFactory magnetFactory(materials);
     GeoPhysVol* magnet = magnetFactory.build();
-    placeChild(world, magnet, "/SHiP/magnet", 6, GeoTrf::Translate3D(0.0, 0.0, 89.57 * m));
+    placeChild(world, magnet, "/SHiP/magnet", 6, GeoTrf::Translate3D(0.0, 0.0, gm(89.57 * m)));
 
     // Build and place TimingDetector
     // Z: 95.902 m (from GDML reference)
     TimingDetectorFactory timingDetectorFactory(materials);
     GeoPhysVol* timingDetector = timingDetectorFactory.build();
     placeChild(world, timingDetector, "/SHiP/timing_detector", 7,
-               GeoTrf::Translate3D(0.0, 0.0, 95.902 * m));
+               GeoTrf::Translate3D(0.0, 0.0, gm(95.902 * m)));
 
     // Build and place Calorimeter (ECAL + HCAL).
     // The layer structure comes from CalorimeterConstants.h; the outer container
@@ -107,7 +108,7 @@ GeoPhysVol* SHiPGeometryBuilder::build() {
     CalorimeterFactory calorimeterFactory(materials);
     GeoPhysVol* calorimeter = calorimeterFactory.build();
     placeChild(world, calorimeter, "/SHiP/calorimeter", 8,
-               GeoTrf::Translate3D(0.0, 0.0, 98.32 * m));
+               GeoTrf::Translate3D(0.0, 0.0, gm(98.32 * m)));
 
     return world;
 }
