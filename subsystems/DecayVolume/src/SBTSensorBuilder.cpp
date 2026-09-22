@@ -33,7 +33,7 @@
 
 namespace SHiPGeometry {
 
-using namespace GeoModelKernelUnits;
+using units::gm;
 
 namespace {
 
@@ -67,15 +67,15 @@ void placeSideContainer(GeoVPhysVol* mother, const GeoMaterial* alMat, const Geo
     // Geometry rules live in SBTConstants.h (see "PLACEMENT PRIMITIVES" there)
     // so that SBTEnvelope can derive the helium from exactly the same
     // expressions.
-    const double dx = SBT::sideContainerHalfThickness() * mm;
+    const double dx = gm(SBT::sideContainerHalfThickness());
 
-    const double z_split_rel = SBT::zSplitOffset();  // column front-flange outer edge
+    const double z_split_rel = gm(SBT::zSplitOffset());  // column front-flange outer edge
     const double z_split_mm = zLo_mm + z_split_rel;
 
     // ---- Piece 1: z in [zLo, z_split] — flat outer face, Y shear only ----
     {
-        const double dz1 = 0.5 * (z_split_mm - zLo_mm) * mm;
-        const double zMid1 = 0.5 * (zLo_mm + z_split_mm) * mm;
+        const double dz1 = 0.5 * (z_split_mm - zLo_mm);
+        const double zMid1 = 0.5 * (zLo_mm + z_split_mm);
         const double frac1 = (z_split_mm - zLo_mm) / (zHi_mm - zLo_mm);
 
         const double dy_split = dy1 + (dy2 - dy1) * frac1;
@@ -83,7 +83,7 @@ void placeSideContainer(GeoVPhysVol* mother, const GeoMaterial* alMat, const Geo
         const double yC1 = yCtr1;
         const double yC2 = yCtr1 + (yCtr2 - yCtr1) * frac1;
 
-        const double xCtr_flat = sgnX * SBT::sideContainerCentreX(xHalf_lo) * mm;
+        const double xCtr_flat = sgnX * gm(SBT::sideContainerCentreX(xHalf_lo * units::mm));
 
         const double dY1 = yC2 - yC1;
         const double shear1 = std::abs(dY1);
@@ -98,8 +98,8 @@ void placeSideContainer(GeoVPhysVol* mother, const GeoMaterial* alMat, const Geo
 
     // ---- Piece 2: z in [z_split, zHi] — normal tracking ------------------
     {
-        const double dz2 = 0.5 * (zHi_mm - z_split_mm) * mm;
-        const double zMid2 = 0.5 * (z_split_mm + zHi_mm) * mm;
+        const double dz2 = 0.5 * (zHi_mm - z_split_mm);
+        const double zMid2 = 0.5 * (z_split_mm + zHi_mm);
         const double frac1 = (z_split_mm - zLo_mm) / (zHi_mm - zLo_mm);
 
         const double dy_split = dy1 + (dy2 - dy1) * frac1;
@@ -107,8 +107,8 @@ void placeSideContainer(GeoVPhysVol* mother, const GeoMaterial* alMat, const Geo
         const double yC2 = yCtr2;
 
         const double xHalf_split = xHalf_lo + (xHalf_hi - xHalf_lo) * frac1;
-        const double xCtr1_p2 = sgnX * SBT::sideContainerCentreX(xHalf_split) * mm;
-        const double xCtr2_p2 = sgnX * SBT::sideContainerCentreX(xHalf_hi) * mm;
+        const double xCtr1_p2 = sgnX * gm(SBT::sideContainerCentreX(xHalf_split * units::mm));
+        const double xCtr2_p2 = sgnX * gm(SBT::sideContainerCentreX(xHalf_hi * units::mm));
 
         const double dX2 = xCtr2_p2 - xCtr1_p2;
         const double dY2 = yC2 - yC1;
@@ -131,18 +131,18 @@ void placeContainerAndCells(GeoVPhysVol* mother, const GeoMaterial* alMat,
                             const GeoMaterial* labMat, const std::string& name,
                             const GeoTrf::Transform3D& trf, double dz, double dy1, double dy2,
                             double dx, double theta, double phi) {
-    const double wallT = SBT::kWallThickness;
+    const double wallT = gm(SBT::kWallThickness);
     const int nCells = SBT::kNCells;
     const int nWalls = SBT::nWalls();
 
     const double alp = 0.0;
 
-    const double wallHalf_z = 0.5 * wallT * mm;
+    const double wallHalf_z = 0.5 * wallT;
     const double totalZ = 2.0 * dz;
-    const double cellZ = (totalZ - nWalls * wallT * mm) / nCells;
+    const double cellZ = (totalZ - nWalls * wallT) / nCells;
     const double cellHalf_z = 0.5 * cellZ;
 
-    const double step = wallT * mm + cellZ;
+    const double step = wallT + cellZ;
 
     auto dyAt = [&](double z_local) { return dy1 + (dy2 - dy1) * (z_local + dz) / (2.0 * dz); };
 
@@ -155,7 +155,7 @@ void placeContainerAndCells(GeoVPhysVol* mother, const GeoMaterial* alMat,
     // ---- 7 aluminium walls -------------------------------------------------
     for (int w = 0; w < nWalls; ++w) {
         const double z_lo = -dz + w * step;
-        const double z_hi = z_lo + wallT * mm;
+        const double z_hi = z_lo + wallT;
         const double z_ctr = 0.5 * (z_lo + z_hi);
 
         const double dyw1 = dyAt(z_lo);
@@ -176,7 +176,7 @@ void placeContainerAndCells(GeoVPhysVol* mother, const GeoMaterial* alMat,
 
     // ---- 6 LAB cells -------------------------------------------------------
     for (int c = 0; c < nCells; ++c) {
-        const double z_lo = -dz + wallT * mm + c * step;
+        const double z_lo = -dz + wallT + c * step;
         const double z_hi = z_lo + cellZ;
         const double z_ctr = 0.5 * (z_lo + z_hi);
 
@@ -203,23 +203,23 @@ void SBTSensorBuilder::build(GeoVPhysVol* mother, const GeoMaterial* alMat,
                              const GeoMaterial* labMat, const std::string& tag) {
     // Bind constants to the names the ported body uses (magnitudes in mm).
     const int nSub = SBT::kNSubFrustum;
-    const double subLen = SBT::subLength();
-    const double hBeamH = SBT::kHBeamHeight;
-    const double sensorClear = SBT::kSensorClearance;
-    const double zEntrance_mm = SBT::kZEntrance;
+    const double subLen = gm(SBT::subLength());
+    const double hBeamH = gm(SBT::kHBeamHeight);
+    const double sensorClear = gm(SBT::kSensorClearance);
+    const double zEntrance_mm = gm(SBT::kZEntrance);
 
     // Frustum profile and all placement rules come from SBTConstants.h, so
     // that SBTEnvelope sizes the helium from the very same expressions.
-    auto xHalfAtZ = [](double z_mm) { return SBT::xHalfAt(z_mm); };
-    auto yHalfAtZ = [](double z_mm) { return SBT::yHalfAt(z_mm); };
+    auto xHalfAtZ = [](double z_mm) { return gm(SBT::xHalfAt(z_mm * units::mm)); };
+    auto yHalfAtZ = [](double z_mm) { return gm(SBT::yHalfAt(z_mm * units::mm)); };
 
     //  (A)  SIDE CONTAINERS  (±X faces) — 4 containers per side, split by Y=0.
     for (int s = 0; s < nSub; ++s) {
         const double zLo_mm = zEntrance_mm + s * subLen;
         const double zHi_mm = zEntrance_mm + (s + 1) * subLen;
 
-        const double availLo = (yHalfAtZ(zLo_mm) - hBeamH) * mm;
-        const double availHi = (yHalfAtZ(zHi_mm) - hBeamH) * mm;
+        const double availLo = (yHalfAtZ(zLo_mm) - hBeamH);
+        const double availHi = (yHalfAtZ(zHi_mm) - hBeamH);
 
         const double dy1[4] = {availLo / 4.0, availLo / 4.0, availLo / 4.0, availLo / 4.0};
         const double dy2[4] = {availHi / 4.0, availHi / 4.0, availHi / 4.0, availHi / 4.0};
@@ -252,19 +252,19 @@ void SBTSensorBuilder::build(GeoVPhysVol* mother, const GeoMaterial* alMat,
         const double zLo_mm = zEntrance_mm + s * subLen;
         const double zHi_mm = zEntrance_mm + (s + 1) * subLen;
 
-        const double xAvailLo = SBT::topBottomAvailX(xHalfAtZ(zLo_mm)) * mm;
-        const double xAvailHi = SBT::topBottomAvailX(xHalfAtZ(zHi_mm)) * mm;
+        const double xAvailLo = gm(SBT::topBottomAvailX(xHalfAtZ(zLo_mm) * units::mm));
+        const double xAvailHi = gm(SBT::topBottomAvailX(xHalfAtZ(zHi_mm) * units::mm));
 
-        const double yFaceTop_Lo = SBT::topBottomContainerCentreY(yHalfAtZ(zLo_mm)) * mm;
-        const double yFaceTop_Hi = SBT::topBottomContainerCentreY(yHalfAtZ(zHi_mm)) * mm;
+        const double yFaceTop_Lo = gm(SBT::topBottomContainerCentreY(yHalfAtZ(zLo_mm) * units::mm));
+        const double yFaceTop_Hi = gm(SBT::topBottomContainerCentreY(yHalfAtZ(zHi_mm) * units::mm));
         const double yFaceBot_Lo = -yFaceTop_Lo;
         const double yFaceBot_Hi = -yFaceTop_Hi;
 
-        const double dx = SBT::topBottomContainerHalfThickness() * mm;
+        const double dx = gm(SBT::topBottomContainerHalfThickness());
 
         const int nCont = (s < threshold) ? 2 : 3;
 
-        const double z_split_rel = SBT::zSplitOffset();  // column front-flange outer edge
+        const double z_split_rel = gm(SBT::zSplitOffset());  // column front-flange outer edge
         const double z_split_mm = zLo_mm + z_split_rel;
         const double frac_split = z_split_rel / (zHi_mm - zLo_mm);
 
@@ -311,7 +311,7 @@ void SBTSensorBuilder::build(GeoVPhysVol* mother, const GeoMaterial* alMat,
                 }
 
                 {
-                    const double clr = sensorClear * mm;
+                    const double clr = sensorClear;
                     localY_lo1 += clr;
                     localY_hi1 -= clr;
                     localY_lo2 += clr;
@@ -331,8 +331,8 @@ void SBTSensorBuilder::build(GeoVPhysVol* mother, const GeoMaterial* alMat,
 
                 // Piece 1: z in [zLo, z_split] — flat outer X, face Y-shear only.
                 {
-                    const double dz1 = 0.5 * (z_split_mm - zLo_mm) * mm;
-                    const double zMid1 = 0.5 * (zLo_mm + z_split_mm) * mm;
+                    const double dz1 = 0.5 * (z_split_mm - zLo_mm);
+                    const double zMid1 = 0.5 * (zLo_mm + z_split_mm);
 
                     const double ldy1_p = 0.5 * (localY_hi1 - localY_lo1);
                     const double ldy2_p = 0.5 * (localY_hi_sp - localY_lo_sp);
@@ -352,8 +352,8 @@ void SBTSensorBuilder::build(GeoVPhysVol* mother, const GeoMaterial* alMat,
 
                 // Piece 2: z in [z_split, zHi] — normal X and Y tracking.
                 {
-                    const double dz2 = 0.5 * (zHi_mm - z_split_mm) * mm;
-                    const double zMid2 = 0.5 * (z_split_mm + zHi_mm) * mm;
+                    const double dz2 = 0.5 * (zHi_mm - z_split_mm);
+                    const double zMid2 = 0.5 * (z_split_mm + zHi_mm);
 
                     const double ldy1_p = 0.5 * (localY_hi_sp - localY_lo_sp);
                     const double ldy2_p = 0.5 * (localY_hi2 - localY_lo2);

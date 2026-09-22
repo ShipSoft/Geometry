@@ -17,7 +17,7 @@
 
 namespace SHiPGeometry {
 
-using namespace GeoModelKernelUnits;
+using units::gm;
 
 DecayVolumeFactory::DecayVolumeFactory(SHiPMaterials& materials) : m_materials(materials) {}
 
@@ -33,7 +33,7 @@ GeoPhysVol* DecayVolumeFactory::build() {
     // decay region. Static_asserts in SBTConstants.h guarantee the SBT
     // structure cannot outgrow it.
     auto* containerBox =
-        new GeoBox(SBT::kEnvelopeHalfX * mm, SBT::kEnvelopeHalfY * mm, SBT::kEnvelopeHalfZ * mm);
+        new GeoBox(gm(SBT::kEnvelopeHalfX), gm(SBT::kEnvelopeHalfY), gm(SBT::kEnvelopeHalfZ));
     auto* containerLog = new GeoLogVol("/SHiP/decay_volume", containerBox, air);
     auto* container = new GeoPhysVol(containerLog);
 
