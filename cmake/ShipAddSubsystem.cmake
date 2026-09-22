@@ -35,7 +35,10 @@ function(ship_add_subsystem NAME)
             $<INSTALL_INTERFACE:include>
     )
 
-    target_link_libraries(${NAME} PUBLIC GeoModelCore::GeoModelKernel)
+    target_link_libraries(
+        ${NAME}
+        PUBLIC GeoModelCore::GeoModelKernel mp-units::mp-units
+    )
 
     if(BUILD_TESTING)
         string(TOLOWER ${NAME} _lower)
