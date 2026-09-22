@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "SHiPGeometry/Units.h"
+
 class GeoPhysVol;
 
 namespace SHiPGeometry {
@@ -55,12 +57,12 @@ class NeutrinoDetectorFactory {
    private:
     SHiPMaterials& m_materials;
 
-    // ── Container envelope (mm) ─────────────────────────────────────────
+    // ── Container envelope ──────────────────────────────────────────────
     // Box approximation of the frustum SND envelope, sized to the largest
     // (downstream) half-width/height and the full 5.10 m length.
-    static constexpr double s_halfX = 400.0;
-    static constexpr double s_halfY = 400.0;
-    static constexpr double s_halfZ = 2550.0;
+    static constexpr auto s_halfX = 400.0 * units::mm;
+    static constexpr auto s_halfY = 400.0 * units::mm;
+    static constexpr auto s_halfZ = 2550.0 * units::mm;
 };
 
 }  // namespace SHiPGeometry
