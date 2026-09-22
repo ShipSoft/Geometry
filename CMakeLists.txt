@@ -24,6 +24,7 @@ option(BUILD_SHARED_LIBS "Build shared libraries by default" ON)
 find_package(GeoModelCore REQUIRED)
 find_package(GeoModelIO REQUIRED)
 find_package(GeoModelTools REQUIRED)
+find_package(mp-units 2.5 CONFIG REQUIRED)
 find_package(SQLite3 REQUIRED)
 # Logging. PRIVATE to the executables: keeping spdlog out of SHiPGeometry's
 # public interface means downstream consumers do not inherit the dependency.
