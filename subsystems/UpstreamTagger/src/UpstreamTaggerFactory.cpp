@@ -14,21 +14,20 @@
 #include <GeoModelKernel/GeoNameTag.h>
 #include <GeoModelKernel/GeoPhysVol.h>
 #include <GeoModelKernel/GeoTransform.h>
-#include <GeoModelKernel/Units.h>
 
 #include <cmath>
 #include <string>
 
 namespace SHiPGeometry {
 
-using namespace GeoModelKernelUnits;
+using units::gm;
 
 // ── file-scope helpers ───────────────────────────────────────────────────────
 namespace {
 
 // Small navigator margin so tiles never touch the region-envelope faces in Z
 // (coincident faces trigger GeomNav stuck-track warnings).
-constexpr double s_env_z_margin = 0.1;  // mm
+constexpr auto s_env_z_margin = 0.1 * units::mm;
 
 // Create an air region envelope, place it in @p container at (xc, yc, zc),
 // and return it so its tile grid can be added. All inputs in GeoModel units.
@@ -84,52 +83,54 @@ GeoVPhysVol* UpstreamTaggerFactory::build(SHiPUBTManager* manager) {
 
     // Container: a GeoFullPhysVol so the tagger keeps a sensitive tree-top for
     // SHiPUBTManager. Dimensions are unchanged from the previous slab.
-    auto* containerBox = new GeoBox(s_halfX * mm, s_halfY * mm, s_halfZ * mm);
+    auto* containerBox = new GeoBox(gm(s_halfX), gm(s_halfY), gm(s_halfZ));
     auto* containerLog = new GeoLogVol("/SHiP/upstream_tagger", containerBox, air);
     auto* containerPhys = new GeoFullPhysVol(containerLog);
 
     // Tile shapes (full thickness s_tileThickness; faces s_fineFace / s_coarseFace).
-    const double tileHalfZ = 0.5 * s_tileThickness * mm;
-    const double finePitch = s_fineFace * mm;
-    const double coarsePitch = s_coarseFace * mm;
-    const double envHalfZ = tileHalfZ + s_env_z_margin * mm;
+    const double tileHalfZ = 0.5 * gm(s_tileThickness);
+    const double finePitch = gm(s_fineFace);
+    const double coarsePitch = gm(s_coarseFace);
+    const double envHalfZ = tileHalfZ + gm(s_env_z_margin);
 
     // One reusable GeoLogVol per granularity, shared across all regions
     // (the GeoModel idiom used by the calorimeter bar layers).
     auto* fineTileLog = new GeoLogVol(
         "/SHiP/upstream_tagger/fine_tile",
-        new GeoBox(0.5 * s_fineFace * mm, 0.5 * s_fineFace * mm, tileHalfZ), polystyrene);
+        new GeoBox(0.5 * gm(s_fineFace), 0.5 * gm(s_fineFace), tileHalfZ), polystyrene);
     auto* coarseTileLog = new GeoLogVol(
         "/SHiP/upstream_tagger/coarse_tile",
-        new GeoBox(0.5 * s_coarseFace * mm, 0.5 * s_coarseFace * mm, tileHalfZ), polystyrene);
+        new GeoBox(0.5 * gm(s_coarseFace), 0.5 * gm(s_coarseFace), tileHalfZ), polystyrene);
 
-    // ── Region table (centre / half-extents in mm; coplanar at local z = 0) ──
+    // ── Region table (centres / half-extents; coplanar at local z = 0) ──
     // Footprint: X ∈ [-1800,+1800], Y ∈ [-1500,+1500] — fits inside the
     // container half-extents (2200 × 3200) with clearance.
+    using units::mm;
     struct Region {
         const char* name;
-        double halfX, halfY, ctrX, ctrY;
+        units::LengthMm halfX, halfY, ctrX, ctrY;
         bool fine;
     };
     const Region regions[] = {
         // Central strip, y ∈ [-200,+200]
-        {"/SHiP/upstream_tagger/fine_left", 200.0, 200.0, -800.0, 0.0, true},
-        {"/SHiP/upstream_tagger/fine_right", 200.0, 200.0, +800.0, 0.0, true},
-        {"/SHiP/upstream_tagger/coarse_central", 600.0, 200.0, 0.0, 0.0, false},
+        {"/SHiP/upstream_tagger/fine_left", 200.0 * mm, 200.0 * mm, -800.0 * mm, 0.0 * mm, true},
+        {"/SHiP/upstream_tagger/fine_right", 200.0 * mm, 200.0 * mm, +800.0 * mm, 0.0 * mm, true},
+        {"/SHiP/upstream_tagger/coarse_central", 600.0 * mm, 200.0 * mm, 0.0 * mm, 0.0 * mm, false},
         // Outer coarse bands
-        {"/SHiP/upstream_tagger/coarse_top", 1000.0, 650.0, 0.0, +850.0, false},
-        {"/SHiP/upstream_tagger/coarse_bottom", 1000.0, 650.0, 0.0, -850.0, false},
+        {"/SHiP/upstream_tagger/coarse_top", 1000.0 * mm, 650.0 * mm, 0.0 * mm, +850.0 * mm, false},
+        {"/SHiP/upstream_tagger/coarse_bottom", 1000.0 * mm, 650.0 * mm, 0.0 * mm, -850.0 * mm,
+         false},
         // Full-height fine extensions (±80 cm in X)
-        {"/SHiP/upstream_tagger/ext_left", 400.0, 1500.0, -1400.0, 0.0, true},
-        {"/SHiP/upstream_tagger/ext_right", 400.0, 1500.0, +1400.0, 0.0, true},
+        {"/SHiP/upstream_tagger/ext_left", 400.0 * mm, 1500.0 * mm, -1400.0 * mm, 0.0 * mm, true},
+        {"/SHiP/upstream_tagger/ext_right", 400.0 * mm, 1500.0 * mm, +1400.0 * mm, 0.0 * mm, true},
     };
 
     int regionId = 0;
     for (const auto& r : regions) {
-        const double halfX = r.halfX * mm;
-        const double halfY = r.halfY * mm;
+        const double halfX = gm(r.halfX);
+        const double halfY = gm(r.halfY);
         auto* env = makeRegionEnvelope(containerPhys, air, r.name, regionId++, halfX, halfY,
-                                       envHalfZ, r.ctrX * mm, r.ctrY * mm, 0.0);
+                                       envHalfZ, gm(r.ctrX), gm(r.ctrY), 0.0);
         placeTileGrid(env, r.fine ? fineTileLog : coarseTileLog, r.name, halfX, halfY,
                       r.fine ? finePitch : coarsePitch);
     }

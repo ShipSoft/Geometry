@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "SHiPGeometry/Units.h"
+
 class GeoVPhysVol;
 
 namespace SHiPGeometry {
@@ -66,14 +68,16 @@ class UpstreamTaggerFactory {
     // Kept identical to the GDML statbox (440 × 640 × 16 cm) used by the
     // previous monolithic slab so placement and the envelope-fit test
     // (halfX ≤ 2200, halfY ≤ 3200, halfZ ≤ 200) are unchanged.
-    static constexpr double s_halfX = 2200.0;
-    static constexpr double s_halfY = 3200.0;
-    static constexpr double s_halfZ = 80.0;
+    static constexpr auto s_halfX = 2200.0 * units::mm;
+    static constexpr auto s_halfY = 3200.0 * units::mm;
+    static constexpr auto s_halfZ = 80.0 * units::mm;
 
     // ── Tile geometry (mm) ──────────────────────────────────────────────
-    static constexpr double s_tileThickness = 10.0;  ///< full Z thickness of every tile
-    static constexpr double s_fineFace = 20.0;       ///< fine tile full transverse size = pitch
-    static constexpr double s_coarseFace = 40.0;     ///< coarse tile full transverse size = pitch
+    static constexpr auto s_tileThickness = 10.0 * units::mm;  ///< full Z thickness of every tile
+    static constexpr auto s_fineFace =
+        20.0 * units::mm;  ///< fine tile full transverse size = pitch
+    static constexpr auto s_coarseFace =
+        40.0 * units::mm;  ///< coarse tile full transverse size = pitch
 };
 
 }  // namespace SHiPGeometry
