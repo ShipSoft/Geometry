@@ -22,7 +22,6 @@ backend = { name = "pixi-build-cmake", version = "0.*" }
 
 [package.build.config]
 extra-args = [
-    "-DCMAKE_CXX_STANDARD=20",
     "-DCMAKE_INSTALL_LIBDIR=lib",
     "-DBUILD_TESTING=OFF",
 ]
@@ -33,6 +32,7 @@ extra-args = [
 geomodel-core = "*"
 geomodel-tools = "*"
 sqlite = "*"
+mp-units = "2.5.*"
 eigen-abi-devel = "*"
 nlohmann_json = "*"
 
@@ -44,6 +44,7 @@ ninja = "*"
 git = "*"
 sqlite = "*"
 geomodel = ">=6.22"
+mp-units = "2.5.*"
 eigen-abi-devel = "*"
 nlohmann_json = "*"
 

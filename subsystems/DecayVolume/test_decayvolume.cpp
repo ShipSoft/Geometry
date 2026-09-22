@@ -304,6 +304,13 @@ Built buildDecayVolume() {
 // above double-precision noise on ~1e4 mm coordinates (~1e-8 mm).
 constexpr double kTol = 1e-6;
 
+// The SAT arithmetic below is all raw doubles in mm (GeoModel's native
+// unit), so materialize the typed constants once at the boundary.
+constexpr double asMm(SHiPGeometry::units::LengthMm q) {
+    return q.numerical_value_in(SHiPGeometry::units::mm);
+}
+constexpr double kHeliumClearanceMm = asMm(SBT::kHeliumClearance);
+
 // kHeliumClearance is a gap measured along a coordinate axis. SAT returns a
 // Euclidean distance, and the surfaces bounding the helium are tilted by the
 // frustum taper, so an axis gap of c shows up as c*cos(tilt). Assert the band.
@@ -314,7 +321,7 @@ constexpr double kTol = 1e-6;
 // combination is the rigorous lower bound; max() alone overestimates the gap.
 double minExpectedSeparation() {
     const double gx = SBT::xGrowth(), gy = SBT::yGrowth();
-    return SBT::kHeliumClearance / std::sqrt(1.0 + gx * gx + gy * gy);
+    return kHeliumClearanceMm / std::sqrt(1.0 + gx * gx + gy * gy);
 }
 
 // Closest approach between any helium slab and any SBT volume.
@@ -373,9 +380,9 @@ TEST_CASE("HeliumIsFlushWithTheSBT", "[decayvolume][envelope]") {
     const double worst = closestApproach(b);
 
     INFO("closest approach: " << worst << " mm; want [" << minExpectedSeparation() << ", "
-                              << SBT::kHeliumClearance << "]");
+                              << kHeliumClearanceMm << "]");
     CHECK(worst >= minExpectedSeparation() - kTol);  // NOLINT(readability/check) no gouging
-    CHECK(worst <= SBT::kHeliumClearance + kTol);    // NOLINT(readability/check) no margin
+    CHECK(worst <= kHeliumClearanceMm + kTol);       // NOLINT(readability/check) no margin
 }
 
 // The helium fills the analytic envelope exactly, sampled densely rather than
@@ -385,21 +392,24 @@ TEST_CASE("HeliumMatchesAnalyticEnvelope", "[decayvolume][envelope]") {
     static_assert(SBT::kHeliumPieces.size() == 2u * SBT::kNSubFrustum);
 
     for (const auto& p : SBT::kHeliumPieces) {
+        const double zLo = asMm(p.z_lo), zHi = asMm(p.z_hi);
+        const double dxLo = asMm(p.dx_lo), dxHi = asMm(p.dx_hi);
+        const double dyLo = asMm(p.dy_lo), dyHi = asMm(p.dy_hi);
         for (int k = 0; k <= 32; ++k) {
             const double t = static_cast<double>(k) / 32.0;
-            const double z = p.z_lo_mm + t * (p.z_hi_mm - p.z_lo_mm);
-            const double dx = p.dx_lo_mm + t * (p.dx_hi_mm - p.dx_lo_mm);
-            const double dy = p.dy_lo_mm + t * (p.dy_hi_mm - p.dy_lo_mm);
+            const double z = zLo + t * (zHi - zLo);
+            const double dx = dxLo + t * (dxHi - dxLo);
+            const double dy = dyLo + t * (dyHi - dyLo);
 
             // Sample strictly inside the slab so the flat/tracking branch of
             // the X envelope is evaluated on the right side of a knot.
-            const double zs = std::min(std::max(z, p.z_lo_mm + 1e-6), p.z_hi_mm - 1e-6);
-            const double freeX = SBT::innerFreeHalfX(zs);
-            const double freeY = SBT::innerFreeHalfY(zs);
+            const double zs = std::min(std::max(z, zLo + 1e-6), zHi - 1e-6);
+            const double freeX = asMm(SBT::innerFreeHalfX(zs * SHiPGeometry::units::mm));
+            const double freeY = asMm(SBT::innerFreeHalfY(zs * SHiPGeometry::units::mm));
 
             // Upper bound: the helium never protrudes past the analytic envelope.
-            CHECK(dx <= freeX - SBT::kHeliumClearance + kTol);  // NOLINT(readability/check)
-            CHECK(dy <= freeY - SBT::kHeliumClearance + kTol);  // NOLINT(readability/check)
+            CHECK(dx <= freeX - kHeliumClearanceMm + kTol);  // NOLINT(readability/check)
+            CHECK(dy <= freeY - kHeliumClearanceMm + kTol);  // NOLINT(readability/check)
 
             // Lower bound: the helium is flush, not merely inside. In Y the
             // envelope is continuous across a slab, so the interpolated edge
@@ -408,10 +418,9 @@ TEST_CASE("HeliumMatchesAnalyticEnvelope", "[decayvolume][envelope]") {
             // while freeX just inside the tracking piece is up to
             // xGrowth * zSplitOffset higher — so allow exactly that documented
             // sawtooth slack there, and no more.
-            const double xSlack = std::abs(SBT::xGrowth()) * SBT::zSplitOffset();
-            CHECK(dx >=
-                  freeX - SBT::kHeliumClearance - xSlack - kTol);  // NOLINT(readability/check)
-            CHECK(dy >= freeY - SBT::kHeliumClearance - kTol);     // NOLINT(readability/check)
+            const double xSlack = std::abs(SBT::xGrowth()) * asMm(SBT::zSplitOffset());
+            CHECK(dx >= freeX - kHeliumClearanceMm - xSlack - kTol);  // NOLINT(readability/check)
+            CHECK(dy >= freeY - kHeliumClearanceMm - kTol);           // NOLINT(readability/check)
         }
     }
 }

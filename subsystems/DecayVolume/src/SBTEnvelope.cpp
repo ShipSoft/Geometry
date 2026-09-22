@@ -9,23 +9,22 @@
 #include <GeoModelKernel/GeoPhysVol.h>
 #include <GeoModelKernel/GeoTransform.h>
 #include <GeoModelKernel/GeoTrap.h>
-#include <GeoModelKernel/Units.h>
 
 #include <string>
 
 namespace SHiPGeometry::SBT {
 
-void buildHelium(GeoPhysVol* container, const GeoMaterial* helium) {
-    using namespace GeoModelKernelUnits;
+using units::gm;
 
+void buildHelium(GeoPhysVol* container, const GeoMaterial* helium) {
     for (std::size_t i = 0; i < kHeliumPieces.size(); ++i) {
         const HeliumPiece& p = kHeliumPieces[i];
-        const double dz = 0.5 * (p.z_hi_mm - p.z_lo_mm) * mm;
-        const double zMid = 0.5 * (p.z_lo_mm + p.z_hi_mm) * mm;
-        const double dx1 = p.dx_lo_mm * mm;
-        const double dy1 = p.dy_lo_mm * mm;
-        const double dx2 = p.dx_hi_mm * mm;
-        const double dy2 = p.dy_hi_mm * mm;
+        const double dz = 0.5 * gm(p.z_hi - p.z_lo);
+        const double zMid = 0.5 * gm(p.z_lo + p.z_hi);
+        const double dx1 = gm(p.dx_lo);
+        const double dy1 = gm(p.dy_lo);
+        const double dx2 = gm(p.dx_hi);
+        const double dy2 = gm(p.dy_hi);
 
         const std::string name = "/SHiP/decay_volume/helium_" + std::to_string(i);
         auto* shape = new GeoTrap(dz, 0.0, 0.0, dy1, dx1, dx1, 0.0, dy2, dx2, dx2, 0.0);

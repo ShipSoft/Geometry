@@ -16,19 +16,30 @@ An [automatic class reference](https://shipsoft.github.io/Geometry/) is built us
 - **Z-axis**: along beam direction (positive downstream)
 - **Y-axis**: vertical (against gravity)
 - **X-axis**: horizontal, perpendicular to beam (completes right-handed system)
-- **Units**: mm (GeoModel native), angles in radians
+- **Units**: typed `mp-units` quantities in code; mm (GeoModel native) and
+  radians at the GeoModel API
 - **Beam axis height**: 1.7 m above floor
 
 ### Unit convention
 
-Every dimensional literal (length or angle) in the code carries an explicit
-`GeoModelKernelUnits` unit, e.g. `3000.0 * GeoModelKernelUnits::mm` or
-`90.0 * deg` — either at its definition or, for values with an `_mm` suffix
-or an "all lengths in mm" contract, at the point of conversion into GeoModel
-units. GeoModel's native length unit is mm
-(`GeoModelKernelUnits::mm == 1.0`), so the annotations are numerically free;
-they exist to make the unit of every quantity explicit at the point where it
-is written.
+Every dimensional constant (length, angle, density, molar mass) is a typed
+[mp-units](https://mpusz.github.io/mp-units/) quantity, declared in the unit
+its value is written in: `2160.0 * units::mm`, `80.0 * units::cm`,
+`2.3 * units::deg`. The shared vocabulary lives in
+`include/SHiPGeometry/Units.h` (`SHiPGeometry::units`).
+
+GeoModel's API takes raw doubles in its native units (mm, radians).
+`units::gm()` is the single bridge: it multiplies a quantity's stored value
+by the matching `GeoModelKernelUnits` factor — the identical arithmetic the
+former `value * GeoModelKernelUnits::<unit>` literals performed — so the
+typed constants are numerically free and the geometry is unchanged bit for
+bit. Raw doubles appear only (a) at `gm()`-wrapped GeoModel/GeoTrf calls and
+(b) in genuinely unitless math (growth slopes, direction cosines, counts,
+GeoGenfun/Eigen inputs), converted as early as possible.
+
+(Subsystems are converted incrementally; unconverted ones still use the
+`GeoModelKernelUnits` annotation style described above until their
+milestone lands.)
 
 ## Implementation Status
 
@@ -90,8 +101,10 @@ find_package(SHiPGeometry CONFIG REQUIRED)
 target_link_libraries(myapp PRIVATE SHiPGeometry::SHiPGeometry)
 ```
 
-The package config calls `find_dependency` for GeoModelCore, GeoModelIO, and
-GeoModelTools automatically.
+The package config calls `find_dependency` for GeoModelCore, GeoModelIO,
+GeoModelTools, and mp-units automatically. mp-units 2.5 (header-only, from
+the ship conda channel) is a public dependency: the installed headers use
+its quantity types.
 
 ## Architecture
 

@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <GeoModelKernel/Units.h>
+#include "SHiPGeometry/Units.h"
 
 #include <array>
 #include <span>
@@ -11,9 +11,8 @@
 /**
  * @brief Compile-time parameters of the SHiP calorimeter geometry.
  *
- * All lengths are raw doubles in mm (GeoModel's native unit). Invariants
- * that used to be runtime checks are static_asserts at the bottom of this
- * header.
+ * All lengths are mp-units quantities in mm. Invariants that used to be
+ * runtime checks are static_asserts at the bottom of this header.
  */
 namespace SHiPGeometry::Calo {
 
@@ -30,28 +29,28 @@ enum class LayerCode {
 };
 
 // ── Module geometry (mm) ────────────────────────────────────────────────
-inline constexpr double kPlateXY = 2160.0;
-inline constexpr double kLeadThickness = 3.0;
-inline constexpr double kScintThickness = 10.0;
-inline constexpr double kHplThickness = 10.0;
-inline constexpr double kFiberDiameter = 1.2;
-inline constexpr double kFiberCoreDiameter = 1.0;
-inline constexpr double kIronThickness = 170.0;
+inline constexpr auto kPlateXY = 2160.0 * units::mm;
+inline constexpr auto kLeadThickness = 3.0 * units::mm;
+inline constexpr auto kScintThickness = 10.0 * units::mm;
+inline constexpr auto kHplThickness = 10.0 * units::mm;
+inline constexpr auto kFiberDiameter = 1.2 * units::mm;
+inline constexpr auto kFiberCoreDiameter = 1.0 * units::mm;
+inline constexpr auto kIronThickness = 170.0 * units::mm;
 
 /// Air gap within the ECAL layer sequence (mm).
-inline constexpr double kAirGap = 1000.0;
+inline constexpr auto kAirGap = 1000.0 * units::mm;
 /// Gap between the ECAL and HCAL stacks (mm).
-inline constexpr double kGapEcalHcal = 100.0;
+inline constexpr auto kGapEcalHcal = 100.0 * units::mm;
 
 // Bar pitch (physical constant, independent of plate size)
-inline constexpr double kWidePVTBarPitch = 60.0;
-inline constexpr double kThinPSBarPitch = 10.0;
+inline constexpr auto kWidePVTBarPitch = 60.0 * units::mm;
+inline constexpr auto kThinPSBarPitch = 10.0 * units::mm;
 
 // Module tiling: modules touch (pitch = plate size)
 inline constexpr int kModuleNX = 2;
 inline constexpr int kModuleNY = 3;
-inline constexpr double kModulePitchX = kPlateXY;
-inline constexpr double kModulePitchY = kPlateXY;
+inline constexpr auto kModulePitchX = kPlateXY;
+inline constexpr auto kModulePitchY = kPlateXY;
 
 // ── Layer sequences ─────────────────────────────────────────────────────
 using enum LayerCode;
@@ -86,15 +85,15 @@ inline constexpr std::array kHcalLayers{
 // ── Fixed container envelope ────────────────────────────────────────────
 // These match the SHiP subsystem envelope from subsystem_envelopes.csv
 // and must not change — tests and the consistency check depend on them.
-inline constexpr double kContainerHalfX = 3000.0 * GeoModelKernelUnits::mm;  // 3.00 m
-inline constexpr double kContainerHalfY = 3500.0 * GeoModelKernelUnits::mm;  // 3.50 m
-inline constexpr double kContainerHalfZ = 1450.0 * GeoModelKernelUnits::mm;  // 1.45 m
+inline constexpr auto kContainerHalfX = 3000.0 * units::mm;  // 3.00 m
+inline constexpr auto kContainerHalfY = 3500.0 * units::mm;  // 3.50 m
+inline constexpr auto kContainerHalfZ = 1450.0 * units::mm;  // 1.45 m
 
 // ── Derived quantities ──────────────────────────────────────────────────
 
-/// Z advance of one layer of the given type (mm). The absorber thickness
+/// Z advance of one layer of the given type. The absorber thickness
 /// differs between the ECAL (lead) and HCAL (iron) sections.
-constexpr double layerThickness(LayerCode code, double absorberThickness) {
+constexpr units::LengthMm layerThickness(LayerCode code, units::LengthMm absorberThickness) {
     switch (code) {
         case Absorber:
             return absorberThickness;
@@ -109,30 +108,31 @@ constexpr double layerThickness(LayerCode code, double absorberThickness) {
         case AirGap:
             return kAirGap;
     }
-    return 0.0;  // unreachable: all enumerators covered (-Wswitch)
+    return 0.0 * units::mm;  // unreachable: all enumerators covered (-Wswitch)
 }
 
-/// Z extent of one calorimeter section (mm).
-constexpr double sectionZ(std::span<const LayerCode> codes, double absorberThickness) {
-    double z = 0.0;
+/// Z extent of one calorimeter section.
+constexpr units::LengthMm sectionZ(std::span<const LayerCode> codes,
+                                   units::LengthMm absorberThickness) {
+    auto z = 0.0 * units::mm;
     for (LayerCode code : codes)
         z += layerThickness(code, absorberThickness);
     return z;
 }
 
-/// Total Z extent of one ECAL+gap+HCAL stack (mm).
-inline constexpr double kTotalStackZ =
+/// Total Z extent of one ECAL+gap+HCAL stack.
+inline constexpr auto kTotalStackZ =
     sectionZ(kEcalLayers, kLeadThickness) + kGapEcalHcal + sectionZ(kHcalLayers, kIronThickness);
 
 /// Bars per layer, from the plate size and the bar pitch.
-inline constexpr int kWidePVTBarCount = static_cast<int>(kPlateXY / kWidePVTBarPitch);
-inline constexpr int kThinPSBarCount = static_cast<int>(kPlateXY / kThinPSBarPitch);
+inline constexpr int kWidePVTBarCount = static_cast<int>(units::ratio(kPlateXY / kWidePVTBarPitch));
+inline constexpr int kThinPSBarCount = static_cast<int>(units::ratio(kPlateXY / kThinPSBarPitch));
 
 // ── Compile-time validation (formerly runtime throws) ───────────────────
 static_assert(!kEcalLayers.empty() && !kHcalLayers.empty());
 static_assert(kEcalLayers.size() == 89, "transcription guard: 89 entries in the ECAL sequence");
 static_assert(kModuleNX > 0 && kModuleNY > 0);
-static_assert(kFiberCoreDiameter > 0.0 && kFiberCoreDiameter <= kFiberDiameter);
+static_assert(kFiberCoreDiameter > 0.0 * units::mm && kFiberCoreDiameter <= kFiberDiameter);
 static_assert(kWidePVTBarCount * kWidePVTBarPitch == kPlateXY,
               "plate size must be a whole number of wide PVT bars");
 static_assert(kThinPSBarCount * kThinPSBarPitch == kPlateXY,

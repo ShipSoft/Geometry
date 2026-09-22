@@ -50,19 +50,19 @@ namespace SHiPGeometry::SBT {
 
 /// One Z slab of the helium: a GeoTrap with rectangular faces at z_lo/z_hi.
 struct HeliumPiece {
-    double z_lo_mm = 0.0;
-    double z_hi_mm = 0.0;
-    double dx_lo_mm = 0.0;  ///< half-width in X at z_lo
-    double dx_hi_mm = 0.0;  ///< half-width in X at z_hi
-    double dy_lo_mm = 0.0;  ///< half-height in Y at z_lo
-    double dy_hi_mm = 0.0;  ///< half-height in Y at z_hi
+    LengthMm z_lo{};
+    LengthMm z_hi{};
+    LengthMm dx_lo{};  ///< half-width in X at z_lo
+    LengthMm dx_hi{};  ///< half-width in X at z_hi
+    LengthMm dy_lo{};  ///< half-height in Y at z_lo
+    LengthMm dy_hi{};  ///< half-height in Y at z_hi
 };
 
 namespace detail {
 
 // Index of the sub-frustum containing z (clamped at the exit face).
-constexpr int subFrustumAt(double z_mm) {
-    const double f = (z_mm - kZEntrance) / subLength();
+constexpr int subFrustumAt(LengthMm z) {
+    const double f = units::ratio((z - kZEntrance) / subLength());
     return std::clamp(static_cast<int>(std::floor(f)), 0, kNSubFrustum - 1);
 }
 
@@ -70,43 +70,43 @@ constexpr int subFrustumAt(double z_mm) {
 // sub-frustum they are frozen at that sub-frustum's entrance half-width (see
 // SBTSensorBuilder::placeSideContainer), which is what makes the X envelope a
 // sawtooth rather than a straight line.
-constexpr double sideTrackedXHalf(double z_mm) {
-    const int s = subFrustumAt(z_mm);
-    const double zLo = zSubLo(s);
-    if (z_mm <= zLo + zSplitOffset())
+constexpr LengthMm sideTrackedXHalf(LengthMm z) {
+    const int s = subFrustumAt(z);
+    const LengthMm zLo = zSubLo(s);
+    if (z <= zLo + zSplitOffset())
         return xHalfAt(zLo);
-    return xHalfAt(z_mm);
+    return xHalfAt(z);
 }
 
 }  // namespace detail
 
 /**
- * @brief |X| of the innermost SBT material at @p z_mm (mm).
+ * @brief |X| of the innermost SBT material at @p z.
  *
  * Minimum over every volume class that can reach the decay region in X.
  * Currently only the side scintillator containers do; the columns and corner
  * beams sit a further half-flange-width outboard.
  */
-constexpr double innerFreeHalfX(double z_mm) {
+constexpr LengthMm innerFreeHalfX(LengthMm z) {
     // Side scintillator containers. (Columns and corner beams are outboard of
     // these by construction: their inner face is at x_half - flange_width/2,
     // a full container_thickness further out.)
-    return sideSensorInnerX(detail::sideTrackedXHalf(z_mm));
+    return sideSensorInnerX(detail::sideTrackedXHalf(z));
 }
 
 /**
- * @brief |Y| of the innermost SBT material at @p z_mm (mm).
+ * @brief |Y| of the innermost SBT material at @p z.
  *
  * Minimum over every volume class that can reach the decay region in Y: the
  * top/bottom scintillator containers *and* the inner flange of the top/bottom
  * longitudinal beams, which is the binding one.
  */
-constexpr double innerFreeHalfY(double z_mm) {
-    const double yHalf = yHalfAt(z_mm);
+constexpr LengthMm innerFreeHalfY(LengthMm z) {
+    const LengthMm yHalf = yHalfAt(z);
     // Top/bottom scintillator containers ...
-    const double sensor = topBottomSensorInnerY(yHalf);
+    const LengthMm sensor = topBottomSensorInnerY(yHalf);
     // ... and the longitudinal beams' inner flange, which hangs below them.
-    const double beam = longBeamInnerY(yHalf);
+    const LengthMm beam = longBeamInnerY(yHalf);
     // (Cross-beams sit a full beam-height above y_half and never reach in.)
     //
     // KNOWN LIMITATION (conservative): the longitudinal beams do not run the
@@ -134,7 +134,7 @@ constexpr double innerFreeHalfY(double z_mm) {
  * SBTConstants.h.
  */
 inline constexpr auto kEnvelopeKnots = [] {
-    std::array<double, 2 * kNSubFrustum + 1> knots{};
+    std::array<LengthMm, 2 * kNSubFrustum + 1> knots{};
     for (int s = 0; s < kNSubFrustum; ++s) {
         knots[2 * s] = zSubLo(s);                       // sub-frustum boundary
         knots[2 * s + 1] = zSubLo(s) + zSplitOffset();  // end of the flat piece
@@ -156,10 +156,10 @@ namespace detail {
 // So evaluate the envelope as a *closed* set: at a knot, take the smaller of
 // the two one-sided limits. The helium is then continuous, strictly inscribed,
 // and keeps its full clearance everywhere.
-constexpr double envelopeAtKnot(double z_mm, bool isX) {
-    constexpr double kEps = 1e-6;
-    const double lo = std::max(z_mm - kEps, kZEntrance);
-    const double hi = std::min(z_mm + kEps, zExit());
+constexpr LengthMm envelopeAtKnot(LengthMm z, bool isX) {
+    constexpr auto kEps = 1e-6 * mm;
+    const LengthMm lo = std::max(z - kEps, kZEntrance);
+    const LengthMm hi = std::min(z + kEps, zExit());
     return isX ? std::min(innerFreeHalfX(lo), innerFreeHalfX(hi))
                : std::min(innerFreeHalfY(lo), innerFreeHalfY(hi));
 }
@@ -175,16 +175,16 @@ constexpr double envelopeAtKnot(double z_mm, bool isX) {
 inline constexpr auto kHeliumPieces = [] {
     std::array<HeliumPiece, 2 * kNSubFrustum> pieces{};
     for (std::size_t i = 0; i + 1 < kEnvelopeKnots.size(); ++i) {
-        const double zLo = kEnvelopeKnots[i];
-        const double zHi = kEnvelopeKnots[i + 1];
+        const LengthMm zLo = kEnvelopeKnots[i];
+        const LengthMm zHi = kEnvelopeKnots[i + 1];
 
         HeliumPiece& p = pieces[i];
-        p.z_lo_mm = zLo;
-        p.z_hi_mm = zHi;
-        p.dx_lo_mm = detail::envelopeAtKnot(zLo, /*isX=*/true) - kHeliumClearance;
-        p.dx_hi_mm = detail::envelopeAtKnot(zHi, /*isX=*/true) - kHeliumClearance;
-        p.dy_lo_mm = detail::envelopeAtKnot(zLo, /*isX=*/false) - kHeliumClearance;
-        p.dy_hi_mm = detail::envelopeAtKnot(zHi, /*isX=*/false) - kHeliumClearance;
+        p.z_lo = zLo;
+        p.z_hi = zHi;
+        p.dx_lo = detail::envelopeAtKnot(zLo, /*isX=*/true) - kHeliumClearance;
+        p.dx_hi = detail::envelopeAtKnot(zHi, /*isX=*/true) - kHeliumClearance;
+        p.dy_lo = detail::envelopeAtKnot(zLo, /*isX=*/false) - kHeliumClearance;
+        p.dy_hi = detail::envelopeAtKnot(zHi, /*isX=*/false) - kHeliumClearance;
     }
     return pieces;
 }();
@@ -194,9 +194,10 @@ inline constexpr auto kHeliumPieces = [] {
 static_assert(
     [] {
         for (const HeliumPiece& p : kHeliumPieces) {
-            if (p.z_hi_mm <= p.z_lo_mm)
+            if (p.z_hi <= p.z_lo)
                 return false;
-            if (p.dx_lo_mm <= 0.0 || p.dx_hi_mm <= 0.0 || p.dy_lo_mm <= 0.0 || p.dy_hi_mm <= 0.0)
+            if (p.dx_lo <= 0.0 * mm || p.dx_hi <= 0.0 * mm || p.dy_lo <= 0.0 * mm ||
+                p.dy_hi <= 0.0 * mm)
                 return false;
         }
         return true;
