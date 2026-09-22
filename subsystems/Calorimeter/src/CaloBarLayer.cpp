@@ -7,23 +7,22 @@
 #include <GeoModelKernel/GeoNameTag.h>
 #include <GeoModelKernel/GeoPhysVol.h>
 #include <GeoModelKernel/GeoTransform.h>
-#include <GeoModelKernel/Units.h>
 
 #include <format>
 #include <string>
 
 namespace SHiPGeometry {
 
-using namespace GeoModelKernelUnits;
+using units::gm;
 
-void CaloBar::placeLayer(GeoVPhysVol* mother, GeoLogVol* barLog, double pitch_mm, int nBars,
-                         double zCenter_mm, std::string_view tagPrefix, int layerIndex,
+void CaloBar::placeLayer(GeoVPhysVol* mother, GeoLogVol* barLog, units::LengthMm pitch, int nBars,
+                         units::LengthMm zCenter, std::string_view tagPrefix, int layerIndex,
                          BarAxis axis, const std::string& nameSuffix) {
-    const double pitch = pitch_mm * mm;
-    const double firstBarCenter = -0.5 * (nBars - 1) * pitch;
+    const double step = gm(pitch);
+    const double firstBarCenter = -0.5 * (nBars - 1) * step;
 
     for (int i = 0; i < nBars; ++i) {
-        const double barCenter = firstBarCenter + i * pitch;
+        const double barCenter = firstBarCenter + i * step;
 
         double x = 0.0, y = 0.0;
         if (axis == BarAxis::AlongX)
@@ -35,7 +34,7 @@ void CaloBar::placeLayer(GeoVPhysVol* mother, GeoLogVol* barLog, double pitch_mm
 
         auto* barPhys = new GeoPhysVol(barLog);
         mother->add(new GeoNameTag(name.c_str()));
-        mother->add(new GeoTransform(GeoTrf::Translate3D(x, y, zCenter_mm * mm)));
+        mother->add(new GeoTransform(GeoTrf::Translate3D(x, y, gm(zCenter))));
         mother->add(barPhys);
     }
 }
