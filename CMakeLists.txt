@@ -21,6 +21,7 @@ option(BUILD_SHARED_LIBS "Build shared libraries by default" ON)
 find_package(GeoModelCore REQUIRED)
 find_package(GeoModelIO REQUIRED)
 find_package(GeoModelTools REQUIRED)
+find_package(mp-units 2.5 CONFIG REQUIRED)
 find_package(SQLite3 REQUIRED)
 # Compatibility shim recommended by CMake's FindSQLite3 docs: older CMake
 # (< 4.3) only defines SQLite::SQLite3; newer CMake defines SQLite3::SQLite3
