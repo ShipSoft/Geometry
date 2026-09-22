@@ -4,8 +4,7 @@
 #pragma once
 
 #include "SHiPGeometry/SubsystemDescriptor.h"
-
-#include <GeoModelKernel/Units.h>
+#include "SHiPGeometry/Units.h"
 
 class GeoPhysVol;
 
@@ -32,8 +31,9 @@ class CalorimeterFactory {
      * z = 98.32 m.
      */
     static SubsystemDescriptor descriptor() {
-        using GeoModelKernelUnits::m;
-        return {"Calorimeter", "/SHiP/calorimeter", 8, 0.0, 0.0, 98.32 * m, false};
+        using units::gm;
+        using units::m;
+        return {"Calorimeter", "/SHiP/calorimeter", 8, 0.0, 0.0, gm(98.32 * m), false};
     }
     /** Build and return the calorimeter container volume. */
     [[nodiscard]] GeoPhysVol* build();
