@@ -14,21 +14,20 @@
 #include <GeoModelKernel/GeoNameTag.h>
 #include <GeoModelKernel/GeoPhysVol.h>
 #include <GeoModelKernel/GeoTransform.h>
-#include <GeoModelKernel/Units.h>
 
 #include <cmath>
 #include <string>
 
 namespace SHiPGeometry {
 
-using GeoModelKernelUnits::mm;
+using units::gm;
 
 // ── file-scope helpers ───────────────────────────────────────────────────────
 namespace {
 
 // Small navigator margin so tiles never touch the region-envelope faces in Z
 // (coincident faces trigger GeomNav stuck-track warnings).
-constexpr double s_env_z_margin = 0.1;  // mm
+constexpr auto s_env_z_margin = 0.1 * units::mm;
 
 // Create an air region envelope, place it in @p container at (xc, yc, zc),
 // and return it so its tile grid can be added. All inputs in GeoModel units.
@@ -85,89 +84,90 @@ GeoVPhysVol* UpstreamTaggerFactory::build(SHiPUBTManager* manager) {
 
     // Container: a GeoFullPhysVol so the tagger keeps a sensitive tree-top for
     // SHiPUBTManager. Dimensions are unchanged from the previous slab.
-    auto const* containerBox = new GeoBox(s_halfX * mm, s_halfY * mm, s_halfZ * mm);
+    auto const* containerBox = new GeoBox(gm(s_halfX), gm(s_halfY), gm(s_halfZ));
     auto const* containerLog = new GeoLogVol("/SHiP/upstream_tagger", containerBox, air);
     auto* containerPhys = new GeoFullPhysVol(containerLog);
 
     // Tile shapes (faces s_fineFace / s_coarseFace; full thicknesses
     // s_fineThickness / s_coarseThickness).
-    const double fineHalfZ = 0.5 * s_fineThickness * mm;
-    const double coarseHalfZ = 0.5 * s_coarseThickness * mm;
-    const double finePitch = s_fineFace * mm;
-    const double coarsePitch = s_coarseFace * mm;
+    const double fineHalfZ = 0.5 * gm(s_fineThickness);
+    const double coarseHalfZ = 0.5 * gm(s_coarseThickness);
+    const double finePitch = gm(s_fineFace);
+    const double coarsePitch = gm(s_coarseFace);
 
     // One reusable GeoLogVol per granularity, shared across all regions
     // (the GeoModel idiom used by the calorimeter bar layers).
     auto const* fineTileLog = new GeoLogVol(
         "/SHiP/upstream_tagger/fine_tile",
-        new GeoBox(0.5 * s_fineFace * mm, 0.5 * s_fineFace * mm, fineHalfZ), polystyrene);
+        new GeoBox(0.5 * gm(s_fineFace), 0.5 * gm(s_fineFace), fineHalfZ), polystyrene);
     auto const* coarseTileLog = new GeoLogVol(
         "/SHiP/upstream_tagger/coarse_tile",
-        new GeoBox(0.5 * s_coarseFace * mm, 0.5 * s_coarseFace * mm, coarseHalfZ), polystyrene);
+        new GeoBox(0.5 * gm(s_coarseFace), 0.5 * gm(s_coarseFace), coarseHalfZ), polystyrene);
 
-    // ── Region table (centre / half-extents in mm; coplanar at local z = 0) ──
+    // ── Region table (centres / half-extents; coplanar at local z = 0) ──
     // Footprint: X ∈ [-2200,+2200], Y ∈ [-3200,+3200] — the tiles cover the
     // full container cross-section (4.4 × 6.4 m).
+    using units::mm;
     struct Region {
         const char* name;
-        double halfX, halfY, ctrX, ctrY;
+        units::LengthMm halfX, halfY, ctrX, ctrY;
         bool fine;
     };
     const Region regions[] = {
         // Central strip, y ∈ [-200,+200]
         {.name = "/SHiP/upstream_tagger/fine_left",
-         .halfX = 200.0,
-         .halfY = 200.0,
-         .ctrX = -800.0,
-         .ctrY = 0.0,
+         .halfX = 200.0 * mm,
+         .halfY = 200.0 * mm,
+         .ctrX = -800.0 * mm,
+         .ctrY = 0.0 * mm,
          .fine = true},
         {.name = "/SHiP/upstream_tagger/fine_right",
-         .halfX = 200.0,
-         .halfY = 200.0,
-         .ctrX = +800.0,
-         .ctrY = 0.0,
+         .halfX = 200.0 * mm,
+         .halfY = 200.0 * mm,
+         .ctrX = +800.0 * mm,
+         .ctrY = 0.0 * mm,
          .fine = true},
         {.name = "/SHiP/upstream_tagger/coarse_central",
-         .halfX = 600.0,
-         .halfY = 200.0,
-         .ctrX = 0.0,
-         .ctrY = 0.0,
+         .halfX = 600.0 * mm,
+         .halfY = 200.0 * mm,
+         .ctrX = 0.0 * mm,
+         .ctrY = 0.0 * mm,
          .fine = false},
         // Outer coarse bands
         {.name = "/SHiP/upstream_tagger/coarse_top",
-         .halfX = 1000.0,
-         .halfY = 1500.0,
-         .ctrX = 0.0,
-         .ctrY = +1700.0,
+         .halfX = 1000.0 * mm,
+         .halfY = 1500.0 * mm,
+         .ctrX = 0.0 * mm,
+         .ctrY = +1700.0 * mm,
          .fine = false},
         {.name = "/SHiP/upstream_tagger/coarse_bottom",
-         .halfX = 1000.0,
-         .halfY = 1500.0,
-         .ctrX = 0.0,
-         .ctrY = -1700.0,
+         .halfX = 1000.0 * mm,
+         .halfY = 1500.0 * mm,
+         .ctrX = 0.0 * mm,
+         .ctrY = -1700.0 * mm,
          .fine = false},
         // Full-height fine extensions, |x| from 1.0 m to the container edge
         {.name = "/SHiP/upstream_tagger/ext_left",
-         .halfX = 600.0,
-         .halfY = 3200.0,
-         .ctrX = -1600.0,
-         .ctrY = 0.0,
+         .halfX = 600.0 * mm,
+         .halfY = 3200.0 * mm,
+         .ctrX = -1600.0 * mm,
+         .ctrY = 0.0 * mm,
          .fine = true},
         {.name = "/SHiP/upstream_tagger/ext_right",
-         .halfX = 600.0,
-         .halfY = 3200.0,
-         .ctrX = +1600.0,
-         .ctrY = 0.0,
+         .halfX = 600.0 * mm,
+         .halfY = 3200.0 * mm,
+         .ctrX = +1600.0 * mm,
+         .ctrY = 0.0 * mm,
          .fine = true},
     };
 
     int regionId = 0;
     for (const auto& r : regions) {
-        const double halfX = r.halfX * mm;
-        const double halfY = r.halfY * mm;
-        const double envHalfZ = (r.fine ? fineHalfZ : coarseHalfZ) + (s_env_z_margin * mm);
+        const double halfX = gm(r.halfX);
+        const double halfY = gm(r.halfY);
+        const double envHalfZ = (r.fine ? fineHalfZ : coarseHalfZ) + gm(s_env_z_margin);
         auto* env = makeRegionEnvelope(containerPhys, air, r.name, regionId++, halfX, halfY,
-                                       envHalfZ, r.ctrX * mm, r.ctrY * mm, 0.0);
+                                       envHalfZ, gm(r.ctrX), gm(r.ctrY), 0.0);
         placeTileGrid(env, r.fine ? fineTileLog : coarseTileLog, r.name, halfX, halfY,
                       r.fine ? finePitch : coarsePitch);
     }
