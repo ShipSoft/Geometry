@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <GeoModelKernel/Units.h>
+#include "SHiPGeometry/Units.h"
 
 class GeoPhysVol;
 
@@ -40,25 +40,23 @@ class TimingDetectorFactory {
     int m_barCount{0};
 
     // Container dimensions
-    static constexpr double s_containerHalfX = 2750.0 * GeoModelKernelUnits::mm;
-    static constexpr double s_containerHalfY = 3250.0 * GeoModelKernelUnits::mm;
-    static constexpr double s_containerHalfZ = 250.0 * GeoModelKernelUnits::mm;
+    static constexpr auto s_containerHalfX = 2750.0 * units::mm;
+    static constexpr auto s_containerHalfY = 3250.0 * units::mm;
+    static constexpr auto s_containerHalfZ = 250.0 * units::mm;
 
     // Bar dimensions
-    static constexpr double s_barHalfX = 700.0 * GeoModelKernelUnits::mm;  // 140 cm full length
-    static constexpr double s_barHalfY = 30.0 * GeoModelKernelUnits::mm;   //   6 cm full width
-    static constexpr double s_barHalfZ = 5.0 * GeoModelKernelUnits::mm;    //   1 cm full thickness
+    static constexpr auto s_barHalfX = 700.0 * units::mm;  // 140 cm full length
+    static constexpr auto s_barHalfY = 30.0 * units::mm;   //   6 cm full width
+    static constexpr auto s_barHalfZ = 5.0 * units::mm;    //   1 cm full thickness
 
     // Bar grid layout
     static constexpr int s_nColumns = 3;
     static constexpr int s_nRows = 110;
-    static constexpr double s_columnPitchX =
-        1300.0 * GeoModelKernelUnits::mm;                                 // column spacing in X
-    static constexpr double s_rowY0 = -3220.0 * GeoModelKernelUnits::mm;  // first-row Y
-    static constexpr double s_rowStepY =
-        6440.0 / 109.0 * GeoModelKernelUnits::mm;  // row pitch ≈ 59.083 mm
-    static constexpr double s_zStaggerRow = 12.0 * GeoModelKernelUnits::mm;  // odd-row Z offset
-    static constexpr double s_zStaggerCol = 90.0 * GeoModelKernelUnits::mm;  // odd-column Z offset
+    static constexpr auto s_columnPitchX = 1300.0 * units::mm;      // column spacing in X
+    static constexpr auto s_rowY0 = -3220.0 * units::mm;            // first-row Y
+    static constexpr auto s_rowStepY = 6440.0 / 109.0 * units::mm;  // row pitch ≈ 59.083 mm
+    static constexpr auto s_zStaggerRow = 12.0 * units::mm;         // odd-row Z offset
+    static constexpr auto s_zStaggerCol = 90.0 * units::mm;         // odd-column Z offset
 };
 
 }  // namespace SHiPGeometry
