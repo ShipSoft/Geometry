@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "SHiPGeometry/Units.h"
+
 #include <string>
 
 class GeoVPhysVol;
@@ -20,9 +22,9 @@ namespace SHiPGeometry {
 namespace CaloFibreHP {
 
 void buildLayer(GeoVPhysVol* mother, GeoMaterial* aluminiumMat, GeoMaterial* fibreMat,
-                const std::string& layerTag, double zCenter_mm, int layerIndex, double casingXY_mm,
-                double casingZ_mm, double fiberDiam_mm, double fiberCoreDiam_mm, bool fibresAlongY,
-                const std::string& nameSuffix);
+                const std::string& layerTag, units::LengthMm zCenter, int layerIndex,
+                units::LengthMm casingXY, units::LengthMm casingZ, units::LengthMm fiberDiam,
+                units::LengthMm fiberCoreDiam, bool fibresAlongY, const std::string& nameSuffix);
 
 }  // namespace CaloFibreHP
 
