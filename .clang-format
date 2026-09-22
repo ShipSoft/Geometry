@@ -23,7 +23,9 @@ IncludeCategories:
     Priority: 3
   - Regex: '^<G4'
     Priority: 4
-  - Regex: '^<'
+  - Regex: '^<mp-units/'
     Priority: 5
+  - Regex: '^<'
+    Priority: 6
 SortIncludes: CaseSensitive
 ...

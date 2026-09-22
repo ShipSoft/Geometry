@@ -53,6 +53,7 @@ target_link_libraries(
         GeoModelCore::GeoModelKernel
         GeoModelIO::GeoModelRead
         GeoModelIO::GeoModelWrite
+        mp-units::mp-units
         ${SHIP_NO_AS_NEEDED}
         ${SHIP_SUBSYSTEMS}
 )

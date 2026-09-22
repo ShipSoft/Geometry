@@ -1,17 +1,7 @@
 version: 7
 platforms:
 - name: linux-64
-  virtual-packages:
-  - __unix=0=0
-  - __linux=4.18
-  - __glibc=2.28
-  - __archspec=0=x86_64
 - name: linux-aarch64
-  virtual-packages:
-  - __unix=0=0
-  - __linux=4.18
-  - __glibc=2.28
-  - __archspec=0=aarch64
 environments:
   default:
     channels:
@@ -37,6 +27,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libxml2-16-2.15.4-hf3af7cc_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libxml2-2.15.4-h7df9aa5_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/llvm-openmp-23.1.1-h7148c6a_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/ms-gsl-5.0.1-h4dbf13b_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/spdlog-1.17.0-hb6aa676_2.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/compiler-rt23_linux-64-23.1.1-h0e38de2_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/compiler-rt_linux-64-23.1.1-ha770c72_0.conda
@@ -210,6 +201,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/noarch/python_abi-3.12-8_cp312.conda
       - conda: https://prefix.dev/conda-forge/noarch/sysroot_linux-64-2.28-h4ee821c_9.conda
       - conda: https://prefix.dev/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
+      - conda: https://prefix.dev/ship-experiment/stable/linux-64/mp-units-2.5.0-h1c7f545_6.conda
       linux-aarch64:
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/_openmp_mutex-4.5-20_gnu.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/alsa-lib-1.2.16.1-h5bc82ec_1.conda
@@ -344,6 +336,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/llvm-openmp-23.1.3-hde6636f_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/make-4.4.1-hfbd14cd_4.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/mpg123-1.33.7-h922aec4_1.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/ms-gsl-5.0.1-h45ce4d5_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/ncurses-6.6-h2b6f883_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/ninja-1.13.2-hdc560ac_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/nlohmann_json-3.12.0-h7ac5ae9_2.conda
@@ -423,6 +416,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/python_abi-3.15-9_cp315.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/sysroot_linux-aarch64-2.28-h585391f_9.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
+      - conda: https://prefix.dev/ship-experiment/stable/linux-aarch64/mp-units-2.5.0-h300e7cd_6.conda
   lint:
     channels:
     - url: https://prefix.dev/ship-experiment/stable/
@@ -447,6 +441,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libxml2-16-2.15.4-hf3af7cc_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/libxml2-2.15.4-h7df9aa5_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/llvm-openmp-23.1.1-h7148c6a_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/ms-gsl-5.0.1-h4dbf13b_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/spdlog-1.17.0-hb6aa676_2.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/compiler-rt23_linux-64-23.1.1-h0e38de2_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/compiler-rt_linux-64-23.1.1-ha770c72_0.conda
@@ -678,6 +673,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/noarch/urllib3-2.7.0-pyhd8ed1ab_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/wcwidth-0.8.3-pyhcf101f3_0.conda
       - conda: https://prefix.dev/conda-forge/noarch/zipp-4.1.0-pyhcf101f3_0.conda
+      - conda: https://prefix.dev/ship-experiment/stable/linux-64/mp-units-2.5.0-h1c7f545_6.conda
       - pypi: https://files.pythonhosted.org/packages/04/53/f2815b34359959172a6931932adde8e631de727a697a858265690030b55b/gersemi-0.29.2-cp314-cp314-manylinux_2_28_x86_64.whl
       linux-aarch64:
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/_openmp_mutex-4.5-20_gnu.conda
@@ -816,6 +812,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/llvm-openmp-23.1.3-hde6636f_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/make-4.4.1-hfbd14cd_4.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/mpg123-1.33.7-h922aec4_1.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/ms-gsl-5.0.1-h45ce4d5_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/ncurses-6.6-h2b6f883_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/ninja-1.13.2-hdc560ac_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/nlohmann_json-3.12.0-h7ac5ae9_2.conda
@@ -948,6 +945,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/tzdata-2026c-h151e31d_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/urllib3-2.8.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/zipp-4.1.1-pyh5ded981_0.conda
+      - conda: https://prefix.dev/ship-experiment/stable/linux-aarch64/mp-units-2.5.0-h300e7cd_6.conda
       - pypi: https://files.pythonhosted.org/packages/65/6a/278112b2d82169bfe6bd2bac025deb917d7c83f890d71509c988fedd9a01/gersemi-0.29.2.tar.gz
 packages:
 - conda: https://conda.anaconda.org/conda-forge/linux-64/binutils-2.46.1-default_h4852527_102.conda
@@ -1326,6 +1324,19 @@ packages:
     - _openmp_mutex * *_llvm
   size: 6120459
   timestamp: 1788967391838
+- conda: https://conda.anaconda.org/conda-forge/linux-64/ms-gsl-5.0.1-h4dbf13b_0.conda
+  sha256: e0fcb1ed3718b5f7fc8e274a1def49fa2131648df909177e0f297d5231add547
+  md5: 64569136996b71f505e2f1f6b01c9ddb
+  depends:
+  - libstdcxx >=15
+  - libgcc >=15
+  - __glibc >=2.17,<3.0.a0
+  license: MIT
+  license_family: MIT
+  purls: []
+  run_exports: {}
+  size: 29664
+  timestamp: 1790169329201
 - conda: https://conda.anaconda.org/conda-forge/linux-64/spdlog-1.17.0-hb6aa676_2.conda
   sha256: 5fca627690d56c6f87a9dabafceee54cb75d7da392309bb080333948c048365a
   md5: 5e32ceeb7b9514ce4730565052829dbd
@@ -3488,6 +3499,18 @@ packages:
     - mpg123 >=1.33.7,<1.34.0a0
   size: 573069
   timestamp: 1787311468970
+- conda: https://conda.anaconda.org/conda-forge/linux-aarch64/ms-gsl-5.0.1-h45ce4d5_0.conda
+  sha256: d0fb6e116f96547e0f256176ad7d37ca21119f850135abfda6c9b1bd654695df
+  md5: d0a69b4de49c39bea48dff6b3564e5e4
+  depends:
+  - libstdcxx >=15
+  - libgcc >=15
+  license: MIT
+  license_family: MIT
+  purls: []
+  run_exports: {}
+  size: 29606
+  timestamp: 1790169325069
 - conda: https://conda.anaconda.org/conda-forge/linux-aarch64/ncurses-6.6-h2b6f883_1.conda
   sha256: d69a04914139627f0a6bfd19412d6c7f1e37edc896af84a6011e07e8bc1e69fa
   md5: c3b4349171ca987ff33a1de61f7b3f96
@@ -8955,6 +8978,33 @@ packages:
   run_exports: {}
   size: 24190
   timestamp: 1779159948016
+- conda: https://prefix.dev/ship-experiment/stable/linux-64/mp-units-2.5.0-h1c7f545_6.conda
+  sha256: 3584db6d2b6915d6f62f1c650b2a715a42e2c7bb4182e33a76c466fde973481b
+  md5: 7d55cc938f73aa89ce2cbb8bdcfa5fe2
+  depends:
+  - ms-gsl
+  - __glibc >=2.17,<3.0.a0
+  - libstdcxx >=15
+  - libgcc >=15
+  license: MIT
+  run_exports:
+    weak:
+    - mp-units >=2.5.0,<2.6.0a0
+  size: 111678
+  timestamp: 1792192857128
+- conda: https://prefix.dev/ship-experiment/stable/linux-aarch64/mp-units-2.5.0-h300e7cd_6.conda
+  sha256: 6a57eacd4aca45796205bfa07770643d2c695a03a9e79f4f64af64f199546b55
+  md5: e8b2b45ce8bc22184a624efabfd0f5c8
+  depends:
+  - ms-gsl
+  - libstdcxx >=15
+  - libgcc >=15
+  license: MIT
+  run_exports:
+    weak:
+    - mp-units >=2.5.0,<2.6.0a0
+  size: 111658
+  timestamp: 1792264145437
 - pypi: https://files.pythonhosted.org/packages/04/53/f2815b34359959172a6931932adde8e631de727a697a858265690030b55b/gersemi-0.29.2-cp314-cp314-manylinux_2_28_x86_64.whl
   name: gersemi
   version: 0.29.2
