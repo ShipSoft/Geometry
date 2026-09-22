@@ -8,6 +8,11 @@ The proton target is where the 400 GeV/c proton beam from the SPS interacts to p
 hidden sector particles. The target consists of tungsten slabs with tantalum cladding,
 housed in a helium-filled vessel, surrounded by copper and iron shielding.
 
+The subsystem also owns the **magnetised hadron stopper** that sits immediately
+downstream. It does not fit inside the target vacuum box, so it is built
+separately by `TargetFactory::buildHadronStopper()` and placed as its own world
+volume — see [Magnetised hadron stopper](#magnetised-hadron-stopper) below.
+
 ## Geometry Structure
 
 ```
@@ -24,6 +29,8 @@ target_vacuum_box (Vacuum, 160×227.1×300 cm)
         ├── target_enclosure (Steel316L)
         └── 19× CladdedTarget_N (Tantalum, r=12.5 cm)
             └── TargetCore_N (Tungsten, r=12.35 cm)
+
+hadron_stopper (Iron, 204×338.2×231 cm)    — separate world volume
 ```
 
 ## Materials
@@ -66,12 +73,40 @@ increase along the beam direction to account for the hadronic shower development
 | 18 | 28.8 | 28.5 | +35.44 |
 | 19 | 28.8 | 28.5 | +64.92 |
 
+## Magnetised hadron stopper
+
+A solid iron block downstream of the target, covering the "Magnetised hadron
+stopper" row of `subsystem_envelopes.csv` (COMMON, z = 2.14–4.44 m). The target
+vacuum box ends at z = 1.9325 m, so the stopper cannot be nested inside it: it
+is a separate world volume, `/SHiP/hadron_stopper`, placed at z = 3.295 m.
+
+| Property | Value |
+|----------|-------|
+| Material | Iron |
+| Half-sizes | 102.0 × 169.1 × 115.5 cm |
+| World Z | 2.14 – 4.45 m |
+
+**Provenance.** The Z extent follows the CSV. That row gives no transverse size
+and the FairShip TRY_2026 `params` row 0 was not available, so the transverse
+extent comes from the GDML: it is the outer envelope of the eight `magn_absorb`
+arb8 bounding boxes that earlier versions of `MuonShieldFactory` placed.
+
+It is modelled as one solid block rather than those eight pieces. The aperture
+between the two central pieces is 20 mm wide and the top/bottom pieces are
+subsumed by the return-yoke pieces, so the union is the full box to within
+20 mm — and the eight pieces mutually overlap, which a single block avoids.
+
+> **TODO:** have the subsystem coordinator confirm the transverse size and the
+> solid-block approximation.
+
 ## Position in World
 
 The target_vacuum_box is placed in the cave at position:
 - X: 0 cm
 - Y: -14.45 cm (below beam height)
 - Z: 43.25 cm (downstream of origin)
+
+The hadron stopper is placed on the beam axis at Z: 329.5 cm.
 
 ## Usage
 
@@ -82,6 +117,7 @@ The target_vacuum_box is placed in the cave at position:
 SHiPMaterials materials;
 TargetFactory factory(materials);
 GeoPhysVol* target = factory.build();
+GeoPhysVol* stopper = factory.buildHadronStopper();
 ```
 
 ## References

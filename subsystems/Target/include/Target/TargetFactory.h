@@ -23,6 +23,11 @@ class SHiPMaterials;
  * - Iron shielding pedestal
  * - Inconel718 target vessel with helium-filled interior
  * - 19 tungsten target slabs with tantalum cladding
+ *
+ * The subsystem also owns the magnetised hadron stopper immediately downstream
+ * (subsystem_envelopes.csv: "Magnetised hadron stopper", COMMON, 2.14-4.44 m).
+ * It does not fit inside the target vacuum box, so it is built separately by
+ * buildHadronStopper() and placed as its own world volume.
  */
 class TargetFactory {
    public:
@@ -34,6 +39,18 @@ class TargetFactory {
      * @return Pointer to the target_vacuum_box physical volume
      */
     [[nodiscard]] GeoPhysVol* build();
+
+    /**
+     * @brief Build the magnetised hadron stopper
+     *
+     * A solid Iron block, centred on its own origin, covering the "Magnetised
+     * hadron stopper" row of subsystem_envelopes.csv (z = 2.14-4.44 m). It is
+     * placed in the world by SHiPGeometryBuilder rather than nested in the
+     * target vacuum box, which ends at z = 1.9325 m.
+     *
+     * @return Pointer to the hadron_stopper physical volume
+     */
+    [[nodiscard]] GeoPhysVol* buildHadronStopper();
 
    private:
     SHiPMaterials& m_materials;
@@ -117,6 +134,25 @@ class TargetFactory {
     static constexpr double s_enclosureHalfZ = 79.32 * cm;
     static constexpr double s_enclosureCutoutHalfX = 8.0 * cm;
     static constexpr double s_enclosureCutoutHalfY = 14.0 * cm;
+
+    // Magnetised hadron stopper (its own world volume, see buildHadronStopper)
+    //
+    // Provenance: the Z extent follows subsystem_envelopes.csv (2.14-4.44 m).
+    // That row gives no transverse size, and the FairShip TRY_2026 `params`
+    // row 0 was not available, so the transverse extent comes from the GDML:
+    // it is the outer envelope of the eight `magn_absorb` arb8 bounding boxes
+    // that the previous MuonShieldFactory placed (102.0 x 169.1 x 115.5 cm
+    // half-sizes).
+    //
+    // Modelled as one solid block rather than those eight pieces: the aperture
+    // between the two central pieces is 20 mm wide and the top/bottom pieces
+    // are subsumed by the return-yoke pieces, so the union is the full box to
+    // within 20 mm — and the eight pieces mutually overlap, which one block
+    // avoids. TODO: have the subsystem coordinator confirm the transverse size
+    // and the solid-block approximation.
+    static constexpr double s_stopperHalfX = 102.0 * cm;
+    static constexpr double s_stopperHalfY = 169.1 * cm;
+    static constexpr double s_stopperHalfZ = 115.5 * cm;
 
     // Target slabs (common parameters)
     static constexpr double s_claddingRadius = 12.5 * cm;

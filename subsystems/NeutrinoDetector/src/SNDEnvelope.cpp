@@ -51,10 +51,10 @@ SNDEnvelope readSNDEnvelope(const std::string& rawPath) {
     SNDEnvelope env;
 
     // Warn about unknown top-level keys (typos / stale fields), like
-    // readMuonShieldConfig. Only centre, size and rotation are recognised.
+    // readMuonShieldConfig.
     for (const auto& [k, _] : table) {
         const std::string_view key{k};
-        if (key != "centre" && key != "size" && key != "rotation")
+        if (key != "centre" && key != "size" && key != "rotation" && key != "clearance_mm")
             std::cerr << "SNDEnvelope: warning: unknown key '" << k << "' in " << path
                       << " (ignored)\n";
     }
@@ -62,9 +62,17 @@ SNDEnvelope readSNDEnvelope(const std::string& rawPath) {
     env.centre_mm = readVec3(table, "centre", path, true, env.centre_mm);
     env.size_mm = readVec3(table, "size", path, true, env.size_mm);
     env.rotation_deg = readVec3(table, "rotation", path, false, env.rotation_deg);
+    if (auto n = table["clearance_mm"]; n) {
+        if (auto v = tomlconfig::asDouble(n.node()))
+            env.clearance_mm = *v;
+        else
+            throw std::runtime_error("SNDEnvelope: 'clearance_mm' must be a number in " + path);
+    }
 
     if (env.size_mm[0] <= 0.0 || env.size_mm[1] <= 0.0 || env.size_mm[2] <= 0.0)
         throw std::runtime_error("SNDEnvelope: size must be positive in " + path);
+    if (env.clearance_mm < 0.0)
+        throw std::runtime_error("SNDEnvelope: clearance_mm must not be negative in " + path);
 
     return env;
 }

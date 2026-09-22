@@ -110,6 +110,17 @@ GeoPhysVol* TargetFactory::build() {
     return vacuumBoxPhys;
 }
 
+GeoPhysVol* TargetFactory::buildHadronStopper() {
+    const GeoMaterial* iron = m_materials.requireMaterial("Iron");
+
+    // One solid block; see the s_stopper* constants for where the dimensions
+    // come from and why the GDML's eight `magn_absorb` pieces are collapsed
+    // into a single box.
+    auto* stopperBox = new GeoBox(s_stopperHalfX, s_stopperHalfY, s_stopperHalfZ);
+    auto* stopperLog = new GeoLogVol("/SHiP/hadron_stopper", stopperBox, iron);
+    return new GeoPhysVol(stopperLog);
+}
+
 GeoPhysVol* TargetFactory::createProximityShielding() {
     const GeoMaterial* copper = m_materials.requireMaterial("Copper");
 

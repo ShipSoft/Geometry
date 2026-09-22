@@ -58,6 +58,18 @@ reservation envelope from `SD.toml`), so the two do not overlap. It remains an
 independent subsystem with its own factory, config, and
 `/SHiP/neutrino_detector` naming — only its place in the volume tree changes.
 
+`SD.toml` declares the `centre`, `size` and optional `rotation` of that
+reservation, and `SHiPGeometryBuilder` passes the same centre and rotation to
+both calls, so the cavity and the detector are positioned from one place. The
+cavity is carved at `size` grown by `clearance_mm` (default 5 mm) on every face,
+keeping the SND's faces off the Boolean cut surfaces.
+
+The container half-sizes in `NeutrinoDetectorFactory` (`s_halfX`, `s_halfY`,
+`s_halfZ`) are declared independently of `SD.toml`, so keep the two in step. If
+the container outgrows the reservation, `MuonShieldFactory::build()` fails with
+a containment error naming both extents rather than letting the detector
+protrude into solid iron.
+
 ## Materials
 
 | Material    | Density     | Usage                              |

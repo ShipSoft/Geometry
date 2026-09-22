@@ -19,6 +19,16 @@ struct SNDEnvelope {
     std::array<double, 3> centre_mm = {0.0, 0.0, 28950.0};   ///< world centre (mm)
     std::array<double, 3> size_mm = {800.0, 800.0, 5100.0};  ///< full x, y, z (mm)
     std::array<double, 3> rotation_deg = {0.0, 0.0, 0.0};    ///< extrinsic X->Y->Z (deg)
+    double clearance_mm = 5.0;  ///< gap added on every face when carving the cavity
+
+    /// Full size of the cavity to carve: the envelope grown by the clearance on
+    /// each of the six faces. Carving at exactly @c size_mm would leave the
+    /// detector's faces coincident with the Boolean cut surfaces, which Geant4
+    /// navigation handles poorly.
+    std::array<double, 3> cavitySize_mm() const {
+        return {size_mm[0] + 2.0 * clearance_mm, size_mm[1] + 2.0 * clearance_mm,
+                size_mm[2] + 2.0 * clearance_mm};
+    }
 };
 
 /**

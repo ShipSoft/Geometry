@@ -6,8 +6,9 @@
 # Wires a subsystem's TOML config file into <target>, factoring out the setup
 # shared by every config-driven subsystem (calorimeter, muon shield, neutrino
 # detector):
-#   * links toml++ as a build-time-only (BUILD_INTERFACE) private dependency,
-#     so it stays out of the install export set;
+#   * links toml++ as a build-time-only (BUILD_INTERFACE) private dependency, so
+#     it stays out of the install export set, and puts private_include/ — where
+#     the toml++-exposing shared header lives — on the private include path;
 #   * stages <toml_file> into both the subsystem build dir and the top-level
 #     build dir, so tests find it whether run from either;
 #   * defines <prefix>_TOML_DEFAULT_PATH (source tree) and
@@ -24,6 +25,14 @@ function(ship_add_toml_config target toml_file prefix)
     target_link_libraries(
         ${target}
         PRIVATE $<BUILD_INTERFACE:tomlplusplus::tomlplusplus>
+    )
+
+    # SHiPGeometry/TomlConfig.h exposes toml++ in its interface, so it lives in
+    # private_include/ rather than include/ and is never installed. Only the
+    # parser sources see it; the include spelling is unchanged.
+    target_include_directories(
+        ${target}
+        PRIVATE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/private_include>
     )
 
     configure_file(

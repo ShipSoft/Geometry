@@ -10,7 +10,13 @@
 #
 # Values are in world/beamline coordinates (target-front-face origin), mm.
 # Defaults match the current SND container (800 x 800 x 5100 mm at z = 28.95 m).
+#
+# `centre` and `rotation` position both the cavity and the detector — the
+# muon-shield builder passes the same pair to reserveSpace() and
+# embedDaughter(), and rejects at build time an SND that does not fit inside the
+# cavity this file declares.
 
 centre = [0.0, 0.0, 28950.0]     # world centre of the reservation box
 size   = [800.0, 800.0, 5100.0]  # full x, y, z
+clearance_mm = 5.0               # gap on every face between the SND and the iron
 # rotation = [0.0, 0.0, 0.0]     # optional, degrees, extrinsic X -> Y -> Z about centre

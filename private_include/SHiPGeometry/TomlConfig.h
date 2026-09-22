@@ -8,9 +8,16 @@
 // fixed-length numeric-array parsing that were duplicated across parsers. Each
 // caller passes its own error prefix (e.g. "MuonShieldConfig") so messages stay
 // self-identifying.
+//
+// This header lives under private_include/, not include/, because it exposes
+// toml++ in its interface. toml++ is linked BUILD_INTERFACE-only (see
+// ship_add_toml_config) and is not part of the installed package, so a header
+// that includes it must not be installed either. Only the parser .cpp files use
+// it; ship_add_toml_config puts private_include/ on their include path.
 
 #include <array>
 #include <cstddef>
+#include <cstdint>
 #include <optional>
 #include <stdexcept>
 #include <string>

@@ -6,6 +6,7 @@
 #include "SHiPGeometry/SHiPMaterials.h"
 
 #include <GeoModelKernel/GeoBox.h>
+#include <GeoModelKernel/GeoDefinitions.h>
 #include <GeoModelKernel/GeoLogVol.h>
 #include <GeoModelKernel/GeoPhysVol.h>
 #include <GeoModelKernel/GeoShapeSubtraction.h>
@@ -96,8 +97,8 @@ TEST_CASE("MuonShieldReservationCarvesIron", "[muonshield]") {
 }
 
 TEST_CASE("MuonShieldRejectsRotatedBlockOutsideEnvelope", "[muonshield]") {
-    // A block that fits unrotated but whose rotated bounding box exceeds the
-    // envelope is rejected at build() (the factory uses the true 8-corner AABB).
+    // A block that fits unrotated but whose rotated extent exceeds the envelope
+    // is rejected: the parser and the factory both work from the true corners.
     const std::string path = writeTempToml(
         "MS_rot_reject.toml",
         "envelope_half_x_mm = 1500\nenvelope_half_y_mm = 400\n"
@@ -162,14 +163,22 @@ TEST_CASE("MuonShieldParsesRotation", "[muonshield]") {
     CHECK(dynamic_cast<const GeoBox*>(ms->getChildVol(0)->getLogVol()->getShape()) != nullptr);
 }
 
+namespace {
+// An Air box to embed, with the given half-sizes.
+GeoPhysVol* makeDummy(SHiPMaterials& materials, double hx, double hy, double hz) {
+    auto* box = new GeoBox(hx, hy, hz);
+    auto* log = new GeoLogVol("/SHiP/dummy", box, materials.requireMaterial("Air"));
+    return new GeoPhysVol(log);
+}
+}  // namespace
+
 TEST_CASE("MuonShieldEmbedsDaughter", "[muonshield]") {
     SHiPMaterials materials;
-    auto* dBox = new GeoBox(100.0, 100.0, 500.0);
-    auto* dLog = new GeoLogVol("/SHiP/dummy", dBox, materials.requireMaterial("Air"));
-    auto* dPhys = new GeoPhysVol(dLog);
+    GeoPhysVol* dPhys = makeDummy(materials, 100.0, 100.0, 500.0);
 
     MuonShieldFactory factory(materials);  // default 7 solid magnets
-    factory.embedDaughter(dPhys, 28.95 * 1000.0, "/SHiP/dummy");
+    factory.reserveSpace({0.0, 0.0, 28950.0}, {400.0, 400.0, 1200.0});
+    factory.embedDaughter(dPhys, {0.0, 0.0, 28950.0}, {0.0, 0.0, 0.0}, "/SHiP/dummy");
     GeoPhysVol* ms = factory.build();
     REQUIRE(ms != nullptr);
     // 7 iron magnets + the embedded daughter.
@@ -180,6 +189,59 @@ TEST_CASE("MuonShieldEmbedsDaughter", "[muonshield]") {
         if (ms->getChildVol(i)->getLogVol()->getName() == "/SHiP/dummy")
             found = true;
     CHECK(found);
+}
+
+TEST_CASE("MuonShieldPlacesDaughterOffAxis", "[muonshield]") {
+    // embedDaughter takes the full centre, so an off-axis daughter is placed
+    // off-axis — and at the same place its cavity was carved.
+    SHiPMaterials materials;
+    GeoPhysVol* dPhys = makeDummy(materials, 100.0, 100.0, 500.0);
+
+    MuonShieldFactory factory(materials);
+    factory.reserveSpace({300.0, -50.0, 28950.0}, {400.0, 400.0, 1200.0});
+    factory.embedDaughter(dPhys, {300.0, -50.0, 28950.0}, {0.0, 0.0, 0.0}, "/SHiP/dummy");
+    GeoPhysVol* ms = factory.build();
+    REQUIRE(ms != nullptr);
+
+    const unsigned last = ms->getNChildVols() - 1;
+    REQUIRE(ms->getChildVol(last)->getLogVol()->getName() == "/SHiP/dummy");
+    // getXToChildVol returns by value, so the transform must outlive the read.
+    const GeoTrf::Transform3D toDaughter = ms->getXToChildVol(last);
+    const auto translation = toDaughter.translation();
+    CHECK_THAT(translation.x(), Catch::Matchers::WithinAbs(300.0, 1e-6));
+    CHECK_THAT(translation.y(), Catch::Matchers::WithinAbs(-50.0, 1e-6));
+    CHECK_THAT(translation.z(), Catch::Matchers::WithinAbs(28950.0 - 18310.0, 1e-6));
+}
+
+TEST_CASE("MuonShieldRejectsDaughterOverrunningEnvelope", "[muonshield]") {
+    // The containment check uses the daughter's own extent, not just its
+    // centre: this centre is inside the envelope (|31500 - 18310| < 13770) but
+    // the 5100 mm-long box reaches 1970 mm past the downstream end.
+    SHiPMaterials materials;
+    GeoPhysVol* dPhys = makeDummy(materials, 400.0, 400.0, 2550.0);
+
+    MuonShieldFactory factory(materials);
+    factory.reserveSpace({0.0, 0.0, 31500.0}, {900.0, 900.0, 5200.0});
+    factory.embedDaughter(dPhys, {0.0, 0.0, 31500.0}, {0.0, 0.0, 0.0}, "/SHiP/dummy");
+    CHECK_THROWS_AS(factory.build(), std::runtime_error);
+}
+
+TEST_CASE("MuonShieldRejectsDaughterOutsideCavity", "[muonshield]") {
+    // A daughter with no reservation covering it would sit in solid iron.
+    SHiPMaterials materials;
+    MuonShieldFactory noReservation(materials);
+    noReservation.embedDaughter(makeDummy(materials, 100.0, 100.0, 500.0), {0.0, 0.0, 28950.0},
+                                {0.0, 0.0, 0.0}, "/SHiP/dummy");
+    CHECK_THROWS_AS(noReservation.build(), std::runtime_error);
+
+    // Likewise when the daughter outgrows the cavity declared for it — the
+    // drift that would otherwise go unnoticed between SD.toml and the SND
+    // factory's own container dimensions.
+    MuonShieldFactory tooSmall(materials);
+    tooSmall.reserveSpace({0.0, 0.0, 28950.0}, {400.0, 400.0, 1200.0});
+    tooSmall.embedDaughter(makeDummy(materials, 100.0, 100.0, 900.0), {0.0, 0.0, 28950.0},
+                           {0.0, 0.0, 0.0}, "/SHiP/dummy");
+    CHECK_THROWS_AS(tooSmall.build(), std::runtime_error);
 }
 
 TEST_CASE("MuonShieldRejectsNonPositiveSize", "[muonshield]") {
@@ -206,4 +268,65 @@ TEST_CASE("MuonShieldEmptyBlockList", "[muonshield]") {
     const std::string path = writeTempToml("MS_empty.toml", "block_material = \"Iron\"\n");
     MuonShieldConfig cfg = readMuonShieldConfig(path);
     CHECK(cfg.blocks.empty());
+}
+
+TEST_CASE("MuonShieldRejectsRotatedOverlappingBlocks", "[muonshield]") {
+    // Two slabs rotated 90° about Z that genuinely intersect. Their unrotated
+    // bounding boxes are disjoint in X, so an axis-aligned test would accept
+    // them; the separating-axis test on the oriented boxes does not.
+    const std::string path = writeTempToml(
+        "MS_rot_overlap.toml",
+        "envelope_half_x_mm = 3000\nenvelope_half_y_mm = 3000\n"
+        "envelope_z_start_m = 0.0\nenvelope_z_end_m = 6.0\n"
+        "[[block]]\nstart = [-1000,0,2000]\nsize = [200,4000,400]\nrotation = [0,0,90]\n"
+        "[[block]]\nstart = [1000,0,2000]\nsize = [200,4000,400]\nrotation = [0,0,90]\n");
+    CHECK_THROWS_AS(readMuonShieldConfig(path), std::runtime_error);
+}
+
+TEST_CASE("MuonShieldAcceptsRotatedBlockThatFits", "[muonshield]") {
+    // The inverse of MuonShieldRejectsRotatedBlockOutsideEnvelope: rotating a
+    // slab by 90° about Z swaps its X and Y extents, and here that makes it fit
+    // an envelope its unrotated footprint would overflow.
+    const std::string path = writeTempToml(
+        "MS_rot_fits.toml",
+        "envelope_half_x_mm = 200\nenvelope_half_y_mm = 1500\n"
+        "envelope_z_start_m = 0.0\nenvelope_z_end_m = 6.0\n"
+        "[[block]]\nstart = [0,0,2000]\nsize = [2400,200,400]\nrotation = [0,0,90]\n");
+    const MuonShieldConfig cfg = readMuonShieldConfig(path);
+    CHECK(cfg.blocks.size() == 1u);  // NOLINT(readability/check)
+
+    SHiPMaterials materials;
+    MuonShieldFactory factory(materials, path);
+    CHECK(factory.build() != nullptr);
+}
+
+TEST_CASE("MuonShieldAllowsTouchingBlocks", "[muonshield]") {
+    // Blocks sharing a face are legal; only interpenetration is rejected.
+    const std::string path =
+        writeTempToml("MS_touching.toml",
+                      "envelope_half_x_mm = 2000\nenvelope_half_y_mm = 2000\n"
+                      "envelope_z_start_m = 0.0\nenvelope_z_end_m = 6.0\n"
+                      "[[block]]\nstart = [0,0,1000]\nsize = [1000,1000,1000]\n"
+                      "[[block]]\nstart = [0,0,2000]\nsize = [1000,1000,1000]\n");
+    const MuonShieldConfig cfg = readMuonShieldConfig(path);
+    CHECK(cfg.blocks.size() == 2u);  // NOLINT(readability/check)
+}
+
+TEST_CASE("MuonShieldFailedBuildLeavesFactoryUsable", "[muonshield]") {
+    // A build() that throws must not latch m_built: the factory stays usable,
+    // and centreZ_mm() reports that it has no value rather than returning 0.0
+    // (which would place the container at the world origin).
+    const std::string path =
+        writeTempToml("MS_bad.toml", "[[block]]\nstart = [0,0,12000]\nsize = [-1,2000,2000]\n");
+    SHiPMaterials materials;
+    MuonShieldFactory factory(materials, path);
+    CHECK_THROWS_AS(factory.build(), std::runtime_error);
+    CHECK_THROWS_AS(factory.centreZ_mm(), std::runtime_error);
+
+    // A fresh factory on a good config still works, and only then does
+    // centreZ_mm() answer.
+    MuonShieldFactory good(materials);
+    CHECK_THROWS_AS(good.centreZ_mm(), std::runtime_error);
+    REQUIRE(good.build() != nullptr);
+    CHECK_THAT(good.centreZ_mm(), Catch::Matchers::WithinAbs(18310.0, 1e-6));
 }

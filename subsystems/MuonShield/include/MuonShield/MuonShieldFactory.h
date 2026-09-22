@@ -44,17 +44,25 @@ class MuonShieldFactory {
     /**
      * @brief Embed an external volume as a daughter of the shield container.
      *
-     * Registers @p daughter to be placed inside the shield at world-Z
-     * @p worldCentreZ_mm. The daughter remains an independent subsystem; this
-     * only nests it in the volume tree. Since the iron is defined by an explicit
-     * block list, the caller is responsible for not listing blocks over the
-     * daughter's footprint. Call before build().
+     * Registers @p daughter to be placed inside the shield at
+     * @p worldCentre_mm. The daughter remains an independent subsystem; this
+     * only nests it in the volume tree. Call before build().
+     *
+     * The centre and rotation are the same triple reserveSpace() takes, so a
+     * caller reading one envelope (e.g. SD.toml) passes it to both and the
+     * cavity and the detector cannot drift apart. build() checks this: it takes
+     * the daughter's own bounding box, places it, and requires the result to
+     * lie inside the container *and* inside one reserved cavity — so a daughter
+     * that would intersect shield iron is a build-time error, not a silent
+     * overlap.
      *
      * @param daughter        Pre-built volume (centred on its own origin).
-     * @param worldCentreZ_mm  World-Z centre where the daughter is placed (mm).
+     * @param worldCentre_mm  World centre where the daughter is placed (mm).
+     * @param rotation_deg    Extrinsic X->Y->Z rotation about the centre (deg).
      * @param name            Name tag for the placement.
      */
-    void embedDaughter(GeoPhysVol* daughter, double worldCentreZ_mm, const std::string& name);
+    void embedDaughter(GeoPhysVol* daughter, const std::array<double, 3>& worldCentre_mm,
+                       const std::array<double, 3>& rotation_deg, const std::string& name);
 
     /**
      * @brief Reserve (carve) a box out of the shield iron via Boolean A - B.
@@ -78,9 +86,13 @@ class MuonShieldFactory {
     /**
      * @brief World-Z centre (mm) at which the container should be placed.
      *
-     * Valid only after build() has been called (it is read from muon_shield.toml).
+     * Read from muon_shield.toml during build().
+     *
+     * @throws std::runtime_error if build() has not completed successfully —
+     *         silently returning 0.0 would place the container at the world
+     *         origin.
      */
-    double centreZ_mm() const { return m_centreZ_mm; }
+    double centreZ_mm() const;
 
     /** Return the config path that will actually be opened (after resolution). */
     std::string resolvedConfigPath() const;
@@ -88,7 +100,8 @@ class MuonShieldFactory {
    private:
     struct EmbeddedDaughter {
         GeoPhysVol* volume;
-        double worldCentreZ_mm;
+        std::array<double, 3> centre_mm;
+        std::array<double, 3> rotation_deg;
         std::string name;
     };
 
@@ -106,8 +119,10 @@ class MuonShieldFactory {
     // World-Z centre of the container, populated by build() from the config.
     double m_centreZ_mm = 0.0;
 
-    // Set once build() has run. reserveSpace()/embedDaughter() are only
-    // meaningful before build(), so they check this and throw otherwise.
+    // Set once build() has run to completion. reserveSpace()/embedDaughter()
+    // are only meaningful before build(), so they check this and throw
+    // otherwise. A build() that throws leaves it false, so the factory stays
+    // usable (e.g. after fixing the config) instead of latching unusable.
     bool m_built = false;
 };
 

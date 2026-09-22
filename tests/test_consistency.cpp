@@ -76,10 +76,11 @@ TEST_CASE("ConsistencyTest.ExpectedSubsystemCount", "[consistency]") {
     REQUIRE(world != nullptr);
 
     auto subsystems = collectSubsystems(world);
-    // 8 subsystems: target, muon_shield, upstream_tagger, decay_volume,
-    // trackers, magnet, timing_detector, calorimeter. The neutrino detector is
-    // nested inside the muon-shield container, so it is not a direct world child.
-    CHECK(subsystems.size() == 8u);  // NOLINT(readability/check)
+    // 9 subsystems: target, hadron_stopper, muon_shield, upstream_tagger,
+    // decay_volume, trackers, magnet, timing_detector, calorimeter. The
+    // neutrino detector is nested inside the muon-shield container, so it is
+    // not a direct world child.
+    CHECK(subsystems.size() == 9u);  // NOLINT(readability/check)
 }
 
 TEST_CASE("ConsistencyTest.SubsystemsGenerallyInZOrder", "[consistency]") {
@@ -153,6 +154,7 @@ TEST_CASE("ConsistencyTest.PositionsSanity", "[consistency]") {
     // Centres as placed in SHiPGeometryBuilder::build()
     std::vector<Expected> expected = {
         {"/SHiP/target", 432.5, 500.0},
+        {"/SHiP/hadron_stopper", 3295.0, 500.0},
         {"/SHiP/muon_shield", 18310.0, 500.0},
         // The neutrino detector is nested inside the muon shield (see
         // MuonShieldFactory::embedDaughter), not a direct world child, so it is

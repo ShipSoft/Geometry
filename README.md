@@ -34,8 +34,8 @@ quantity explicit at the point where it is written.
 | Subsystem | Status | Description |
 |-----------|--------|-------------|
 | [Cavern](subsystems/Cavern/README.md) | Complete | World volume with subtracted rock cavities |
-| [Target](subsystems/Target/README.md) | Complete | 19 W slabs with Ta cladding in Inconel vessel |
-| [MuonShield](subsystems/MuonShield/README.md) | Approximate | 6 stations, box approximations of arb8 shapes |
+| [Target](subsystems/Target/README.md) | Complete | 19 W slabs with Ta cladding in Inconel vessel, plus the magnetised hadron stopper |
+| [MuonShield](subsystems/MuonShield/README.md) | Approximate | 7 solid iron blocks (FairShip TRY_2026) driven by `muon_shield.toml`, with the SND cavity carved out |
 | [NeutrinoDetector](subsystems/NeutrinoDetector/README.md) | Approximate | Veto + Si/W target + HCAL with individual scintillating fibres |
 | [Magnet](subsystems/Magnet/README.md) | Approximate | Iron yoke with box-shaped coils (should be tubes) |
 | [DecayVolume](subsystems/DecayVolume/README.md) | Implemented | Frustum: SBT steel structure + LAB sensors + helium centre |
