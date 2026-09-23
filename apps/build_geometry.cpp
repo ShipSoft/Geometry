@@ -23,6 +23,7 @@
 
 #include <filesystem>
 #include <iostream>
+#include <spdlog/spdlog.h>
 #include <string>
 #include <system_error>
 #include <vector>
@@ -34,6 +35,7 @@ int main(int argc, char* argv[]) {
     for (int i = 1; i < argc; ++i) {
         const std::string arg = argv[i];
         if (arg == "--list") {
+            // Program output, not a log line: plain stdout so it stays pipeable.
             for (const auto& n : SHiPGeometry::subsystemNames())
                 std::cout << n << "\n";
             return 0;
@@ -71,14 +73,15 @@ int main(int argc, char* argv[]) {
                 outputFile = "ship_selection.db";
         }
     } catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << "\nAvailable subsystems:\n";
+        spdlog::error("{}", e.what());
+        spdlog::info("Available subsystems:");
         for (const auto& n : SHiPGeometry::subsystemNames())
-            std::cerr << "  " << n << "\n";
+            spdlog::info("  {}", n);
         return 1;
     }
 
     if (!geometry) {
-        std::cerr << "Error: geometry is null (not yet implemented?)." << std::endl;
+        spdlog::error("Geometry is null (not yet implemented?).");
         return 1;
     }
 
@@ -88,16 +91,15 @@ int main(int argc, char* argv[]) {
     std::error_code ec;
     std::filesystem::remove(outputFile, ec);
     if (ec) {
-        std::cerr << "Error: could not remove existing " << outputFile << ": " << ec.message()
-                  << std::endl;
+        spdlog::error("Could not remove existing {}: {}", outputFile, ec.message());
         return 1;
     }
 
-    std::cout << "Writing " << label << " to " << outputFile << std::endl;
+    spdlog::info("Writing {} to {}", label, outputFile);
     GMDBManager db(outputFile);
     GeoModelIO::WriteGeoModel writer(db);
     geometry->exec(&writer);
     writer.saveToDB();
-    std::cout << "Done." << std::endl;
+    spdlog::info("Done.");
     return 0;
 }
