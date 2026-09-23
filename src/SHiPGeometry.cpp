@@ -102,8 +102,8 @@ GeoPhysVol* SHiPGeometryBuilder::build() {
                GeoTrf::Translate3D(0.0, 0.0, 95.902 * m));
 
     // Build and place Calorimeter (ECAL + HCAL).
-    // The layer structure is driven by calo.toml; the outer container dimensions
-    // and placement are fixed to match the SHiP subsystem envelope.
+    // The layer structure comes from CalorimeterConstants.h; the outer container
+    // dimensions and placement are fixed to match the SHiP subsystem envelope.
     CalorimeterFactory calorimeterFactory(materials);
     GeoPhysVol* calorimeter = calorimeterFactory.build();
     placeChild(world, calorimeter, "/SHiP/calorimeter", 8,

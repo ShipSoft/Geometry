@@ -10,8 +10,6 @@ class GeoMaterial;
 
 namespace SHiPGeometry {
 
-struct SBTConfig;
-
 /**
  * @brief Builds the SBT steel H-beam supporting structure into @p mother.
  *
@@ -23,9 +21,10 @@ struct SBTConfig;
  */
 class SBTStructureBuilder {
    public:
-    /// Build the structure. @p steel is the absorber material; @p cfg holds
-    /// the frustum and H-beam parameters; @p tag is the volume-name prefix.
-    static void build(GeoVPhysVol* mother, const GeoMaterial* steel, const SBTConfig& cfg,
+    /// Build the structure. @p steel is the absorber material; the frustum
+    /// and H-beam parameters come from SBTConstants.h; @p tag is the
+    /// volume-name prefix.
+    static void build(GeoVPhysVol* mother, const GeoMaterial* steel,
                       const std::string& tag = "/SHiP/decay_volume/sbt/structure");
 };
 

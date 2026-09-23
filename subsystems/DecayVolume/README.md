@@ -85,20 +85,21 @@ column front-flange edge for clash avoidance. Each piece is 7 aluminium walls +
 `LAB` (linear alkylbenzene, C 87.41% / H 12.59% by mass) was added to the
 central `SHiPMaterials` catalogue for the SBT cells.
 
-## Configuration
+## Parameters
 
-The SBT geometry is driven by [`sbt.toml`](sbt.toml), parsed into an
-`SBTConfig` (toml++), following the same pattern as the calorimeter's
-`calo.toml`. It exposes the frustum envelope, sub-frustum count, H-beam
-cross-section, sensor container/cell parameters, helium clearance, the SBT
-entrance Z, and all material names. Unknown keys are reported on stderr.
+The SBT geometry is defined by the `constexpr` constants in
+`SBTConstants.h` (namespace `SHiPGeometry::SBT`): the frustum envelope,
+sub-frustum count, H-beam cross-section, sensor container/cell parameters,
+helium clearance and the SBT entrance Z, plus the placement primitives both
+builders and the helium derivation share. Invariants are enforced by
+`static_assert`, so an impossible SBT fails the build.
 
 ## Status
 
 - [x] C++ implementation (SBT structure + sensors + derived helium)
 - [x] Frustum shape (replaces the old box vessel approximation)
 - [x] Surround Background Tagger integrated
-- [x] sbt.toml configuration
+- [x] Compile-time parameter validation
 - [ ] Verification against the standalone SBT / GDML reference
 
 ## Tests
@@ -108,5 +109,4 @@ and the 3400 GeoTrap children (20 helium slabs + 3380 sensors) for a total of
 3712 direct children. Beyond the counts, it runs an exact separating-axis
 overlap test between every helium slab and every SBT volume in the built tree,
 asserting the helium neither protrudes into any material nor leaves a margin
-beyond the configured clearance, and repeats that across 14 perturbed SBT
-configurations so the guarantee survives re-parameterisation.
+beyond the configured clearance.
