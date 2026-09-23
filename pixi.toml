@@ -36,6 +36,7 @@ sqlite = "*"
 tomlplusplus = "*"
 eigen-abi-devel = "*"
 nlohmann_json = "*"
+spdlog = "*"
 
 [dependencies]
 cxx-compiler = "*"
@@ -48,6 +49,7 @@ tomlplusplus = "*"
 geomodel = ">=6.22"
 eigen-abi-devel = "*"
 nlohmann_json = "*"
+spdlog = "*"
 
 # Static analysis. clang-tidy lives here rather than in [feature.lint] because
 # it replays the commands in compile_commands.json and so needs the same
