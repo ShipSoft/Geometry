@@ -1,0 +1,16 @@
+# SPDX-License-Identifier: LGPL-3.0-or-later
+# Copyright (C) CERN for the benefit of the SHiP Collaboration
+#
+# Scattering & Neutrino Detector (SND) reservation envelope.
+#
+# This declares the box that is subtracted from the muon-shield iron (A - B) to
+# make room for the SND, so the two subsystems can be defined independently and
+# merged at build time. For now this is only the reservation envelope; the SND's
+# internal geometry will move into this file in a later, dedicated PR.
+#
+# Values are in world/beamline coordinates (target-front-face origin), mm.
+# Defaults match the current SND container (800 x 800 x 5100 mm at z = 28.95 m).
+
+centre = [0.0, 0.0, 28950.0]     # world centre of the reservation box
+size   = [800.0, 800.0, 5100.0]  # full x, y, z
+# rotation = [0.0, 0.0, 0.0]     # optional, degrees, extrinsic X -> Y -> Z about centre
