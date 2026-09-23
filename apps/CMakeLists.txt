@@ -9,6 +9,7 @@ target_link_libraries(
         GeoModelCore::GeoModelKernel
         GeoModelIO::GeoModelDBManager
         GeoModelIO::GeoModelWrite
+        spdlog::spdlog
 )
 
 add_executable(validate_geometry validate_geometry.cpp)

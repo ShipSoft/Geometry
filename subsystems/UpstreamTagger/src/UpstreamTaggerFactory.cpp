@@ -4,6 +4,7 @@
 #include "UpstreamTagger/UpstreamTaggerFactory.h"
 
 #include "SHiPGeometry/SHiPMaterials.h"
+#include "SHiPGeometry/SubsystemRegistry.h"
 #include "UpstreamTagger/SHiPUBTManager.h"
 
 #include <GeoModelKernel/GeoBox.h>
@@ -134,11 +135,16 @@ GeoVPhysVol* UpstreamTaggerFactory::build(SHiPUBTManager* manager) {
                       r.fine ? finePitch : coarsePitch);
     }
 
+    // A manager is optional: it only records the container as a tree-top for
+    // callers that pass one. Built generically via the registry (no manager),
+    // there is nothing to record — the container is returned regardless.
     if (manager) {
         manager->setContainerVolume(containerPhys);
     }
 
     return containerPhys;
 }
+
+REGISTER_SUBSYSTEM(UpstreamTaggerFactory)
 
 }  // namespace SHiPGeometry
