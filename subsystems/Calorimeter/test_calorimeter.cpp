@@ -33,8 +33,12 @@ TEST_CASE("CalorimeterHasChildren", "[calorimeter]") {
     CalorimeterFactory factory(materials);
     GeoPhysVol* calo = factory.build();
     REQUIRE(calo != nullptr);
-    // The container must have at least one child (ECAL layers + HCAL layers)
-    CHECK(calo->getNChildVols() >= 1u);  // NOLINT(readability/check)
+    // One volume per module per non-air-gap layer, so the sequencer cannot
+    // silently drop or duplicate a placement.
+    constexpr unsigned kExpectedChildren = SHiPGeometry::Calo::kModuleNX *
+                                           SHiPGeometry::Calo::kModuleNY *
+                                           SHiPGeometry::Calo::kVolsPerModule;
+    CHECK(calo->getNChildVols() == kExpectedChildren);  // NOLINT(readability/check)
 }
 
 TEST_CASE("TotalStackZMatchesReference", "[calorimeter]") {

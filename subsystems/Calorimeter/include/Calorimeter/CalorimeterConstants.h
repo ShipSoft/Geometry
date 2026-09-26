@@ -124,6 +124,21 @@ constexpr double sectionZ(std::span<const LayerCode> codes, double absorberThick
 inline constexpr double kTotalStackZ =
     sectionZ(kEcalLayers, kLeadThickness) + kGapEcalHcal + sectionZ(kHcalLayers, kIronThickness);
 
+/// Child volumes one section contributes to the container, per module. Every
+/// layer places exactly one volume directly under the container (a layer
+/// envelope, or the bare iron plate in the HCAL); AirGap places none and only
+/// advances the z cursor.
+constexpr int sectionVolumeCount(std::span<const LayerCode> codes) {
+    int n = 0;
+    for (LayerCode code : codes)
+        n += code == AirGap ? 0 : 1;
+    return n;
+}
+
+/// Child volumes one module contributes to the container.
+inline constexpr int kVolsPerModule =
+    sectionVolumeCount(kEcalLayers) + sectionVolumeCount(kHcalLayers);
+
 /// Bars per layer, from the plate size and the bar pitch.
 inline constexpr int kWidePVTBarCount = static_cast<int>(kPlateXY / kWidePVTBarPitch);
 inline constexpr int kThinPSBarCount = static_cast<int>(kPlateXY / kThinPSBarPitch);
