@@ -7,7 +7,6 @@
 
 #include <algorithm>
 #include <array>
-#include <cmath>
 
 class GeoMaterial;
 class GeoPhysVol;
@@ -61,9 +60,14 @@ struct HeliumPiece {
 namespace detail {
 
 // Index of the sub-frustum containing z (clamped at the exit face).
+//
+// The cast truncates towards zero rather than flooring, which lands on the
+// same index for every f: the two agree for f >= 0, and a negative f clamps
+// to 0 whichever way it was rounded. Truncating also keeps this header clear
+// of C++23's constexpr <cmath>, which not every standard library ships yet.
 constexpr int subFrustumAt(double z_mm) {
     const double f = (z_mm - kZEntrance) / subLength();
-    return std::clamp(static_cast<int>(std::floor(f)), 0, kNSubFrustum - 1);
+    return std::clamp(static_cast<int>(f), 0, kNSubFrustum - 1);
 }
 
 // The half-width the SIDE containers track at z. Inside the flat piece of a
