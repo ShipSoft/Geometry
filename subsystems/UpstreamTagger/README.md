@@ -22,19 +22,20 @@ X horizontal, Y vertical, Z along the beam):
 ```
    Y
    ^
-+1500 +------+------------------------------------+------+
-      | EXT  |        COARSE band (top)           | EXT  |  y=[+200,+1500]
++3200 +------+------------------------------------+------+
+      | EXT  |        COARSE band (top)           | EXT  |  y=[+200,+3200]
 +200  |      +--------+------------------+--------+      |
       | EXT  |  FINE  |  COARSE central  |  FINE  | EXT  |  y=[-200,+200]
 -200  |      +--------+------------------+--------+      |
-      | EXT  |        COARSE band (bottom)        | EXT  |  y=[-1500,-200]
--1500 +------+------------------------------------+------+
-     -1800  -1000   -600              +600    +1000   +1800  -> X
+      | EXT  |        COARSE band (bottom)        | EXT  |  y=[-3200,-200]
+-3200 +------+------------------------------------+------+
+     -2200  -1000   -600              +600    +1000   +2200  -> X
 ```
 
-All tiles are 10 mm thick and coplanar at the container centre in Z. The plane
-spans X ∈ [−1800, +1800] mm, Y ∈ [−1500, +1500] mm, comfortably inside the
-container envelope.
+Fine tiles are 5 mm thick and coarse tiles 10 mm thick; all are centred on
+the same Z plane at the container centre. The plane
+spans X ∈ [−2200, +2200] mm, Y ∈ [−3200, +3200] mm: the tiles cover the full
+4.4 × 6.4 m container cross-section.
 
 Like the calorimeter bar layers, the individual tiles are `GeoPhysVol` with
 hierarchical `/SHiP/upstream_tagger/...` names; sensitive-detector assignment
@@ -49,14 +50,14 @@ registered with `SHiPUBTManager`.
  ├─ fine_left       (Air envelope)  → 20×20  fine   tiles   (Polystyrene)
  ├─ fine_right      (Air envelope)  → 20×20  fine   tiles
  ├─ coarse_central  (Air envelope)  → 30×10  coarse tiles
- ├─ coarse_top      (Air envelope)  → 50×32  coarse tiles
- ├─ coarse_bottom   (Air envelope)  → 50×32  coarse tiles
- ├─ ext_left        (Air envelope)  → 40×150 fine   tiles
- └─ ext_right       (Air envelope)  → 40×150 fine   tiles
+ ├─ coarse_top      (Air envelope)  → 50×75  coarse tiles
+ ├─ coarse_bottom   (Air envelope)  → 50×75  coarse tiles
+ ├─ ext_left        (Air envelope)  → 60×320 fine   tiles
+ └─ ext_right       (Air envelope)  → 60×320 fine   tiles
 ```
 
-Tile totals: fine 2 × 400 + 2 × 6000 = 12 800; coarse 300 + 2 × 1600 = 3 500;
-**16 300 tiles** in total.
+Tile totals: fine 2 × 400 + 2 × 19 200 = 39 200; coarse 300 + 2 × 3 750 = 7 800;
+**47 000 tiles** in total.
 
 Position in world: z = 32 720 mm (centre of the 32.52–32.92 m envelope).
 
@@ -80,7 +81,7 @@ the shared catalogue.
   envelope limits (halfX ≤ 2200, halfY ≤ 3200, halfZ ≤ 200 mm).
 - `UBTHasSensitiveVolume` — the returned container is a `GeoVFullPhysVol`.
 - `UBTHasSevenRegions` — the container holds the seven tile regions.
-- `UBTTileCount` — the regions contain 16 300 tiles in total.
+- `UBTTileCount` — the regions contain 47 000 tiles in total.
 
 ## Status
 
