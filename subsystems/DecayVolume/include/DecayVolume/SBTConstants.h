@@ -175,9 +175,12 @@ constexpr double longBeamCentreY(double y_half_mm) {
 /// rotated: the flange surface lies hbeamHalfHeight()/cos(atan(yGrowth))
 /// from the axis measured in world Y, not hbeamHalfHeight().
 ///
-/// constexpr relies on GCC folding std::sqrt in constant expressions
-/// (correctly rounded, identical to the runtime result; portable constexpr
-/// sqrt arrives with C++26).
+/// constexpr here needs the compiler to fold std::sqrt in a constant
+/// expression, which C++23 does not require (C++26 will, via P1383R2). GCC
+/// does it as a long-standing extension; Clang does not, and __builtin_sqrt
+/// is no help there either, so this header builds with GCC only (checked
+/// against Clang 18 and 23). See the compiler note in the top-level README.
+/// The folded value is correctly rounded and identical to the runtime one.
 constexpr double longBeamInnerY(double y_half_mm) {
     const double g = yGrowth();
     return longBeamCentreY(y_half_mm) - hbeamHalfHeight() * std::sqrt(1.0 + g * g);

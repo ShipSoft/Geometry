@@ -16,7 +16,7 @@ All parameters — layer sequences, thicknesses, module tiling — are
 ## Geometry tree
 
 ```
-/SHiP/calorimeter (Air, 6000 × 7000 × 2900 mm half-extents fixed by SHiPGeometry)
+/SHiP/calorimeter (Air, 6000 × 7000 × 2900 mm — the fixed subsystem envelope)
  └─ for each (mx, my) in [0..nx-1] × [0..ny-1]:
       └─ <layer_env_MXxYy>           (Air envelope, kPlateXY × kPlateXY × layer_thickness)
             └─ layer body            (Lead / Iron / WidePVT / ThinPS / HPL)
@@ -73,8 +73,9 @@ A violation fails the build with a descriptive message.
 
 - `CalorimeterBuilds` — the factory returns a non-null `GeoPhysVol` of
   the expected envelope size.
-- `CalorimeterHasChildren` — the container has at least the expected
-  number of children (`kModuleNX × kModuleNY × non-air-gap layers`).
+- `CalorimeterHasChildren` — the container holds exactly
+  `kModuleNX × kModuleNY × kVolsPerModule` children (588), so a dropped or
+  duplicated layer placement cannot pass unnoticed.
 - `TotalStackZMatchesReference` — `Calo::kTotalStackZ` matches the
   hand-computed reference, guarding the layer-sequence transcription.
 

@@ -50,7 +50,7 @@ is written.
 ### Prerequisites
 
 - CMake 3.16 or later
-- C++20 compatible compiler
+- C++23 compiler (CI builds with the GCC pinned in `pixi.toml`)
 - GeoModel libraries (GeoModelCore, GeoModelIO, GeoModelTools) version 6.22+
 
 ### Build Instructions
