@@ -4,7 +4,8 @@
 #pragma once
 
 #include <algorithm>
-#include <cmath>
+#include <bit>
+#include <cstdint>
 
 /**
  * @brief Compile-time parameters of the Surround Background Tagger (SBT).
@@ -169,21 +170,54 @@ constexpr double topBottomAvailX(double x_half_mm) {
 constexpr double longBeamCentreY(double y_half_mm) {
     return y_half_mm - 0.5 * webHeight();
 }
+
+namespace detail {
+
+/// Square root of @p v, usable in a constant expression.
+///
+/// std::sqrt is not: folding it at compile time is a GCC extension that Clang
+/// does not implement, and C++26's P1383R2 has not reached libstdc++ yet. A
+/// std::sqrt here therefore kept this whole header from compiling under Clang,
+/// and so from being analysed by clang-tidy. Newton-Raphson to a fixpoint
+/// sidesteps the question.
+///
+/// This is not a correctly-rounded general-purpose sqrt: the initial guess
+/// suits arguments near 1, and the iteration is capped in case it settles into
+/// a two-value cycle instead of a fixpoint. It is pinned below against the one
+/// argument the SBT geometry evaluates; do not reach for it elsewhere.
+constexpr double sqrtConst(double v) {
+    if (v <= 0.0)
+        return 0.0;
+    double x = v;
+    double prev = 0.0;
+    for (int i = 0; i < 200 && x != prev; ++i) {
+        prev = x;
+        x = 0.5 * (x + v / x);
+    }
+    return x;
+}
+
+/// Taper factor of a top/bottom longitudinal beam, 1/cos(atan(yGrowth)).
+constexpr double longBeamTaper() {
+    const double g = yGrowth();
+    return sqrtConst(1.0 + g * g);
+}
+
+// Bit for bit what GCC folds std::sqrt to for this argument, so moving the
+// computation here leaves the geometry untouched. Changing the frustum taper or
+// sqrtConst means updating this pin deliberately.
+static_assert(std::bit_cast<std::uint64_t>(longBeamTaper()) == 0x3ff001d7c0c9d03eULL,
+              "the longitudinal-beam taper factor no longer matches std::sqrt");
+
+}  // namespace detail
+
 /// |Y| reached by a longitudinal beam's inner flange surface (mm).
 ///
 /// The beam is inclined by the frustum taper, so its cross-section is
 /// rotated: the flange surface lies hbeamHalfHeight()/cos(atan(yGrowth))
 /// from the axis measured in world Y, not hbeamHalfHeight().
-///
-/// constexpr here needs the compiler to fold std::sqrt in a constant
-/// expression, which C++23 does not require (C++26 will, via P1383R2). GCC
-/// does it as a long-standing extension; Clang does not, and __builtin_sqrt
-/// is no help there either, so this header builds with GCC only (checked
-/// against Clang 18 and 23). See the compiler note in the top-level README.
-/// The folded value is correctly rounded and identical to the runtime one.
 constexpr double longBeamInnerY(double y_half_mm) {
-    const double g = yGrowth();
-    return longBeamCentreY(y_half_mm) - hbeamHalfHeight() * std::sqrt(1.0 + g * g);
+    return longBeamCentreY(y_half_mm) - hbeamHalfHeight() * detail::longBeamTaper();
 }
 
 // ── Compile-time validation (formerly runtime throws) ──────────────────
