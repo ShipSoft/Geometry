@@ -47,10 +47,10 @@ TEST_CASE("UBTHasSevenRegions", "[upstreamtagger]") {
 // Every region is fully tiled; the totals are fixed by the region geometry:
 //   fine blocks  2 × (20×20)      =   800
 //   coarse central  30×10          =   300
-//   coarse bands 2 × (50×32)       =  3200
-//   extensions   2 × (40×150)      = 12000
+//   coarse bands 2 × (50×75)       =  7500
+//   extensions   2 × (60×320)      = 38400
 //                                   ------
-//                                    16300 tiles
+//                                    47000 tiles
 TEST_CASE("UBTTileCount", "[upstreamtagger]") {
     SHiPMaterials materials;
     SHiPGeometry::UpstreamTaggerFactory factory(materials);
@@ -61,5 +61,5 @@ TEST_CASE("UBTTileCount", "[upstreamtagger]") {
     for (unsigned int i = 0; i < ubt->getNChildVols(); ++i) {
         totalTiles += ubt->getChildVol(i)->getNChildVols();
     }
-    CHECK(totalTiles == 16300u);  // NOLINT(readability/check)
+    CHECK(totalTiles == 47000u);  // NOLINT(readability/check)
 }
