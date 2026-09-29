@@ -4,6 +4,8 @@
 #include "DecayVolume/DecayVolumeFactory.h"
 #include "DecayVolume/SBTConstants.h"
 #include "DecayVolume/SBTEnvelope.h"
+#include "DecayVolume/SBTSensorBuilder.h"
+#include "DecayVolume/SBTStructureBuilder.h"
 #include "SHiPGeometry/SHiPMaterials.h"
 
 #include <GeoModelKernel/GeoBox.h>
@@ -299,6 +301,44 @@ Built buildDecayVolume() {
     return b;
 }
 
+// Build a perturbed copy of kSBT. The result is still a constant expression,
+// which is what keeps the sweep's parameters compile-time values.
+constexpr SBT::SBTParams vary(void (*apply)(SBT::SBTParams&)) {
+    SBT::SBTParams p = SBT::kSBT;
+    apply(p);
+    return p;
+}
+
+// Build the SBT + helium from arbitrary parameters into a generous throwaway
+// container, bypassing DecayVolumeFactory. This is what lets us sweep: the
+// real envelope allocation would reject half the variations below, which vary
+// the frustum well past it on purpose.
+Built buildFromParams(const SBT::SBTParams& params, const std::string& tag) {
+    static SHiPMaterials materials;
+    const GeoMaterial* air = materials.requireMaterial("Air");
+    const GeoMaterial* steel = materials.requireMaterial("Iron");
+    const GeoMaterial* alMat = materials.requireMaterial("Aluminium");
+    const GeoMaterial* labMat = materials.requireMaterial("LAB");
+    const GeoMaterial* helium = materials.requireMaterial("PressurisedHe90");
+
+    // Generous container: this test cares about helium-vs-SBT, not the envelope.
+    auto* boxShape = new GeoBox(10000.0, 10000.0, 40000.0);
+    auto* container = new GeoPhysVol(new GeoLogVol("/SHiP/test_container", boxShape, air));
+
+    SHiPGeometry::SBTStructureBuilder::build(container, steel, tag + "/structure", params);
+    SHiPGeometry::SBTSensorBuilder::build(container, alMat, labMat, tag + "/sensors", params);
+
+    // Derived here rather than read from kHeliumPieces, since the whole point
+    // is a configuration the shipped array does not describe.
+    const SBT::HeliumSlabs slabs = SBT::heliumSlabs(params);
+    REQUIRE(slabs.count == 2u * static_cast<std::size_t>(params.nSubFrustum));
+    SBT::buildHelium(container, helium, slabs.view());
+
+    Built b;
+    b.dv = container;
+    collect(container, b.helium, b.sbt);
+    return b;
+}
 // Geometric tolerance for the SAT assertions. Must stay well below
 // kHeliumClearance (1 um), or the clearance checks become vacuous; and well
 // above double-precision noise on ~1e4 mm coordinates (~1e-8 mm).
@@ -413,5 +453,107 @@ TEST_CASE("HeliumMatchesAnalyticEnvelope", "[decayvolume][envelope]") {
                   freeX - SBT::kSBT.heliumClearance - xSlack - kTol);  // NOLINT(readability/check)
             CHECK(dy >= freeY - SBT::kSBT.heliumClearance - kTol);     // NOLINT(readability/check)
         }
+    }
+}
+
+// THE test for "does this survive changes to the SBT?". A single configuration
+// proves nothing about that — it only shows the arithmetic is right at one
+// point. So: perturb each parameter the SBT is actually likely to be
+// re-specified with, rebuild the structure, the sensors AND the helium from
+// scratch, and re-run the overlap check. Every case must still come out flush.
+//
+// If a future change to either builder breaks the envelope's model of it, this
+// fails across the board rather than at one lucky configuration. It is what
+// caught the sawtooth and the longitudinal-beam inner flange, neither of which
+// the single shipped configuration would have shown.
+namespace {
+struct Variation {
+    const char* what;
+    SBT::SBTParams params;
+};
+
+// NOLINTBEGIN(readability/braces)
+constexpr std::array<Variation, 14> kVariations{{
+    {"baseline", SBT::kSBT},
+    {"steeper X taper", vary([](SBT::SBTParams& p) { p.xHalfExit = 3000.0; })},
+    {"steeper Y taper", vary([](SBT::SBTParams& p) { p.yHalfExit = 4500.0; })},
+    {"no taper at all", vary([](SBT::SBTParams& p) {
+         p.xHalfExit = p.xHalfEntrance;
+         p.yHalfExit = p.yHalfEntrance;
+     })},
+    {"wider flange", vary([](SBT::SBTParams& p) { p.hbeamFlangeWidth = 400.0; })},
+    {"taller beam", vary([](SBT::SBTParams& p) { p.hbeamHeight = 400.0; })},
+    {"thicker flange", vary([](SBT::SBTParams& p) { p.hbeamFlangeThickness = 30.0; })},
+    {"thinner containers", vary([](SBT::SBTParams& p) { p.containerThickness = 120.0; })},
+    {"thicker containers", vary([](SBT::SBTParams& p) { p.containerThickness = 300.0; })},
+    {"more sub-frusta", vary([](SBT::SBTParams& p) { p.nSubFrustum = 20; })},
+    {"fewer sub-frusta", vary([](SBT::SBTParams& p) { p.nSubFrustum = 5; })},
+    {"bigger sensor clearance", vary([](SBT::SBTParams& p) { p.sensorClearance = 5.0; })},
+    {"non-zero helium clearance", vary([](SBT::SBTParams& p) { p.heliumClearance = 10.0; })},
+    {"shorter SBT", vary([](SBT::SBTParams& p) { p.totalLength = 20000.0; })},
+}};
+// NOLINTEND(readability/braces)
+}  // namespace
+
+TEST_CASE("HeliumIsFlushAcrossTheParameterSpace", "[decayvolume][envelope][sweep]") {
+    for (std::size_t vi = 0; vi < kVariations.size(); ++vi) {
+        const Variation& v = kVariations[vi];
+        INFO("variation: " << v.what);
+        REQUIRE(SBT::leavesDecayRegion(v.params));
+
+        // Tag by index, not by name: collect() classifies a volume as helium by
+        // looking for "helium" in it, and one variation is called "non-zero
+        // helium clearance".
+        const Built b = buildFromParams(v.params, "/SHiP/sweep_" + std::to_string(vi));
+        std::string culprit;
+        const double worst = closestApproach(b, &culprit);
+
+        INFO("closest approach " << worst << " mm; want [" << minExpectedSeparation(v.params)
+                                 << ", " << v.params.heliumClearance << "], nearest " << culprit);
+        CHECK(worst >= -kTol);  // NOLINT(readability/check) no overlap
+        CHECK(worst >=
+              minExpectedSeparation(v.params) - kTol);    // NOLINT(readability/check) clearance
+        CHECK(worst <= v.params.heliumClearance + kTol);  // NOLINT(readability/check) no margin
+    }
+}
+
+// Guard rail: an SBT whose beams and containers have eaten the whole frustum
+// must fail loudly. It used to throw at run time; now leavesDecayRegion() says
+// so at compile time, and SBTEnvelope.h static_asserts it for the shipped
+// parameters — so these configurations cannot reach a build at all.
+namespace {
+constexpr SBT::SBTParams kContainersTooThick =
+    vary([](SBT::SBTParams& p) { p.containerThickness = 5000.0; });
+// subLength 100 mm < zSplitOffset 131.25 mm, so two knots cross.
+constexpr SBT::SBTParams kSubFrustaTooShort = vary([](SBT::SBTParams& p) { p.nSubFrustum = 500; });
+constexpr SBT::SBTParams kNegativeClearance =
+    vary([](SBT::SBTParams& p) { p.heliumClearance = -5.0; });
+
+// The assertions proper. A positive control keeps the predicate from passing
+// vacuously.
+static_assert(SBT::leavesDecayRegion(SBT::kSBT));
+static_assert(!SBT::leavesDecayRegion(kContainersTooThick));
+static_assert(!SBT::leavesDecayRegion(kSubFrustaTooShort));
+static_assert(!SBT::leavesDecayRegion(kNegativeClearance));
+}  // namespace
+
+// The static_asserts above are the test; this reports them per case so a
+// regression names the configuration rather than only failing to compile.
+//
+// Stated plainly so nobody mistakes it for more: this proves
+// leavesDecayRegion() discriminates, not that a build with these parameters
+// actually fails. A compilation that succeeds cannot assert that another one
+// fails; that needs a try_compile/WILL_FAIL harness. What ties the two
+// together is that SBTEnvelope.h's shipped static_assert is written in terms
+// of this very predicate.
+TEST_CASE("HeliumRejectsAnImpossibleSBT", "[decayvolume][envelope]") {
+    SECTION("containers larger than the frustum") {
+        CHECK(!SBT::leavesDecayRegion(kContainersTooThick));  // NOLINT(readability/check)
+    }
+    SECTION("sub-frustum shorter than the sensor flat piece") {
+        CHECK(!SBT::leavesDecayRegion(kSubFrustaTooShort));  // NOLINT(readability/check)
+    }
+    SECTION("negative clearance would overlap by construction") {
+        CHECK(!SBT::leavesDecayRegion(kNegativeClearance));  // NOLINT(readability/check)
     }
 }

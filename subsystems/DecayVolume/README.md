@@ -116,3 +116,12 @@ and the 3400 GeoTrap children (20 helium slabs + 3380 sensors) for a total of
 overlap test between every helium slab and every SBT volume in the built tree,
 asserting the helium neither protrudes into any material nor leaves a margin
 beyond the configured clearance.
+
+That check then runs again across a sweep of fourteen perturbed `SBTParams` —
+steeper and flatter tapers, wider flanges, taller beams, more and fewer
+sub-frusta, a non-zero helium clearance — each rebuilding the structure, the
+sensors and the helium from scratch. A single configuration only shows the
+arithmetic is right at one point; the sweep is what catches an envelope that
+has stopped modelling what the builders actually place. A companion case pins
+the configurations that must *not* build, via the same `leavesDecayRegion()`
+predicate the shipped `static_assert` uses.
