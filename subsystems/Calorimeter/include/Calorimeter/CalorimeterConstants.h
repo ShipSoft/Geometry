@@ -52,11 +52,17 @@ inline constexpr double kModulePitchX = kPlateXY;
 inline constexpr double kModulePitchY = kPlateXY;
 
 // ── Layer sequences ─────────────────────────────────────────────────────
-using enum LayerCode;
+//
+//  The `using enum` is confined to each initialiser: at namespace scope in a
+//  public header it would make Absorber, AirGap, WidePVT_H ... visible
+//  unqualified throughout SHiPGeometry::Calo for every includer, which is most
+//  of what enum class is for.
 
 /// ECAL layer sequence.
-inline constexpr std::array kEcalLayers{
-    // clang-format off
+inline constexpr auto kEcalLayers = [] {
+    using enum LayerCode;
+    return std::array{
+        // clang-format off
     Absorber, WidePVT_H, Absorber, WidePVT_V, Absorber, ThinPS_H, Absorber, ThinPS_V,
     Absorber, WidePVT_H, Absorber, WidePVT_V, Absorber, ThinPS_H, Absorber, ThinPS_V,
     Absorber, WidePVT_H, Absorber, WidePVT_V,
@@ -72,14 +78,18 @@ inline constexpr std::array kEcalLayers{
     Absorber, ThinPS_H, Absorber, ThinPS_V, Absorber, WidePVT_H, Absorber, WidePVT_V,
     Absorber, ThinPS_H, Absorber, ThinPS_V,
     Absorber, WidePVT_H, Absorber, WidePVT_V, Absorber, ThinPS_H, Absorber, ThinPS_V,
-    // clang-format on
-};
+        // clang-format on
+    };
+}();
 
 /// HCAL layer sequence (Absorber means iron here rather than lead).
-inline constexpr std::array kHcalLayers{
-    Absorber,  WidePVT_H, Absorber,  WidePVT_V, Absorber,
-    WidePVT_H, Absorber,  WidePVT_V, Absorber,  WidePVT_H,
-};
+inline constexpr auto kHcalLayers = [] {
+    using enum LayerCode;
+    return std::array{
+        Absorber,  WidePVT_H, Absorber,  WidePVT_V, Absorber,
+        WidePVT_H, Absorber,  WidePVT_V, Absorber,  WidePVT_H,
+    };
+}();
 
 // ── Fixed container envelope ────────────────────────────────────────────
 // These match the SHiP subsystem envelope from subsystem_envelopes.csv
@@ -93,6 +103,7 @@ inline constexpr double kContainerHalfZ = 1450.0;  // 1.45 m
 /// Z advance of one layer of the given type (mm). The absorber thickness
 /// differs between the ECAL (lead) and HCAL (iron) sections.
 constexpr double layerThickness(LayerCode code, double absorberThickness) {
+    using enum LayerCode;
     switch (code) {
         case Absorber:
             return absorberThickness;
@@ -127,6 +138,7 @@ inline constexpr double kTotalStackZ =
 /// envelope, or the bare iron plate in the HCAL); AirGap places none and only
 /// advances the z cursor.
 constexpr int sectionVolumeCount(std::span<const LayerCode> codes) {
+    using enum LayerCode;
     int n = 0;
     for (LayerCode code : codes)
         n += code == AirGap ? 0 : 1;
