@@ -59,9 +59,11 @@ The parameters are validated at compile time by `static_assert`s in
 
 - `kModuleNX` and `kModuleNY` must be strictly positive.
 - The total Z extent of the ECAL sequence + `kGapEcalHcal` + the HCAL
-  sequence must fit inside the container's Z half-extent.
-- The X/Y footprint of the tiled modules must fit inside the
-  container's X/Y half-extents.
+  sequence (`kTotalStackZ`, 2600 mm) must fit inside the container's full
+  Z extent (`2 × kContainerHalfZ`, 2900 mm).
+- The tiled modules' half-footprint in X and Y — centre to the outer edge of
+  the outermost module — must fit inside the container's X/Y half-extents
+  (`kContainerHalfX` / `kContainerHalfY`).
 - `kFiberCoreDiameter` cannot exceed `kFiberDiameter`.
 - `kPlateXY` must be a whole number of bars at both bar pitches.
 
