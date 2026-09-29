@@ -238,12 +238,13 @@ static_assert(zSplitOffset() < subLength(),
 // The SBT structure must fit the fixed decay-volume envelope. Bounds on the
 // outermost structure reach; with the current values the reaches are
 // ~2130 / ~3259 / ~25130 mm, inside the 2200 / 3300 / 25200 envelope.
-// X: vertical columns sit at kXHalfExit with a half-flange overhang.
+// X: vertical columns sit at the wider of the two frustum faces, with a
+//    half-flange overhang.
 // Y: top/bottom cross-beams are shifted a full beam-height above kYHalfExit
 //    (plus a small frustum-growth term); +10 pads the assembly standoff.
 // Z: the structure spans [kZEntrance, zExit()]; cross-beam flanges extend
 //    half a flange-width beyond the end rows.
-static_assert(kXHalfExit + 0.5 * kHBeamFlangeWidth <= kEnvelopeHalfX,
+static_assert(std::max(kXHalfEntrance, kXHalfExit) + 0.5 * kHBeamFlangeWidth <= kEnvelopeHalfX,
               "SBT structure pierces the decay-volume envelope in X");
 static_assert(kYHalfExit + kHBeamHeight + 0.5 * kHBeamFlangeWidth * yGrowth() + 10.0 <=
                   kEnvelopeHalfY,
