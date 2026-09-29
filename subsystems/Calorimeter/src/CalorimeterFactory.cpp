@@ -36,8 +36,8 @@ GeoPhysVol* CalorimeterFactory::build() {
 
     // Fixed-size container — must match the SHiP subsystem envelope so that
     // the geometry consistency tests and the overlap check pass.
-    auto* containerBox =
-        new GeoBox(Calo::kContainerHalfX, Calo::kContainerHalfY, Calo::kContainerHalfZ);
+    auto* containerBox = new GeoBox(Calo::kContainerHalfX * mm, Calo::kContainerHalfY * mm,
+                                    Calo::kContainerHalfZ * mm);
     auto* containerLog = new GeoLogVol("/SHiP/calorimeter", containerBox, air);
     auto* containerPhys = new GeoPhysVol(containerLog);
 

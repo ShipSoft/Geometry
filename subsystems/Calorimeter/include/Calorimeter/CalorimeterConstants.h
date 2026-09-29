@@ -3,8 +3,6 @@
 
 #pragma once
 
-#include <GeoModelKernel/Units.h>
-
 #include <array>
 #include <span>
 
@@ -86,9 +84,9 @@ inline constexpr std::array kHcalLayers{
 // ── Fixed container envelope ────────────────────────────────────────────
 // These match the SHiP subsystem envelope from subsystem_envelopes.csv
 // and must not change — tests and the consistency check depend on them.
-inline constexpr double kContainerHalfX = 3000.0 * GeoModelKernelUnits::mm;  // 3.00 m
-inline constexpr double kContainerHalfY = 3500.0 * GeoModelKernelUnits::mm;  // 3.50 m
-inline constexpr double kContainerHalfZ = 1450.0 * GeoModelKernelUnits::mm;  // 1.45 m
+inline constexpr double kContainerHalfX = 3000.0;  // 3.00 m
+inline constexpr double kContainerHalfY = 3500.0;  // 3.50 m
+inline constexpr double kContainerHalfZ = 1450.0;  // 1.45 m
 
 // ── Derived quantities ──────────────────────────────────────────────────
 
