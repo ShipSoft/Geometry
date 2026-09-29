@@ -15,6 +15,9 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# clang-tidy replays these commands; see .github/workflows/clang-tidy.yml.
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 option(BUILD_SHARED_LIBS "Build shared libraries by default" ON)
 
 # Find GeoModel packages
@@ -37,7 +40,7 @@ if(BUILD_TESTING)
     FetchContent_Declare(
         Catch2
         GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-        GIT_TAG v3.8.0
+        GIT_TAG v3.16.0
     )
     FetchContent_MakeAvailable(Catch2)
     list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)

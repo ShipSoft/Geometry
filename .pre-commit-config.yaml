@@ -29,13 +29,6 @@ repos:
         entry: clang-format -i
         types_or: [c++, c]
 
-      - id: cpplint
-        name: cpplint
-        language: system
-        entry: cpplint
-        args:
-          - '--filter=-build/include_subdir,-build/include_order,-build/c++17,-build/include_what_you_use,-build/namespaces,-legal/copyright,-readability/todo,-runtime/references,-whitespace/indent,-whitespace/line_length'
-        types: [c++]
 
       - id: codespell
         name: codespell

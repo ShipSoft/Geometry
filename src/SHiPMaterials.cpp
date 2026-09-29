@@ -187,6 +187,15 @@ void SHiPMaterials::createMaterials() {
     lab->lock();
     m_materials["LAB"] = lab;
 
+    // TimDetScint — polyvinyltoluene scintillator for the Timing Detector bars
+    // (C8H8, density 1.023 g/cm³; mass fractions per timing_detector.gmx).
+    GeoMaterial* timDetScint =
+        new GeoMaterial("TimDetScint", 1.023 * GeoModelKernelUnits::g / GeoModelKernelUnits::cm3);
+    timDetScint->add(m_elements["Carbon"], 0.9226);
+    timDetScint->add(m_elements["Hydrogen"], 0.0774);
+    timDetScint->lock();
+    m_materials["TimDetScint"] = timDetScint;
+
     // Lead (density 11.34 g/cm³): pure Pb
     GeoMaterial* lead =
         new GeoMaterial("Lead", 11.34 * GeoModelKernelUnits::g / GeoModelKernelUnits::cm3);

@@ -34,7 +34,7 @@ quantity explicit at the point where it is written.
 | Subsystem | Status | Description |
 |-----------|--------|-------------|
 | [Cavern](subsystems/Cavern/README.md) | Complete | World volume with subtracted rock cavities |
-| [Target](subsystems/Target/README.md) | Complete | 19 W slabs with Ta cladding in Inconel vessel |
+| [Target](subsystems/Target/README.md) | Complete | 2026 BDF target: 33 W disks in grooved steel core with jacket and endcap |
 | [MuonShield](subsystems/MuonShield/README.md) | Approximate | 6 stations, box approximations of arb8 shapes |
 | [NeutrinoDetector](subsystems/NeutrinoDetector/README.md) | Approximate | Veto + Si/W target + HCAL with individual scintillating fibres |
 | [Magnet](subsystems/Magnet/README.md) | Approximate | Iron yoke with box-shaped coils (should be tubes) |

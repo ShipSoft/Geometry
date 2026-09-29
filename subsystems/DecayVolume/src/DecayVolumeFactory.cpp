@@ -4,19 +4,16 @@
 #include "DecayVolume/DecayVolumeFactory.h"
 
 #include "DecayVolume/SBTConfig.h"
+#include "DecayVolume/SBTEnvelope.h"
 #include "DecayVolume/SBTSensorBuilder.h"
 #include "DecayVolume/SBTStructureBuilder.h"
 #include "SHiPGeometry/ConfigPath.h"
 #include "SHiPGeometry/SHiPMaterials.h"
 
 #include <GeoModelKernel/GeoBox.h>
-#include <GeoModelKernel/GeoDefinitions.h>
 #include <GeoModelKernel/GeoLogVol.h>
 #include <GeoModelKernel/GeoMaterial.h>
-#include <GeoModelKernel/GeoNameTag.h>
 #include <GeoModelKernel/GeoPhysVol.h>
-#include <GeoModelKernel/GeoTransform.h>
-#include <GeoModelKernel/GeoTrap.h>
 #include <GeoModelKernel/Units.h>
 
 #include <algorithm>
@@ -50,7 +47,8 @@ DecayVolumeFactory::DecayVolumeFactory(SHiPMaterials& materials, std::string con
     : m_materials(materials), m_configPath(std::move(configPath)) {}
 
 GeoPhysVol* DecayVolumeFactory::build() {
-    const SBTConfig cfg = readSBTConfig(resolveTomlPath(m_configPath));
+    m_config = readSBTConfig(resolveTomlPath(m_configPath));
+    const SBTConfig& cfg = m_config;
 
     const GeoMaterial* air = m_materials.requireMaterial(cfg.material_air);
     const GeoMaterial* steel = m_materials.requireMaterial(cfg.material_steel);
@@ -97,26 +95,24 @@ GeoPhysVol* DecayVolumeFactory::build() {
     auto* containerLog = new GeoLogVol("/SHiP/decay_volume", containerBox, air);
     auto* container = new GeoPhysVol(containerLog);
 
-    // ── Central helium decay region ──────────────────────────────────────
-    // A frustum sized inside the innermost sensor faces (x_half - thickness,
-    // y_half - thickness) minus the helium clearance, centred on the SBT.
-    const double inset = cfg.container_thickness_mm + cfg.helium_clearance_mm;
-    const double dz = 0.5 * cfg.total_length_mm * mm;
-    const double dx1 = (cfg.x_half_entrance_mm - inset) * mm;
-    const double dy1 = (cfg.y_half_entrance_mm - inset) * mm;
-    const double dx2 = (cfg.x_half_exit_mm - inset) * mm;
-    const double dy2 = (cfg.y_half_exit_mm - inset) * mm;
-
-    auto* heShape = new GeoTrap(dz, 0.0, 0.0, dy1, dx1, dx1, 0.0, dy2, dx2, dx2, 0.0);
-    auto* heLog = new GeoLogVol("/SHiP/decay_volume/helium", heShape, helium);
-    auto* hePhys = new GeoPhysVol(heLog);
-    container->add(new GeoNameTag("/SHiP/decay_volume/helium"));
-    container->add(new GeoTransform(GeoTrf::Translate3D(0.0, 0.0, 0.0)));
-    container->add(hePhys);
-
-    // ── SBT steel structure + LAB sensors, wrapping the helium ───────────
+    // ── SBT steel structure + LAB sensors ────────────────────────────────
     SBTStructureBuilder::build(container, steel, cfg);
     SBTSensorBuilder::build(container, alMat, labMat, cfg);
+
+    // ── Central helium decay region ──────────────────────────────────────
+    // The helium is not sized independently — it is *derived* from where the
+    // SBT material actually is (SBTEnvelope, which reads the same placement
+    // primitives on SBTConfig that the two builders above place with). It
+    // fills the interior exactly: no protrusion into steel or scintillator, and
+    // no arbitrary margin left behind beyond helium_clearance_mm (1 um, just
+    // enough to avoid coincident surfaces).
+    //
+    // It is a stack of GeoTraps rather than one, because the inner surface is
+    // not linear in Z: the side containers present a flat outer face over the
+    // first zSplitOffset() of every sub-frustum so as to clear the columns, so
+    // the free region is a sawtooth. One GeoTrap per envelope segment tracks
+    // it exactly; a single frustum could not.
+    buildHelium(container, helium, cfg);
 
     return container;
 }

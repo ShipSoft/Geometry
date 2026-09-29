@@ -164,11 +164,23 @@ SBTConfig readSBTConfig(const std::string& path) {
     requirePositive(cfg.hbeam_web_thickness_mm, "hbeam_web_thickness_mm");
     requirePositive(cfg.container_thickness_mm, "container_thickness_mm");
     requirePositive(cfg.wall_thickness_mm, "wall_thickness_mm");
-    // Clearances are insets/gaps; a non-positive value collapses the gap and
-    // can overlap geometry (helium_clearance_mm feeds the helium inset =
-    // container_thickness_mm + helium_clearance_mm in DecayVolumeFactory).
+    // sensor_clearance_mm is trimmed off *each side* of a top/bottom container,
+    // so it must leave something behind: SBTConfig::topBottomContainerHalfThickness()
+    // is 0.5*container_thickness_mm - sensor_clearance_mm and is used directly as
+    // a GeoTrap half-dimension. It must be strictly positive, and bounded above:
+    // if it goes negative, topBottomSensorInnerY() reports the container's inner
+    // face as *further out* than it is, and SBTEnvelope sizes the helium into the
+    // scintillator.
     requirePositive(cfg.sensor_clearance_mm, "sensor_clearance_mm");
-    requirePositive(cfg.helium_clearance_mm, "helium_clearance_mm");
+    if (cfg.sensor_clearance_mm >= 0.5 * cfg.container_thickness_mm)
+        throw std::runtime_error(
+            "SBTConfig: 'sensor_clearance_mm' must be < 0.5 * 'container_thickness_mm' "
+            "(otherwise the top/bottom container half-thickness is non-positive)");
+    // helium_clearance_mm is deliberately NOT checked here. It is consumed only
+    // by SBTEnvelope, which must validate it anyway for callers that construct
+    // an SBTConfig directly, and its contract is ">= 0" — 0 is legal and means
+    // the helium touches the SBT exactly. Checking it here as "> 0" as well
+    // would be both redundant and stricter than the real contract.
     // Web half-height (= height/2 - flange_thickness) is used as a GeoBox
     // half-dimension, so the flanges must not consume the whole beam.
     if (cfg.hbeam_height_mm <= 2.0 * cfg.hbeam_flange_thickness_mm)
