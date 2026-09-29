@@ -11,15 +11,17 @@
 #include <GeoModelKernel/GeoTrap.h>
 #include <GeoModelKernel/Units.h>
 
+#include <span>
 #include <string>
 
 namespace SHiPGeometry::SBT {
 
-void buildHelium(GeoPhysVol* container, const GeoMaterial* helium) {
+void buildHelium(GeoPhysVol* container, const GeoMaterial* helium,
+                 std::span<const HeliumPiece> pieces) {
     using namespace GeoModelKernelUnits;
 
-    for (std::size_t i = 0; i < kHeliumPieces.size(); ++i) {
-        const HeliumPiece& p = kHeliumPieces[i];
+    for (std::size_t i = 0; i < pieces.size(); ++i) {
+        const HeliumPiece& p = pieces[i];
         const double dz = 0.5 * (p.z_hi_mm - p.z_lo_mm) * mm;
         const double zMid = 0.5 * (p.z_lo_mm + p.z_hi_mm) * mm;
         const double dx1 = p.dx_lo_mm * mm;

@@ -312,9 +312,9 @@ constexpr double kTol = 1e-6;
 // tracking-piece inner face does), and its normal then makes an angle
 // atan(sqrt(gx^2 + gy^2)) with the axis, not atan(max(gx, gy)). The two-axis
 // combination is the rigorous lower bound; max() alone overestimates the gap.
-double minExpectedSeparation() {
-    const double gx = SBT::xGrowth(), gy = SBT::yGrowth();
-    return SBT::kHeliumClearance / std::sqrt(1.0 + gx * gx + gy * gy);
+double minExpectedSeparation(const SBT::SBTParams& params = SBT::kSBT) {
+    const double gx = SBT::xGrowth(params), gy = SBT::yGrowth(params);
+    return params.heliumClearance / std::sqrt(1.0 + gx * gx + gy * gy);
 }
 
 // Closest approach between any helium slab and any SBT volume.
@@ -373,16 +373,16 @@ TEST_CASE("HeliumIsFlushWithTheSBT", "[decayvolume][envelope]") {
     const double worst = closestApproach(b);
 
     INFO("closest approach: " << worst << " mm; want [" << minExpectedSeparation() << ", "
-                              << SBT::kHeliumClearance << "]");
-    CHECK(worst >= minExpectedSeparation() - kTol);  // NOLINT(readability/check) no gouging
-    CHECK(worst <= SBT::kHeliumClearance + kTol);    // NOLINT(readability/check) no margin
+                              << SBT::kSBT.heliumClearance << "]");
+    CHECK(worst >= minExpectedSeparation() - kTol);    // NOLINT(readability/check) no gouging
+    CHECK(worst <= SBT::kSBT.heliumClearance + kTol);  // NOLINT(readability/check) no margin
 }
 
 // The helium fills the analytic envelope exactly, sampled densely rather than
 // only at the slab boundaries — this catches an envelope whose knots are in the
-// wrong places (e.g. if zSplitOffset() changed but kEnvelopeKnots did not).
+// wrong places (e.g. if zSplitOffset() changed but detail::knotAt did not).
 TEST_CASE("HeliumMatchesAnalyticEnvelope", "[decayvolume][envelope]") {
-    static_assert(SBT::kHeliumPieces.size() == 2u * SBT::kNSubFrustum);
+    static_assert(SBT::kHeliumPieces.size() == 2u * SBT::kSBT.nSubFrustum);
 
     for (const auto& p : SBT::kHeliumPieces) {
         for (int k = 0; k <= 32; ++k) {
@@ -398,8 +398,8 @@ TEST_CASE("HeliumMatchesAnalyticEnvelope", "[decayvolume][envelope]") {
             const double freeY = SBT::innerFreeHalfY(zs);
 
             // Upper bound: the helium never protrudes past the analytic envelope.
-            CHECK(dx <= freeX - SBT::kHeliumClearance + kTol);  // NOLINT(readability/check)
-            CHECK(dy <= freeY - SBT::kHeliumClearance + kTol);  // NOLINT(readability/check)
+            CHECK(dx <= freeX - SBT::kSBT.heliumClearance + kTol);  // NOLINT(readability/check)
+            CHECK(dy <= freeY - SBT::kSBT.heliumClearance + kTol);  // NOLINT(readability/check)
 
             // Lower bound: the helium is flush, not merely inside. In Y the
             // envelope is continuous across a slab, so the interpolated edge
@@ -410,8 +410,8 @@ TEST_CASE("HeliumMatchesAnalyticEnvelope", "[decayvolume][envelope]") {
             // sawtooth slack there, and no more.
             const double xSlack = std::abs(SBT::xGrowth()) * SBT::zSplitOffset();
             CHECK(dx >=
-                  freeX - SBT::kHeliumClearance - xSlack - kTol);  // NOLINT(readability/check)
-            CHECK(dy >= freeY - SBT::kHeliumClearance - kTol);     // NOLINT(readability/check)
+                  freeX - SBT::kSBT.heliumClearance - xSlack - kTol);  // NOLINT(readability/check)
+            CHECK(dy >= freeY - SBT::kSBT.heliumClearance - kTol);     // NOLINT(readability/check)
         }
     }
 }

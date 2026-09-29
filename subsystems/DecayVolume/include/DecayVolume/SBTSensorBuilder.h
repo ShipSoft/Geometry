@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "DecayVolume/SBTConstants.h"
+
 #include <string>
 
 class GeoVPhysVol;
@@ -25,7 +27,8 @@ class SBTSensorBuilder {
     /// the LAB cell material; the frustum/sensor parameters come from
     /// SBTConstants.h.
     static void build(GeoVPhysVol* mother, const GeoMaterial* alMat, const GeoMaterial* labMat,
-                      const std::string& tag = "/SHiP/decay_volume/sbt/sensors");
+                      const std::string& tag = "/SHiP/decay_volume/sbt/sensors",
+                      const SBT::SBTParams& params = SBT::kSBT);
 };
 
 }  // namespace SHiPGeometry

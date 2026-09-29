@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "DecayVolume/SBTConstants.h"
+
 #include <string>
 
 class GeoVPhysVol;
@@ -25,7 +27,8 @@ class SBTStructureBuilder {
     /// and H-beam parameters come from SBTConstants.h; @p tag is the
     /// volume-name prefix.
     static void build(GeoVPhysVol* mother, const GeoMaterial* steel,
-                      const std::string& tag = "/SHiP/decay_volume/sbt/structure");
+                      const std::string& tag = "/SHiP/decay_volume/sbt/structure",
+                      const SBT::SBTParams& params = SBT::kSBT);
 };
 
 }  // namespace SHiPGeometry

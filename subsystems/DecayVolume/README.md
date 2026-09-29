@@ -87,11 +87,17 @@ central `SHiPMaterials` catalogue for the SBT cells.
 
 ## Parameters
 
-The SBT geometry is defined by the `constexpr` constants in
-`SBTConstants.h` (namespace `SHiPGeometry::SBT`): the frustum envelope,
-sub-frustum count, H-beam cross-section, sensor container/cell parameters,
-helium clearance and the SBT entrance Z, plus the placement primitives both
-builders and the helium derivation share. Invariants are enforced by
+The SBT geometry is defined by `SBTParams` in `SBTConstants.h` (namespace
+`SHiPGeometry::SBT`): the frustum envelope, sub-frustum count, H-beam
+cross-section, sensor container/cell parameters, helium clearance and the SBT
+entrance Z. `kSBT` is the shipped instance, and every placement primitive —
+the ones both builders and the helium derivation share — takes an `SBTParams`
+defaulting to it.
+
+Grouping them into a struct rather than leaving them as loose constants is
+what lets the tests build the SBT at parameters other than the shipped ones,
+which is the only way to check that the helium derivation is correct in
+general rather than correct at today's numbers. Invariants are enforced by
 `static_assert`, so an impossible SBT fails the build.
 
 ## Status
