@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <GeoModelKernel/Units.h>
+#include "SHiPGeometry/Units.h"
 
 class GeoPhysVol;
 
@@ -30,21 +30,18 @@ class MuonShieldFactory {
    private:
     SHiPMaterials& m_materials;
 
-    // Unit shorthand (GeoModel's native length unit is mm)
-    static constexpr double mm = GeoModelKernelUnits::mm;
-
     struct PieceData {
-        double halfX, halfY, halfZ;  // bounding-box half-sizes
-        double centX, centY;         // centre offset in station XY frame
-        const char* name;            // piece name suffix
+        units::LengthMm halfX, halfY, halfZ;  // bounding-box half-sizes
+        units::LengthMm centX, centY;         // centre offset in station XY frame
+        const char* name;                     // piece name suffix
     };
 
     struct StationData {
-        const char* name;  // station name
-        double stationZ;   // z in MuonShieldArea frame
-        double containerHalfX;
-        double containerHalfY;
-        double containerHalfZ;
+        const char* name;          // station name
+        units::LengthMm stationZ;  // z in MuonShieldArea frame
+        units::LengthMm containerHalfX;
+        units::LengthMm containerHalfY;
+        units::LengthMm containerHalfZ;
         PieceData pieces[8];
     };
 
@@ -54,9 +51,9 @@ class MuonShieldFactory {
     GeoPhysVol* buildStation(const StationData& station);
 
     // MuonShieldArea container dimensions
-    static constexpr double s_areaHalfX = 1810.0 * mm;
-    static constexpr double s_areaHalfY = 1700.0 * mm;
-    static constexpr double s_areaHalfZ = 14724.0 * mm;
+    static constexpr auto s_areaHalfX = 1810.0 * units::mm;
+    static constexpr auto s_areaHalfY = 1700.0 * units::mm;
+    static constexpr auto s_areaHalfZ = 14724.0 * units::mm;
 };
 
 }  // namespace SHiPGeometry

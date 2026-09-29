@@ -17,6 +17,7 @@ target_link_libraries(
         GeoModelCore::GeoModelKernel
         GeoModelIO::GeoModelRead
         GeoModelIO::GeoModelWrite
+        mp-units::mp-units
         Cavern
         Target
         MuonShield

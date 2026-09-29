@@ -97,7 +97,8 @@ TEST_CASE("TrackersHasTrackerMagnet", "[trackers]") {
     REQUIRE(box != nullptr);
     // Span must stay clear of station 2 (ends 86570 mm) and the Magnet yoke
     // (starts 87070 mm): 86570 <= centre ± halfZ <= 87070.
-    const double centre = TrackersFactory::s_trackerMagnetZ;
+    const double centre =
+        TrackersFactory::s_trackerMagnetZ.numerical_value_in(SHiPGeometry::units::mm);
     const double halfZ = box->getZHalfLength();
     CHECK(centre - halfZ >= 86570.0);
     CHECK(centre + halfZ <= 87070.0);

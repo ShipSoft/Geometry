@@ -17,20 +17,23 @@
 
 namespace SHiPGeometry {
 
+using units::gm;
+
 TimingDetectorFactory::TimingDetectorFactory(SHiPMaterials& materials) : m_materials(materials) {}
 
 GeoPhysVol* TimingDetectorFactory::build() {
     const GeoMaterial* air = m_materials.requireMaterial("Air");
     const GeoMaterial* scint = m_materials.requireMaterial("TimDetScint");
 
-    auto* containerBox = new GeoBox(s_containerHalfX, s_containerHalfY, s_containerHalfZ);
+    auto* containerBox =
+        new GeoBox(gm(s_containerHalfX), gm(s_containerHalfY), gm(s_containerHalfZ));
     auto* containerLog = new GeoLogVol("/SHiP/timing_detector", containerBox, air);
     auto* containerPhys = new GeoPhysVol(containerLog);
 
     // One reusable bar logvol, shared across all placements (the GeoModel idiom
     // used by the calorimeter bar layers and the upstream-tagger tiles).
     auto* barLog = new GeoLogVol("/SHiP/timing_detector/bar",
-                                 new GeoBox(s_barHalfX, s_barHalfY, s_barHalfZ), scint);
+                                 new GeoBox(gm(s_barHalfX), gm(s_barHalfY), gm(s_barHalfZ)), scint);
 
     // 3 columns × 110 rows = 330 bars. Positions are analytic:
     //   x = (ic - 1) * pitch          → -1300, 0, +1300 mm
@@ -38,15 +41,15 @@ GeoPhysVol* TimingDetectorFactory::build() {
     //   z = (ir%2)*12 + (ic%2)*90     → 4 stagger levels: 0, 12, 90, 102 mm
     m_barCount = 0;
     for (int ic = 0; ic < s_nColumns; ++ic) {
-        const double x = (ic - 1) * s_columnPitchX;
+        const auto x = (ic - 1) * s_columnPitchX;
         for (int ir = 0; ir < s_nRows; ++ir) {
-            const double y = s_rowY0 + ir * s_rowStepY;
-            const double z = (ir % 2) * s_zStaggerRow + (ic % 2) * s_zStaggerCol;
+            const auto y = s_rowY0 + ir * s_rowStepY;
+            const auto z = (ir % 2) * s_zStaggerRow + (ic % 2) * s_zStaggerCol;
             const std::string name =
                 "/SHiP/timing_detector/bar_" + std::to_string(ic) + "_" + std::to_string(ir);
             containerPhys->add(new GeoNameTag(name));
             containerPhys->add(new GeoIdentifierTag(m_barCount));
-            containerPhys->add(new GeoTransform(GeoTrf::Translate3D(x, y, z)));
+            containerPhys->add(new GeoTransform(GeoTrf::Translate3D(gm(x), gm(y), gm(z))));
             containerPhys->add(new GeoPhysVol(barLog));
             ++m_barCount;
         }
