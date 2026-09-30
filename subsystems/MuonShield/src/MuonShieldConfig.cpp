@@ -21,7 +21,6 @@
 #include <array>
 #include <cmath>
 #include <cstddef>
-#include <iostream>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -33,8 +32,8 @@ namespace {
 
 using namespace std::string_view_literals;
 
-// Recognised top-level keys (sorted for binary search). Anything outside this
-// set triggers a warning. "block" is the [[block]] array of tables.
+// Recognised top-level keys. Anything outside this set triggers a warning.
+// "block" is the [[block]] array of tables.
 static constexpr std::array kKnownKeys = {
     "block"sv,
     "block_material"sv,
@@ -57,13 +56,6 @@ static constexpr NumericField kNumericFields[] = {
     {"envelope_z_end_mm", &MuonShieldConfig::envelope_z_end_mm},
 };
 
-// Read a scalar double or integer as a double (shared numeric extraction).
-double readNumeric(const toml::node_view<toml::node>& node, const std::string& key) {
-    if (auto v = tomlconfig::asDouble(node.node()))
-        return *v;
-    throw std::runtime_error("MuonShieldConfig: '" + key + "' must be a number");
-}
-
 }  // namespace
 
 MuonShieldConfig readMuonShieldConfig(const std::string& path) {
@@ -78,17 +70,12 @@ MuonShieldConfig readMuonShieldConfig(const std::string& path) {
     }
 
     // First pass: warn about unknown keys.
-    for (const auto& [k, _] : table) {
-        if (!std::ranges::binary_search(kKnownKeys, std::string_view{k})) {
-            std::cerr << "MuonShieldConfig: warning: unknown key '" << k << "' in " << path
-                      << " (typo? stale field? — value will be ignored)\n";
-        }
-    }
+    tomlconfig::warnUnknownKeys(table, kKnownKeys, path, "MuonShieldConfig");
 
     // Numeric (double) envelope fields.
     for (const auto& [key, member] : kNumericFields)
         if (auto n = table[key]; n)
-            cfg.*member = readNumeric(n, key);
+            cfg.*member = tomlconfig::readNumeric(n, key, "MuonShieldConfig");
 
     // String field.
     if (auto n = table["block_material"]; n) {

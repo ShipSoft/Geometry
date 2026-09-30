@@ -28,9 +28,7 @@
 
 #include "SHiPGeometry/TomlConfig.h"
 
-#include <algorithm>
 #include <array>
-#include <iostream>
 #include <limits>
 #include <sstream>
 #include <stdexcept>
@@ -44,8 +42,7 @@ namespace {
 
 using namespace std::string_view_literals;
 
-// Recognised top-level keys (sorted for binary search). Anything outside this
-// set triggers a warning.
+// Recognised top-level keys. Anything outside this set triggers a warning.
 static constexpr std::array kKnownKeys = {
     "airgap_mm"sv,
     "center_stack"sv,
@@ -113,14 +110,6 @@ std::vector<int> readIntList(const toml::node_view<toml::node>& node, const std:
     return out;
 }
 
-// Read a double or integer as a double — TOML distinguishes them at the
-// type level, but we treat the calorimeter parameters uniformly.
-double readNumeric(const toml::node_view<toml::node>& node, const std::string& key) {
-    if (auto v = tomlconfig::asDouble(node.node()))
-        return *v;
-    throw std::runtime_error("CalorimeterConfig: '" + key + "' must be a number");
-}
-
 // Read a positive integer from TOML, validating range.
 int readPositiveInt(const toml::node_view<toml::node>& node, const char* key) {
     auto i = node.value<int64_t>();
@@ -144,12 +133,7 @@ CalorimeterConfig readCaloConfig(const std::string& path) {
     }
 
     // First pass: warn about unknown keys.
-    for (const auto& [k, _] : table) {
-        if (!std::ranges::binary_search(kKnownKeys, std::string_view{k})) {
-            std::cerr << "CalorimeterConfig: warning: unknown key '" << k << "' in " << path
-                      << " (typo? stale field? — value will be ignored)\n";
-        }
-    }
+    tomlconfig::warnUnknownKeys(table, kKnownKeys, path, "CalorimeterConfig");
 
     // Read layer sequences.
     if (auto n = table["layers"]; n)
@@ -160,7 +144,7 @@ CalorimeterConfig readCaloConfig(const std::string& path) {
     // Read all numeric (double) fields via pointer-to-member table.
     for (const auto& [key, member] : kNumericFields)
         if (auto n = table[key]; n)
-            cfg.*member = readNumeric(n, key);
+            cfg.*member = tomlconfig::readNumeric(n, key, "CalorimeterConfig");
 
     // Integer fields requiring positive-value validation.
     if (auto n = table["module_nx"]; n)
