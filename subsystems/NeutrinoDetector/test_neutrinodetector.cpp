@@ -16,7 +16,7 @@
 
 using SHiPGeometry::SHiPMaterials;
 
-// CSV limits: SND half-width/height ≤ 0.40 m, length 5.10 m (box approximation).
+// CSV limits: SND half-width/height ≤ 400 mm, length 5100 mm (box approximation).
 TEST_CASE("NeutrinoDetectorWithinEnvelope", "[neutrinodetector]") {
     SHiPMaterials materials;
     SHiPGeometry::NeutrinoDetectorFactory factory(materials);
