@@ -12,8 +12,9 @@
 #include <GeoModelKernel/GeoVPhysVol.h>
 
 #include <catch2/catch_test_macros.hpp>
-#include <stdexcept>
+#include <catch2/matchers/catch_matchers_string.hpp>
 
+using Catch::Matchers::ContainsSubstring;
 using SHiPGeometry::SHiPMaterials;
 
 // CSV limits: SND half-width/height ≤ 400 mm, length 5100 mm (box approximation).
@@ -60,12 +61,12 @@ TEST_CASE("NeutrinoDetectorContainerFromCustomEnvelope", "[neutrinodetector]") {
     SHiPGeometry::SNDEnvelope tooNarrow;
     tooNarrow.size_mm = {500.0, 800.0, 5100.0};  // HCAL needs ~600.5 mm
     SHiPGeometry::NeutrinoDetectorFactory narrowFactory(materials, tooNarrow);
-    CHECK_THROWS_AS(narrowFactory.build(), std::runtime_error);
+    CHECK_THROWS_WITH(narrowFactory.build(), ContainsSubstring("too small"));
 
     SHiPGeometry::SNDEnvelope tooShort;
     tooShort.size_mm = {800.0, 800.0, 3000.0};  // contents are 3988 mm long
     SHiPGeometry::NeutrinoDetectorFactory shortFactory(materials, tooShort);
-    CHECK_THROWS_AS(shortFactory.build(), std::runtime_error);
+    CHECK_THROWS_WITH(shortFactory.build(), ContainsSubstring("too small"));
 }
 
 // The container holds the veto, target and HCAL children directly. Counts:

@@ -14,11 +14,12 @@
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include <catch2/matchers/catch_matchers_string.hpp>
 #include <cmath>
 #include <fstream>
-#include <stdexcept>
 #include <string>
 
+using Catch::Matchers::ContainsSubstring;
 using SHiPGeometry::MuonShieldConfig;
 using SHiPGeometry::MuonShieldFactory;
 using SHiPGeometry::readMuonShieldConfig;
@@ -106,7 +107,7 @@ TEST_CASE("MuonShieldRejectsRotatedBlockOutsideEnvelope", "[muonshield]") {
         "[[block]]\nstart = [0,0,2000]\nsize = [2400,200,400]\nrotation = [0,0,90]\n");
     SHiPMaterials materials;
     MuonShieldFactory factory(materials, path);
-    CHECK_THROWS_AS(factory.build(), std::runtime_error);
+    CHECK_THROWS_WITH(factory.build(), ContainsSubstring("bounding box exceeds the Air container"));
 }
 
 TEST_CASE("MuonShieldRotatedReservationCarves", "[muonshield]") {
@@ -201,28 +202,43 @@ TEST_CASE("MuonShieldRejectsDaughterOutsideEnvelope", "[muonshield]") {
 
     SECTION("centre outside in Z") {
         // 40000 > 32080.
-        CHECK_THROWS_AS(buildWith(makeDaughter(100.0, 100.0, 500.0), 40000.0), std::runtime_error);
+        CHECK_THROWS_WITH(buildWith(makeDaughter(100.0, 100.0, 500.0), 40000.0),
+                          ContainsSubstring("centre outside the shield envelope"));
     }
     SECTION("centre inside, downstream end past the envelope end") {
         // 31000 + 2550 = 33550 > 32080.
-        CHECK_THROWS_AS(buildWith(makeDaughter(400.0, 400.0, 2550.0), 31000.0), std::runtime_error);
+        CHECK_THROWS_WITH(buildWith(makeDaughter(400.0, 400.0, 2550.0), 31000.0),
+                          ContainsSubstring(" z (daughter 28450") && !ContainsSubstring(" x (") &&
+                              !ContainsSubstring(" y ("));
     }
     SECTION("centre inside, upstream end before the envelope start") {
         // 5000 - 2550 = 2450 < 4540.
-        CHECK_THROWS_AS(buildWith(makeDaughter(400.0, 400.0, 2550.0), 5000.0), std::runtime_error);
+        CHECK_THROWS_WITH(buildWith(makeDaughter(400.0, 400.0, 2550.0), 5000.0),
+                          ContainsSubstring(" z (daughter 2450") && !ContainsSubstring(" x (") &&
+                              !ContainsSubstring(" y ("));
     }
     SECTION("wider than the envelope in X") {
         // 1800 > 1760.
-        CHECK_THROWS_AS(buildWith(makeDaughter(1800.0, 100.0, 500.0), 18310.0), std::runtime_error);
+        CHECK_THROWS_WITH(buildWith(makeDaughter(1800.0, 100.0, 500.0), 18310.0),
+                          ContainsSubstring(" x (daughter -1800") && !ContainsSubstring(" y (") &&
+                              !ContainsSubstring(" z ("));
     }
     SECTION("taller than the envelope in Y") {
         // 1400 > 1320.
-        CHECK_THROWS_AS(buildWith(makeDaughter(100.0, 1400.0, 500.0), 18310.0), std::runtime_error);
+        CHECK_THROWS_WITH(buildWith(makeDaughter(100.0, 1400.0, 500.0), 18310.0),
+                          ContainsSubstring(" y (daughter -1400") && !ContainsSubstring(" x (") &&
+                              !ContainsSubstring(" z ("));
+    }
+    SECTION("outside in X and Z reports both") {
+        CHECK_THROWS_WITH(buildWith(makeDaughter(1800.0, 100.0, 2550.0), 31000.0),
+                          ContainsSubstring(" x (daughter") && ContainsSubstring(" z (daughter") &&
+                              !ContainsSubstring(" y ("));
     }
     SECTION("a daughter that is not a box is rejected") {
         auto* tube = new GeoTube(0.0, 100.0, 500.0);
         auto* log = new GeoLogVol("/SHiP/dummy", tube, materials.requireMaterial("Air"));
-        CHECK_THROWS_AS(buildWith(new GeoPhysVol(log), 18310.0), std::runtime_error);
+        CHECK_THROWS_WITH(buildWith(new GeoPhysVol(log), 18310.0),
+                          ContainsSubstring("must be a GeoBox"));
     }
     SECTION("exactly touching the envelope end is allowed") {
         // 29530 + 2550 = 32080.
@@ -233,20 +249,24 @@ TEST_CASE("MuonShieldRejectsDaughterOutsideEnvelope", "[muonshield]") {
 TEST_CASE("MuonShieldRejectsNonPositiveSize", "[muonshield]") {
     const std::string path = writeTempToml(
         "MS_badsize.toml", "[[block]]\nstart = [0,0,12000]\nsize = [-3000,2000,2000]\n");
-    CHECK_THROWS_AS(readMuonShieldConfig(path), std::runtime_error);
+    CHECK_THROWS_WITH(readMuonShieldConfig(path), ContainsSubstring("non-positive size"));
 }
 
 TEST_CASE("MuonShieldRejectsCollapsingTaper", "[muonshield]") {
     const std::string path = writeTempToml(
         "MS_badtaper.toml",
         "[[block]]\nstart = [0,0,12000]\nsize = [3000,2000,2000]\ntaper = [-45.0, 0.0]\n");
-    CHECK_THROWS_AS(readMuonShieldConfig(path), std::runtime_error);
+    // Far half-width 1500 + 2000 * tan(-45°) = -500.
+    CHECK_THROWS_WITH(readMuonShieldConfig(path),
+                      ContainsSubstring("collapses its downstream face"));
 }
 
 TEST_CASE("MuonShieldRejectsBlockOutsideEnvelope", "[muonshield]") {
     const std::string path = writeTempToml(
         "MS_outside.toml", "[[block]]\nstart = [0,0,40000]\nsize = [3000,2000,1000]\n");
-    CHECK_THROWS_AS(readMuonShieldConfig(path), std::runtime_error);
+    // Upstream face at 40000 > 32080.
+    CHECK_THROWS_WITH(readMuonShieldConfig(path), ContainsSubstring("upstream face (z = 40000") &&
+                                                      ContainsSubstring("outside the envelope"));
 }
 
 TEST_CASE("MuonShieldEmptyBlockList", "[muonshield]") {
