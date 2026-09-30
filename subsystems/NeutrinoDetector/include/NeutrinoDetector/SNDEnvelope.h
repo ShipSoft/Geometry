@@ -10,15 +10,16 @@ namespace SHiPGeometry {
 
 /**
  * @brief The SND reservation envelope: a box subtracted from the muon-shield
- *        iron to make room for the neutrino detector.
+ *        iron to make room for the neutrino detector. Its size is also the
+ *        size of the SND air container (see NeutrinoDetectorFactory).
  *
  * All values are in world/beamline coordinates (target-front-face origin).
  * Populated by readSNDEnvelope() from SD.toml.
  */
 struct SNDEnvelope {
-    std::array<double, 3> centre_mm = {0.0, 0.0, 28950.0};   ///< world centre (mm)
-    std::array<double, 3> size_mm = {800.0, 800.0, 5100.0};  ///< full x, y, z (mm)
-    std::array<double, 3> rotation_deg = {0.0, 0.0, 0.0};    ///< extrinsic X->Y->Z (deg)
+    std::array<double, 3> centre_mm{};                     ///< world centre (mm)
+    std::array<double, 3> size_mm{};                       ///< full x, y, z (mm)
+    std::array<double, 3> rotation_deg = {0.0, 0.0, 0.0};  ///< extrinsic X->Y->Z (deg)
 };
 
 /**

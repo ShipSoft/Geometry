@@ -4,6 +4,7 @@
 #include "SHiPGeometry/SHiPMaterials.h"
 
 #include "NeutrinoDetector/NeutrinoDetectorFactory.h"
+#include "NeutrinoDetector/SNDEnvelope.h"
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoLogVol.h>
@@ -11,6 +12,7 @@
 #include <GeoModelKernel/GeoVPhysVol.h>
 
 #include <catch2/catch_test_macros.hpp>
+#include <stdexcept>
 
 using SHiPGeometry::SHiPMaterials;
 
@@ -25,6 +27,45 @@ TEST_CASE("NeutrinoDetectorWithinEnvelope", "[neutrinodetector]") {
     CHECK(box->getXHalfLength() <= 400.0);
     CHECK(box->getYHalfLength() <= 400.0);
     CHECK(box->getZHalfLength() <= 2550.0);
+}
+
+// The container is sized from the SD.toml envelope, the same box that is carved
+// out of the muon shield, so the two cannot drift apart.
+TEST_CASE("NeutrinoDetectorContainerMatchesEnvelope", "[neutrinodetector]") {
+    SHiPMaterials materials;
+    const SHiPGeometry::SNDEnvelope env = SHiPGeometry::readSNDEnvelope();
+    SHiPGeometry::NeutrinoDetectorFactory factory(materials, env);
+    const GeoPhysVol* snd = factory.build();
+    REQUIRE(snd != nullptr);
+    const auto* box = dynamic_cast<const GeoBox*>(snd->getLogVol()->getShape());
+    REQUIRE(box != nullptr);
+    CHECK(box->getXHalfLength() == 0.5 * env.size_mm[0]);
+    CHECK(box->getYHalfLength() == 0.5 * env.size_mm[1]);
+    CHECK(box->getZHalfLength() == 0.5 * env.size_mm[2]);
+}
+
+// A custom envelope size is honoured, and one too small for the contents is rejected.
+TEST_CASE("NeutrinoDetectorContainerFromCustomEnvelope", "[neutrinodetector]") {
+    SHiPMaterials materials;
+    SHiPGeometry::SNDEnvelope env;
+    env.size_mm = {700.0, 650.0, 4000.0};
+    SHiPGeometry::NeutrinoDetectorFactory factory(materials, env);
+    const GeoPhysVol* snd = factory.build();
+    const auto* box = dynamic_cast<const GeoBox*>(snd->getLogVol()->getShape());
+    REQUIRE(box != nullptr);
+    CHECK(box->getXHalfLength() == 350.0);
+    CHECK(box->getYHalfLength() == 325.0);
+    CHECK(box->getZHalfLength() == 2000.0);
+
+    SHiPGeometry::SNDEnvelope tooNarrow;
+    tooNarrow.size_mm = {500.0, 800.0, 5100.0};  // HCAL needs ~600.5 mm
+    SHiPGeometry::NeutrinoDetectorFactory narrowFactory(materials, tooNarrow);
+    CHECK_THROWS_AS(narrowFactory.build(), std::runtime_error);
+
+    SHiPGeometry::SNDEnvelope tooShort;
+    tooShort.size_mm = {800.0, 800.0, 3000.0};  // contents are 3988 mm long
+    SHiPGeometry::NeutrinoDetectorFactory shortFactory(materials, tooShort);
+    CHECK_THROWS_AS(shortFactory.build(), std::runtime_error);
 }
 
 // The container holds the veto, target and HCAL children directly. Counts:

@@ -54,7 +54,9 @@ muon-shield container**, nested by `SHiPGeometryBuilder` via
 `MuonShieldFactory::embedDaughter`, which only places the pre-built daughter in
 the shield's volume tree. The matching cavity in the iron is carved separately
 by `MuonShieldFactory::reserveSpace` (a Boolean subtraction of the SND
-reservation envelope from `SD.toml`), so the two do not overlap. It remains an
+reservation envelope from `SD.toml`), so the two do not overlap. The SND
+container is sized `SD.toml` `size`, so it always matches the
+cavity; the factory throws if that size is too small for the contents. It remains an
 independent subsystem with its own factory, config, and
 `/SHiP/neutrino_detector` naming — only its place in the volume tree changes.
 
@@ -78,6 +80,10 @@ material was new (added alongside this subsystem); the rest already existed.
 
 - `NeutrinoDetectorIsBoxContainer` - the container is a `GeoBox` large enough to
   hold the contents.
+- `NeutrinoDetectorContainerMatchesEnvelope` - the container size equals the
+  `SD.toml` envelope size.
+- `NeutrinoDetectorContainerFromCustomEnvelope` - a custom envelope size is
+  used, and one too small for the contents is rejected.
 - `NeutrinoDetectorChildCount` - the container has 4819 direct children.
 - `NeutrinoDetectorFibreCount` - the recursive descendant count is 340819,
   guarding the individual-fibre placement.
