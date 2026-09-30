@@ -10,6 +10,7 @@
 #include <GeoModelKernel/GeoPhysVol.h>
 #include <GeoModelKernel/GeoShapeSubtraction.h>
 #include <GeoModelKernel/GeoTrd.h>
+#include <GeoModelKernel/GeoTube.h>
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
@@ -180,6 +181,53 @@ TEST_CASE("MuonShieldEmbedsDaughter", "[muonshield]") {
         if (ms->getChildVol(i)->getLogVol()->getName() == "/SHiP/dummy")
             found = true;
     CHECK(found);
+}
+
+// An embedded daughter must fit the envelope: centre, and the min and max of
+// its extent in x, y and z. Default envelope: z = 4540–32080 mm, half-sizes
+// 1760 × 1320 mm.
+TEST_CASE("MuonShieldRejectsDaughterOutsideEnvelope", "[muonshield]") {
+    SHiPMaterials materials;
+    auto makeDaughter = [&](double hx, double hy, double hz) {
+        auto* box = new GeoBox(hx, hy, hz);
+        auto* log = new GeoLogVol("/SHiP/dummy", box, materials.requireMaterial("Air"));
+        return new GeoPhysVol(log);
+    };
+    auto buildWith = [&](GeoPhysVol* daughter, double worldCentreZ_mm) {
+        MuonShieldFactory factory(materials);
+        factory.embedDaughter(daughter, worldCentreZ_mm, "/SHiP/dummy");
+        return factory.build();
+    };
+
+    SECTION("centre outside in Z") {
+        // 40000 > 32080.
+        CHECK_THROWS_AS(buildWith(makeDaughter(100.0, 100.0, 500.0), 40000.0), std::runtime_error);
+    }
+    SECTION("centre inside, downstream end past the envelope end") {
+        // 31000 + 2550 = 33550 > 32080.
+        CHECK_THROWS_AS(buildWith(makeDaughter(400.0, 400.0, 2550.0), 31000.0), std::runtime_error);
+    }
+    SECTION("centre inside, upstream end before the envelope start") {
+        // 5000 - 2550 = 2450 < 4540.
+        CHECK_THROWS_AS(buildWith(makeDaughter(400.0, 400.0, 2550.0), 5000.0), std::runtime_error);
+    }
+    SECTION("wider than the envelope in X") {
+        // 1800 > 1760.
+        CHECK_THROWS_AS(buildWith(makeDaughter(1800.0, 100.0, 500.0), 18310.0), std::runtime_error);
+    }
+    SECTION("taller than the envelope in Y") {
+        // 1400 > 1320.
+        CHECK_THROWS_AS(buildWith(makeDaughter(100.0, 1400.0, 500.0), 18310.0), std::runtime_error);
+    }
+    SECTION("a daughter that is not a box is rejected") {
+        auto* tube = new GeoTube(0.0, 100.0, 500.0);
+        auto* log = new GeoLogVol("/SHiP/dummy", tube, materials.requireMaterial("Air"));
+        CHECK_THROWS_AS(buildWith(new GeoPhysVol(log), 18310.0), std::runtime_error);
+    }
+    SECTION("exactly touching the envelope end is allowed") {
+        // 29530 + 2550 = 32080.
+        CHECK_NOTHROW(buildWith(makeDaughter(400.0, 400.0, 2550.0), 29530.0));
+    }
 }
 
 TEST_CASE("MuonShieldRejectsNonPositiveSize", "[muonshield]") {

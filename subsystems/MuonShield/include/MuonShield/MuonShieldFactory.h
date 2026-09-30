@@ -48,9 +48,11 @@ class MuonShieldFactory {
      * @p worldCentreZ_mm. The daughter remains an independent subsystem; this
      * only nests it in the volume tree. Since the iron is defined by an explicit
      * block list, the caller is responsible for not listing blocks over the
-     * daughter's footprint. Call before build().
+     * daughter's footprint. Call before build(), which throws if the
+     * daughter is not a GeoBox, or if its centre or the min/max of its box in
+     * x, y or z lies outside the shield envelope.
      *
-     * @param daughter        Pre-built volume (centred on its own origin).
+     * @param daughter        Pre-built box volume (centred on its own origin).
      * @param worldCentreZ_mm  World-Z centre where the daughter is placed (mm).
      * @param name            Name tag for the placement.
      */

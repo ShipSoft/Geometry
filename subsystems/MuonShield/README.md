@@ -101,7 +101,9 @@ cavity.
 Other subsystems can be nested inside the shield container while remaining
 independent subsystems. `MuonShieldFactory::embedDaughter(vol, worldCentreZ_mm,
 name)` registers a pre-built volume, placed at build time at the given world-Z
-inside the container. The SND keeps its own factory, config, and
+inside the container. The daughter must be a box; `build()` rejects one whose
+centre, or whose min and max in x, y and z, lies outside the envelope. The SND
+keeps its own factory, config, and
 `/SHiP/neutrino_detector` naming — only its position in the volume tree changes
 (it becomes a daughter of `/SHiP/muon_shield` rather than a direct child of the
 world), sitting in the cavity carved by its `reserveSpace` reservation.
