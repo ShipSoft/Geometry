@@ -14,14 +14,8 @@
 #include <string_view>
 #include <toml++/toml.h>
 
-// Absolute fallback paths baked in by CMake so out-of-source builds always find
-// SD.toml even when the CWD doesn't contain a copy of it.
-#ifndef SD_TOML_DEFAULT_PATH
-#define SD_TOML_DEFAULT_PATH "SD.toml"
-#endif
-#ifndef SD_TOML_INSTALL_PATH
-#define SD_TOML_INSTALL_PATH ""
-#endif
+// SD_TOML_DEFAULT_PATH and SD_TOML_INSTALL_PATH are always defined by the
+// ship_add_toml_config() CMake helper.
 
 namespace SHiPGeometry {
 

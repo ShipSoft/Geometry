@@ -23,15 +23,8 @@
 #include <stdexcept>
 #include <string>
 
-// Absolute fallback path baked in by CMake so out-of-source builds always
-// find calo.toml even when the CWD doesn't contain a copy of it.
-#ifndef CALO_TOML_DEFAULT_PATH
-#define CALO_TOML_DEFAULT_PATH "calo.toml"
-#endif
-// Install-time data directory path, set by CMake during install configuration.
-#ifndef CALO_TOML_INSTALL_PATH
-#define CALO_TOML_INSTALL_PATH ""
-#endif
+// CALO_TOML_DEFAULT_PATH and CALO_TOML_INSTALL_PATH are always defined by the
+// ship_add_toml_config() CMake helper.
 
 namespace SHiPGeometry {
 

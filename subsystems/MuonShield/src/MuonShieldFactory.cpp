@@ -26,15 +26,8 @@
 #include <stdexcept>
 #include <string>
 
-// Absolute fallback path baked in by CMake so out-of-source builds always find
-// muon_shield.toml even when the CWD doesn't contain a copy of it.
-#ifndef MS_TOML_DEFAULT_PATH
-#define MS_TOML_DEFAULT_PATH "muon_shield.toml"
-#endif
-// Install-time data directory path, set by CMake during install configuration.
-#ifndef MS_TOML_INSTALL_PATH
-#define MS_TOML_INSTALL_PATH ""
-#endif
+// MS_TOML_DEFAULT_PATH and MS_TOML_INSTALL_PATH are always defined by the
+// ship_add_toml_config() CMake helper.
 
 namespace SHiPGeometry {
 
