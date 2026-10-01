@@ -19,7 +19,7 @@ TEST_CASE("UpstreamTaggerWithinEnvelope", "[upstreamtagger]") {
     SHiPGeometry::UpstreamTaggerFactory factory(materials);
     GeoVPhysVol* ubt = factory.build();
     REQUIRE(ubt != nullptr);
-    auto* box = dynamic_cast<const GeoBox*>(ubt->getLogVol()->getShape());
+    const auto* box = dynamic_cast<const GeoBox*>(ubt->getLogVol()->getShape());
     REQUIRE(box != nullptr);
     CHECK(box->getXHalfLength() <= 2200.0);
     CHECK(box->getYHalfLength() <= 3200.0);
