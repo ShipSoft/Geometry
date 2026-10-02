@@ -17,6 +17,7 @@
 #include "UpstreamTagger/UpstreamTaggerFactory.h"
 
 #include "NeutrinoDetector/NeutrinoDetectorFactory.h"
+#include "NeutrinoDetector/SNDEnvelope.h"
 
 #include <GeoModelKernel/GeoDefinitions.h>
 #include <GeoModelKernel/GeoPhysVol.h>
@@ -48,22 +49,30 @@ GeoPhysVol* SHiPGeometryBuilder::build() {
     // Note: These are relative to the cave origin
     placeChild(world, target, "/SHiP/target", 1, GeoTrf::Translate3D(0.0, -14.45 * cm, 43.25 * cm));
 
-    // Build and place MuonShieldArea
-    // GDML z range: 204–3148.66 cm → centre: 1676.33 cm = 16763.3 mm from world origin
+    // Build the muon shield, with the neutrino detector embedded inside it.
+    //
+    // The SND is an independent subsystem, but in volume terms it is a daughter
+    // of the muon-shield container. Its footprint is declared in SD.toml: we
+    // reserve that box in the shield iron (carved by Boolean subtraction in
+    // build()) and then nest the detector in the resulting cavity. Both the
+    // reservation and the placement come from the same envelope, so the SND
+    // position is defined in exactly one place.
     MuonShieldFactory muonShieldFactory(materials);
-    GeoPhysVol* muonShield = muonShieldFactory.build();
-    placeChild(world, muonShield, "/SHiP/muon_shield", 2,
-               GeoTrf::Translate3D(0.0, 0.0, 16763.3 * mm));
 
-    // Build and place the Scattering and Neutrino Detector (SND).
-    // Z: 26.40 to 31.50 m (WARM muon-shield configuration) → centre 28.95 m.
-    // The SND sits within the downstream end of the muon-shield region, so its
-    // envelope overlaps the muon-shield container by design (see test_consistency).
+    const SNDEnvelope sndEnvelope = readSNDEnvelope();
+    muonShieldFactory.reserveSpace(sndEnvelope.centre_mm, sndEnvelope.size_mm,
+                                   sndEnvelope.rotation_deg);
+
     NeutrinoDetectorFactory neutrinoDetectorFactory(materials);
     GeoPhysVol* neutrinoDetector = neutrinoDetectorFactory.build();
-    placeChild(world, neutrinoDetector, "/SHiP/neutrino_detector", 9,
-               GeoTrf::Translate3D(0.0, 0.0, 28.95 * m));
+    muonShieldFactory.embedDaughter(neutrinoDetector, sndEnvelope.centre_mm[2],
+                                    "/SHiP/neutrino_detector");
 
+    // The container is built centred on its own origin, so it is placed at the
+    // envelope centre reported by the factory after build().
+    GeoPhysVol* muonShield = muonShieldFactory.build();
+    placeChild(world, muonShield, "/SHiP/muon_shield", 2,
+               GeoTrf::Translate3D(0.0, 0.0, muonShieldFactory.centreZ_mm()));
     // Build and place UpstreamTagger (sensitive scintillator slab)
     // Z: 32.52 to 32.92 m → centre: 32.72 m
     SHiPUBTManager ubtManager;

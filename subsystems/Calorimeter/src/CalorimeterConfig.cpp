@@ -26,6 +26,8 @@
 
 #include "Calorimeter/CalorimeterConfig.h"
 
+#include "SHiPGeometry/TomlConfig.h"
+
 #include <algorithm>
 #include <array>
 #include <iostream>
@@ -114,10 +116,8 @@ std::vector<int> readIntList(const toml::node_view<toml::node>& node, const std:
 // Read a double or integer as a double — TOML distinguishes them at the
 // type level, but we treat the calorimeter parameters uniformly.
 double readNumeric(const toml::node_view<toml::node>& node, const std::string& key) {
-    if (auto d = node.value<double>(); d)
-        return *d;
-    if (auto i = node.value<int64_t>(); i)
-        return static_cast<double>(*i);
+    if (auto v = tomlconfig::asDouble(node.node()))
+        return *v;
     throw std::runtime_error("CalorimeterConfig: '" + key + "' must be a number");
 }
 
