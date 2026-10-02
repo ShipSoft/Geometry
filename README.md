@@ -40,7 +40,7 @@ quantity explicit at the point where it is written.
 | [Magnet](subsystems/Magnet/README.md) | Approximate | Iron yoke with box-shaped coils (should be tubes) |
 | [DecayVolume](subsystems/DecayVolume/README.md) | Implemented | Frustum: SBT steel structure + LAB sensors + helium centre |
 | [TimingDetector](subsystems/TimingDetector/README.md) | Complete | 330 scintillator bars via GeoModelXML |
-| [UpstreamTagger](subsystems/UpstreamTagger/README.md) | Simulation-ready | Segmented tile plane, 16300 polystyrene tiles (fine 20 mm + coarse 40 mm) |
+| [UpstreamTagger](subsystems/UpstreamTagger/README.md) | Simulation-ready | Segmented 4.4 × 6.4 m tile plane, 47000 polystyrene tiles (fine 20 mm + coarse 40 mm) |
 | [Trackers](subsystems/Trackers/README.md) | Complete | 4 stations, 4 stereo views each, 9600 straw tubes |
 | [Calorimeter](subsystems/Calorimeter/README.md) | Simulation-ready | ECAL + HCAL sampling layers driven by `calo.toml` (Pb/PVT/HPL + Fe/PVT) |
 
