@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "SHiPGeometry/SubsystemDescriptor.h"
+
 #include <GeoModelKernel/Units.h>
 
 class GeoPhysVol;
@@ -28,6 +30,16 @@ class TimingDetectorFactory {
    public:
     explicit TimingDetectorFactory(SHiPMaterials& materials);
     ~TimingDetectorFactory() = default;
+
+    /**
+     * @brief This subsystem's self-description (name, node, id, placement).
+     *
+     * The translation reproduces the placement previously hard-coded in
+     * SHiPGeometryBuilder::build(): z = 95.902 m from the GDML reference.
+     */
+    static SubsystemDescriptor descriptor() {
+        return {"TimingDetector", "/SHiP/timing_detector", 7, 0.0, 0.0, 95902.0, false};
+    }
 
     /** Build the TimingDetector geometry and return the container volume. */
     [[nodiscard]] GeoPhysVol* build();
