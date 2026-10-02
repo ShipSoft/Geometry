@@ -25,17 +25,19 @@ class SHiPUBTManager;
  *
  *      Y
  *      ^
- *   +1500 +------+------------------------------------+------+
- *         | EXT  |        COARSE band (top)           | EXT  |  y=[+200,+1500]
+ *   +3200 +------+------------------------------------+------+
+ *         | EXT  |        COARSE band (top)           | EXT  |  y=[+200,+3200]
  *   +200  |      +--------+------------------+--------+      |
  *         | EXT  |  FINE  |  COARSE central  |  FINE  | EXT  |  y=[-200,+200]
  *   -200  |      +--------+------------------+--------+      |
- *         | EXT  |        COARSE band (bottom)        | EXT  |  y=[-1500,-200]
- *   -1500 +------+------------------------------------+------+
- *        -1800  -1000   -600              +600    +1000   +1800  -> X
+ *         | EXT  |        COARSE band (bottom)        | EXT  |  y=[-3200,-200]
+ *   -3200 +------+------------------------------------+------+
+ *        -2200  -1000   -600              +600    +1000   +2200  -> X
  *
  * Tile counts: fine blocks 2 × 400, coarse central 300, coarse bands
- * 2 × 1600, extensions 2 × 6000  → 16 300 tiles. All 10 mm thick.
+ * 2 × 3750, extensions 2 × 19200  → 47 000 tiles, covering the full
+ * 4.4 × 6.4 m container cross-section. Fine tiles are 5 mm
+ * thick, coarse tiles 10 mm; both are centred on the same Z plane.
  *
  * The whole assembly is returned as a single GeoFullPhysVol container (air),
  * so the tagger keeps a sensitive tree-top that can be registered with the
@@ -71,9 +73,10 @@ class UpstreamTaggerFactory {
     static constexpr double s_halfZ = 80.0;
 
     // ── Tile geometry (mm) ──────────────────────────────────────────────
-    static constexpr double s_tileThickness = 10.0;  ///< full Z thickness of every tile
-    static constexpr double s_fineFace = 20.0;       ///< fine tile full transverse size = pitch
-    static constexpr double s_coarseFace = 40.0;     ///< coarse tile full transverse size = pitch
+    static constexpr double s_fineThickness = 5.0;     ///< full Z thickness of fine tiles
+    static constexpr double s_coarseThickness = 10.0;  ///< full Z thickness of coarse tiles
+    static constexpr double s_fineFace = 20.0;         ///< fine tile full transverse size = pitch
+    static constexpr double s_coarseFace = 40.0;       ///< coarse tile full transverse size = pitch
 };
 
 }  // namespace SHiPGeometry
