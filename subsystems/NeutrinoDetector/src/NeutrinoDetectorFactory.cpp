@@ -50,9 +50,11 @@ constexpr auto s_target_gap_to_mgc = 10.0 * mm;
 constexpr auto s_tgt_plate_xy = 400.0 * mm;
 constexpr auto s_tgt_w = 3.5 * mm;
 constexpr auto s_tgt_si = 0.300 * mm;
+constexpr auto s_tgt_timing = 18.000 * mm;
 constexpr auto s_tgt_w_si_gap = 0.200 * mm;
 constexpr auto s_tgt_si_si_gap = 6.800 * mm;
 constexpr int s_tgt_n_layers = 120;
+constexpr int s_tgt_n_timing_layers = 3;
 constexpr auto s_tgt_pitch =
     s_tgt_w + s_tgt_w_si_gap + s_tgt_si + s_tgt_si_si_gap + s_tgt_si + s_tgt_w_si_gap;  // 11.3 mm
 
@@ -82,7 +84,7 @@ constexpr int s_hcal_n_layers = 14;
 constexpr LengthMm s_hcal_section_xy[s_hcal_n_sections] = {400.0 * mm, 500.0 * mm, 600.0 * mm};
 
 // Longitudinal layout (upstream → downstream), content centred in the container.
-constexpr auto s_tgt_depth = s_tgt_pitch * s_tgt_n_layers;
+constexpr auto s_tgt_depth = s_tgt_pitch * s_tgt_n_layers + s_tgt_n_timing_layers * s_tgt_timing;
 constexpr auto s_mgc_depth = s_mgc_pitch * s_mgc_n_layers;
 constexpr auto s_hcal_depth = s_hcal_n_sections * (s_hcal_layer * s_hcal_n_layers);
 constexpr auto s_content_depth = s_veto_total_thickness + s_veto_gap_to_target + s_tgt_depth +
@@ -105,7 +107,8 @@ static_assert(0.5 * s_mgc_plate_xy <= SND::s_halfX && 0.5 * s_mgc_plate_xy <= SN
 static_assert(0.5 * s_hcal_section_xy[s_hcal_n_sections - 1] + s_hcal_fibre_diameter <=
                   SND::s_halfX,
               "the largest HCAL section does not fit the container");
-
+static_assert(s_tgt_n_layers % s_tgt_n_timing_layers == 0,
+              "the target timing layers are not evenly spaced");
 constexpr bool hcalSectionsTileExactly() {
     for (const auto xy : s_hcal_section_xy) {
         const int nTiles = static_cast<int>(units::ratio(xy / s_hcal_tile_xy));
@@ -163,7 +166,7 @@ void buildVeto(GeoVPhysVol* mother, const GeoMaterial* pvt, LengthMm zDownstream
 
 /// Build the silicon/tungsten target: 120 layers of a tungsten plate followed
 /// by an X and a Y silicon plane, placed directly in the container starting at
-/// @p zStart.
+/// @p zStart. 3 timing layers are inserted at equally spaced intervals (40, 80, 120).
 void buildTarget(GeoVPhysVol* mother, const GeoMaterial* tungsten, const GeoMaterial* silicon,
                  LengthMm zStart) {
     const double halfXY = 0.5 * gm(s_tgt_plate_xy);
@@ -173,6 +176,8 @@ void buildTarget(GeoVPhysVol* mother, const GeoMaterial* tungsten, const GeoMate
                                  new GeoBox(halfXY, halfXY, 0.5 * gm(s_tgt_si)), silicon);
     auto* siYLog = new GeoLogVol(std::string(kBase) + "/target/Si_Y",
                                  new GeoBox(halfXY, halfXY, 0.5 * gm(s_tgt_si)), silicon);
+    auto* TimingLog = new GeoLogVol(std::string(kBase) + "/target/Timing",
+                                    new GeoBox(halfXY, halfXY, 0.5 * gm(s_tgt_timing)), silicon);
 
     LengthMm z = zStart;
     for (int l = 0; l < s_tgt_n_layers; ++l) {
@@ -183,6 +188,11 @@ void buildTarget(GeoVPhysVol* mother, const GeoMaterial* tungsten, const GeoMate
         z += s_tgt_si + s_tgt_si_si_gap;
         placeChild(mother, siYLog, tag + "/Si_Y", l, 0.0 * mm, 0.0 * mm, z + 0.5 * s_tgt_si);
         z += s_tgt_si + s_tgt_w_si_gap;
+        if ((l + 1) % ((s_tgt_n_layers) / (s_tgt_n_timing_layers)) == 0) {  // 40, 80, 120
+            placeChild(mother, TimingLog, tag + "/Timing", l, 0.0 * mm, 0.0 * mm,
+                       z + 0.5 * s_tgt_timing);
+            z += s_tgt_timing;
+        }
     }
 }
 

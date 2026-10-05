@@ -13,7 +13,9 @@ the beam (upstream -> downstream):
   +/-9 mm in Y; plane 2 runs vertically. Total depth 40 mm.
 - **NuTarget (HGC)** - a silicon/tungsten sampling target: 120 layers, each a 3.5 mm
   tungsten absorber plate followed by an X and a Y silicon tracking plane
-  (0.3 mm), on a 400 x 400 mm plate at 11.3 mm pitch (total 1356 mm).
+  (0.3 mm), on a 400 x 400 mm plate at 11.3 mm pitch.
+  3 Timing layers (18 mm each) are inserted at 1/3, 2/3 and 3/3 of the target depth.
+  The total depth of the target is 1410 mm.
 - **MGC** - a medium-granularity calorimeter: 10 layers at 20 mm pitch on a 500 x 500 mm plate,
   each a tungsten absorber plate (18.4 mm) followed by an X and a Y silicon tracking plane (0.65 mm each).
 - **HCAL (MTC)** - a hadronic calorimeter: three transverse sections (40, 50, 60 cm),
@@ -39,7 +41,9 @@ bounded for navigation.
 ```text
 /SHiP/neutrino_detector (Air, 800 x 800 x 5100 mm box)
  |- veto/P{0..2}_B{0..6}                21 PVT bars (3 planes x 7)
- |- target/L{0..119}/{W,Si_X,Si_Y}      120 W + 120 Si-X + 120 Si-Y
+ |- target/
+       |- L{0..119}/{W,Si_X,Si_Y}      120 W + 120 Si-X + 120 Si-Y
+       |- L{39,79,119}/Timing          3 Timing Layers
  |- mgc/L{0..9}/{W,Si_X,Si_Y}           10 W + 10 Si-X + 10 Si-Y
  |- hcal/S{0..2}_L{0..13}/
        |- Fe                            iron absorber
@@ -48,8 +52,8 @@ bounded for navigation.
        \- tile_{c}_{r}                  tile grid (8x8 / 10x10 / 12x12)
 ```
 
-Direct container children: 21 + 360 + 30 + 4438 = 4849. Total volumes including the
-individual fibres: 340849 (336000 fibres).
+Direct container children: 21 + 363 + 30 + 4438 = 4852. Total volumes including the
+individual fibres: 340852 (336000 fibres).
 
 Position in world: z = 28 950 mm (centre of the 26.40-31.50 m WARM SND slot).
 The SND is part of the muon shield, so its box container sits within the
@@ -62,7 +66,7 @@ overlap.
 | Material    | Density     | Usage                                |
 |-------------|-------------|--------------------------------------|
 | Tungsten    | 19.3 g/cm3  | Target absorber plates               |
-| Silicon     | 2.33 g/cm3  | Target/MGC X/Y tracking planes       |
+| Silicon     | 2.33 g/cm3  | Target/Timing/MGC X/Y tracking planes|
 | Iron        | 7.87 g/cm3  | HCAL absorber plates                 |
 | Polystyrene | 1.05 g/cm3  | HCAL fibres and tiles                |
 | PVT         | 1.032 g/cm3 | Veto bars                            |
@@ -75,7 +79,7 @@ material was new (added alongside this subsystem); the rest already existed.
 
 `test_neutrinodetector.cpp`:
 
-- `NeutrinoDetectorChildCount` - the container has 4849 direct children.
+- `NeutrinoDetectorChildCount` - the container has 4852 direct children.
 
 ## Status
 
