@@ -8,6 +8,7 @@
 #include <GeoModelKernel/Units.h>
 
 #include <stdexcept>
+#include <string>
 
 namespace SHiPGeometry {
 
@@ -16,15 +17,15 @@ SHiPMaterials::SHiPMaterials() {
     createMaterials();
 }
 
-GeoMaterial* SHiPMaterials::getMaterial(const std::string& name) const {
+GeoMaterial* SHiPMaterials::getMaterial(std::string_view name) const {
     auto it = m_materials.find(name);
     return (it != m_materials.end()) ? it->second : nullptr;
 }
 
-GeoMaterial* SHiPMaterials::requireMaterial(const std::string& name) const {
+GeoMaterial* SHiPMaterials::requireMaterial(std::string_view name) const {
     auto* mat = getMaterial(name);
     if (!mat) {
-        throw std::runtime_error("Material not found: " + name);
+        throw std::runtime_error("Material not found: " + std::string(name));
     }
     return mat;
 }
