@@ -35,7 +35,7 @@ bounded for navigation.
 ## Geometry tree
 
 ```text
-/SHiP/neutrino_detector (Air, 640 x 640 x 4100 mm box)
+/SHiP/neutrino_detector (Air, 800 x 800 x 5100 mm box)
  |- veto/P{0..2}_B{0..6}                21 PVT bars (3 planes x 7)
  |- target/L{0..119}/{W,Si_X,Si_Y}      120 W + 120 Si-X + 120 Si-Y
  \- hcal/S{0..2}_L{0..13}/
@@ -48,11 +48,17 @@ bounded for navigation.
 Direct container children: 21 + 360 + 4438 = 4819. Total volumes including the
 individual fibres: 340819 (~336k fibres).
 
-Position in world: z = 28 950 mm (centre of the 26.40-31.50 m WARM SND slot).
-The SND is part of the muon shield, so its box container sits within the
-downstream end of the muon-shield region; the resulting envelope overlap is
-declared in `tests/test_consistency.cpp`, analogous to the trackers/magnet
-overlap.
+Position: z = 28 950 mm (centre of the 26.40-31.50 m WARM SND slot). The SND is
+part of the muon shield: in volume terms its container is a **daughter of the
+muon-shield container**, nested by `SHiPGeometryBuilder` via
+`MuonShieldFactory::embedDaughter`, which only places the pre-built daughter in
+the shield's volume tree. The matching cavity in the iron is carved separately
+by `MuonShieldFactory::reserveSpace` (a Boolean subtraction of the SND
+reservation envelope from `SD.toml`), so the two do not overlap. The SND
+container is sized `SD.toml` `size`, so it always matches the
+cavity; the factory throws if that size is too small for the contents. It remains an
+independent subsystem with its own factory, config, and
+`/SHiP/neutrino_detector` naming — only its place in the volume tree changes.
 
 ## Materials
 
@@ -74,6 +80,10 @@ material was new (added alongside this subsystem); the rest already existed.
 
 - `NeutrinoDetectorIsBoxContainer` - the container is a `GeoBox` large enough to
   hold the contents.
+- `NeutrinoDetectorContainerMatchesEnvelope` - the container size equals the
+  `SD.toml` envelope size.
+- `NeutrinoDetectorContainerFromCustomEnvelope` - a custom envelope size is
+  used, and one too small for the contents is rejected.
 - `NeutrinoDetectorChildCount` - the container has 4819 direct children.
 - `NeutrinoDetectorFibreCount` - the recursive descendant count is 340819,
   guarding the individual-fibre placement.
