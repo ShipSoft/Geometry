@@ -3,8 +3,10 @@
 
 #pragma once
 
+#include <functional>
 #include <map>
 #include <string>
+#include <string_view>
 
 class GeoMaterial;
 class GeoElement;
@@ -31,7 +33,7 @@ class SHiPMaterials {
      * @param name Material name (e.g., "Air", "Concrete", "Tungsten")
      * @return Pointer to GeoMaterial or nullptr if not found
      */
-    [[nodiscard]] GeoMaterial* getMaterial(const std::string& name) const;
+    [[nodiscard]] GeoMaterial* getMaterial(std::string_view name) const;
 
     /**
      * @brief Get a material by name, throwing if not found
@@ -39,14 +41,14 @@ class SHiPMaterials {
      * @return Pointer to GeoMaterial (never nullptr)
      * @throws std::runtime_error if material not found
      */
-    [[nodiscard]] GeoMaterial* requireMaterial(const std::string& name) const;
+    [[nodiscard]] GeoMaterial* requireMaterial(std::string_view name) const;
 
    private:
     void createElements();
     void createMaterials();
 
     std::map<std::string, GeoElement*> m_elements;
-    std::map<std::string, GeoMaterial*> m_materials;
+    std::map<std::string, GeoMaterial*, std::less<>> m_materials;
 };
 
 }  // namespace SHiPGeometry
