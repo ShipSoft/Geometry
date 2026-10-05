@@ -39,6 +39,7 @@ constexpr int s_veto_n_bars = 7;
 constexpr double s_veto_shift_y = 9.0;    // ±stagger of planes 0/1 in Y
 constexpr double s_veto_plane_gap = 5.0;  // air gap between plane faces
 constexpr double s_veto_gap_to_target = 20.0;
+constexpr double s_target_gap_to_mgc = 10.0;
 constexpr double s_veto_plane_xy = s_veto_n_bars * s_veto_bar_width;  // 420
 constexpr double s_veto_total_thickness =
     3.0 * s_veto_bar_thickness + 2.0 * s_veto_plane_gap;  // 40
@@ -47,9 +48,11 @@ constexpr double s_veto_total_thickness =
 constexpr double s_tgt_plate_xy = 400.0;
 constexpr double s_tgt_w = 3.5;
 constexpr double s_tgt_si = 0.300;
+constexpr double s_tgt_timing = 30.000;
 constexpr double s_tgt_w_si_gap = 0.200;
 constexpr double s_tgt_si_si_gap = 6.800;
 constexpr int s_tgt_n_layers = 120;
+constexpr int s_tgt_n_timing_layers = 3;
 constexpr double s_tgt_pitch =
     s_tgt_w + s_tgt_w_si_gap + s_tgt_si + s_tgt_si_si_gap + s_tgt_si + s_tgt_w_si_gap;  // 11.3
 
@@ -132,6 +135,8 @@ void buildTarget(GeoVPhysVol* mother, const GeoMaterial* tungsten, const GeoMate
                                  new GeoBox(halfXY, halfXY, 0.5 * s_tgt_si * mm), silicon);
     auto* siYLog = new GeoLogVol(std::string(kBase) + "/target/Si_Y",
                                  new GeoBox(halfXY, halfXY, 0.5 * s_tgt_si * mm), silicon);
+    auto* TimingLog = new GeoLogVol(std::string(kBase) + "/target/Timing",
+                                 new GeoBox(halfXY, halfXY, 0.5 * s_tgt_timing * mm), silicon);
 
     double z = zStart_mm;
     for (int l = 0; l < s_tgt_n_layers; ++l) {
@@ -142,22 +147,27 @@ void buildTarget(GeoVPhysVol* mother, const GeoMaterial* tungsten, const GeoMate
         z += s_tgt_si + s_tgt_si_si_gap;
         placeChild(mother, siYLog, tag + "/Si_Y", l, 0.0, 0.0, z + 0.5 * s_tgt_si);
         z += s_tgt_si + s_tgt_w_si_gap;
+        if ((l+1)%((s_tgt_n_layers)/(s_tgt_n_timing_layers))==0){ //40, 80, 120
+         placeChild(mother, TimingLog, tag + "/Timing", l, 0.0, 0.0, z + 0.5 * s_tgt_timing);
+         z += s_tgt_timing;
+        }
     }
+    
 }
 
 void buildMGC(GeoVPhysVol* mother, const GeoMaterial* tungsten, const GeoMaterial* silicon,
                  double zStart_mm) {
     const double halfXY = 0.5 * s_mgc_plate_xy * mm;
-    auto* wLog = new GeoLogVol(std::string(kBase) + "/target/W_plate",
+    auto* wLog = new GeoLogVol(std::string(kBase) + "/mgc/W_plate",
                                new GeoBox(halfXY, halfXY, 0.5 * s_mgc_w * mm), tungsten);
-    auto* siXLog = new GeoLogVol(std::string(kBase) + "/target/Si_X",
+    auto* siXLog = new GeoLogVol(std::string(kBase) + "/mgc/Si_X",
                                  new GeoBox(halfXY, halfXY, 0.5 * s_mgc_si * mm), silicon);
-    auto* siYLog = new GeoLogVol(std::string(kBase) + "/target/Si_Y",
+    auto* siYLog = new GeoLogVol(std::string(kBase) + "/mgc/Si_Y",
                                  new GeoBox(halfXY, halfXY, 0.5 * s_mgc_si * mm), silicon);
 
     double z = zStart_mm;
     for (int l = 0; l < s_mgc_n_layers; ++l) {
-        const std::string tag = std::string(kBase) + "/target/L" + std::to_string(l);
+        const std::string tag = std::string(kBase) + "/mgc/L" + std::to_string(l);
         placeChild(mother, wLog, tag + "/W", l, 0.0, 0.0, z + 0.5 * s_mgc_w);
         z += s_mgc_w + s_mgc_w_si_gap;
         placeChild(mother, siXLog, tag + "/Si_X", l, 0.0, 0.0, z + 0.5 * s_mgc_si);
@@ -305,7 +315,7 @@ GeoPhysVol* NeutrinoDetectorFactory::build() {
     auto* containerPhys = new GeoPhysVol(containerLog);
 
     // Longitudinal layout (upstream → downstream), content centred in the container.
-    const double targetDepth = s_tgt_pitch * s_tgt_n_layers;
+    const double targetDepth = s_tgt_pitch * s_tgt_n_layers + s_tgt_n_timing_layers * (s_tgt_timing);
     const double mgcDepth = s_mgc_pitch * s_mgc_n_layers;
     const double hcalDepth =
         s_hcal_gap_to_target + s_hcal_n_sections * (s_hcal_layer * s_hcal_n_layers);
@@ -315,8 +325,8 @@ GeoPhysVol* NeutrinoDetectorFactory::build() {
 
     const double vetoDownstreamFace = zStart + s_veto_total_thickness;
     const double targetStart = vetoDownstreamFace + s_veto_gap_to_target;
-    const double mgcStart = targetStart + targetDepth;
-    const double hcalStart = targetStart + targetDepth + mgcDepth;
+    const double mgcStart = targetStart + targetDepth + s_target_gap_to_mgc;
+    const double hcalStart = targetStart + targetDepth + s_target_gap_to_mgc + mgcDepth;
 
     buildVeto(containerPhys, pvt, vetoDownstreamFace);
     buildTarget(containerPhys, tungsten, silicon, targetStart);
