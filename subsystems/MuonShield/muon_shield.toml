@@ -9,17 +9,13 @@
 # The muon shield is defined INDEPENDENTLY of the neutrino detector. The SND
 # reservation is declared in NeutrinoDetector/SD.toml and subtracted from the
 # iron at build time (A - B), so this file needs no knowledge of the SND.
-#
-# The FairShip absorber (row 0) is the magnetised hadron stopper and lives in
-# the Target subsystem (2.14-4.44 m); the shield front is at 2.14 m, so magnet 1
-# begins at 4.59 m.
 
 block_material = "Iron"
 
 envelope_half_x_mm = 1760.0
 envelope_half_y_mm = 1320.0
-envelope_z_start_m = 4.5400
-envelope_z_end_m   = 32.0800
+envelope_z_start_mm = 4540.0
+envelope_z_end_mm   = 32080.0
 
 # magnet 1
 [[block]]

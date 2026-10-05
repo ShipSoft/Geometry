@@ -20,6 +20,7 @@
 
 #include <GeoGenericFunctions/Variable.h>
 #include <cmath>
+#include <stdexcept>
 #include <string>
 
 namespace SHiPGeometry {
@@ -254,9 +255,14 @@ void buildHCal(GeoVPhysVol* mother, const GeoMaterial* air, const GeoMaterial* i
 
 }  // namespace
 
-/// Construct the factory against the shared materials catalogue.
-NeutrinoDetectorFactory::NeutrinoDetectorFactory(SHiPMaterials& materials)
-    : m_materials(materials) {}
+/// Construct the factory against the shared materials catalogue, sizing the
+/// container from the SD.toml envelope.
+NeutrinoDetectorFactory::NeutrinoDetectorFactory(SHiPMaterials& materials,
+                                                 const SNDEnvelope& envelope)
+    : m_materials(materials),
+      m_halfX(0.5 * envelope.size_mm[0]),
+      m_halfY(0.5 * envelope.size_mm[1]),
+      m_halfZ(0.5 * envelope.size_mm[2]) {}
 
 /// Resolve materials, create the air container, lay out the veto, target and
 /// HCAL in beam order (content centred in the container), and return it.
@@ -268,8 +274,8 @@ GeoPhysVol* NeutrinoDetectorFactory::build() {
     const GeoMaterial* polystyrene = m_materials.requireMaterial("Polystyrene");
     const GeoMaterial* pvt = m_materials.requireMaterial("PVT");
 
-    auto* containerBox = new GeoBox(s_halfX * mm, s_halfY * mm, s_halfZ * mm);
-    auto* containerLog = new GeoLogVol(kBase, containerBox, air);
+    const auto* containerBox = new GeoBox(m_halfX * mm, m_halfY * mm, m_halfZ * mm);
+    const auto* containerLog = new GeoLogVol(kBase, containerBox, air);
     auto* containerPhys = new GeoPhysVol(containerLog);
 
     // Longitudinal layout (upstream → downstream), content centred in the container.
@@ -279,6 +285,19 @@ GeoPhysVol* NeutrinoDetectorFactory::build() {
     const double contentDepth =
         s_veto_total_thickness + s_veto_gap_to_target + targetDepth + hcalDepth;
     const double zStart = -0.5 * contentDepth;
+
+    // The container size comes from SD.toml; reject one too small for the
+    // contents. Widest transverse part: the largest HCAL section's fibre-plane
+    // envelope (half the section plus one fibre diameter).
+    const double contentHalfXY =
+        (0.5 * s_hcal_section_xy[s_hcal_n_sections - 1]) + s_hcal_fibre_diameter;
+    if (m_halfX < contentHalfXY || m_halfY < contentHalfXY || m_halfZ < 0.5 * contentDepth) {
+        throw std::runtime_error(
+            "NeutrinoDetectorFactory: SD.toml size is too small for the detector (needs at "
+            "least " +
+            std::to_string(2.0 * contentHalfXY) + " x " + std::to_string(2.0 * contentHalfXY) +
+            " x " + std::to_string(contentDepth) + " mm)");
+    }
 
     const double vetoDownstreamFace = zStart + s_veto_total_thickness;
     const double targetStart = vetoDownstreamFace + s_veto_gap_to_target;

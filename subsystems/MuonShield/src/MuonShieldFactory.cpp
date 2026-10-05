@@ -26,15 +26,8 @@
 #include <stdexcept>
 #include <string>
 
-// Absolute fallback path baked in by CMake so out-of-source builds always find
-// muon_shield.toml even when the CWD doesn't contain a copy of it.
-#ifndef MS_TOML_DEFAULT_PATH
-#define MS_TOML_DEFAULT_PATH "muon_shield.toml"
-#endif
-// Install-time data directory path, set by CMake during install configuration.
-#ifndef MS_TOML_INSTALL_PATH
-#define MS_TOML_INSTALL_PATH ""
-#endif
+// MS_TOML_DEFAULT_PATH and MS_TOML_INSTALL_PATH are always defined by the
+// ship_add_toml_config() CMake helper.
 
 namespace SHiPGeometry {
 
@@ -192,13 +185,57 @@ GeoPhysVol* MuonShieldFactory::build() {
     // daughter's footprint — the block list is the sole source of iron.)
     //
     // embedDaughter() takes only a Z centre, so daughters are placed on the beam
-    // axis (x = y = 0); the Z fit is therefore the only bound checked here. If
-    // off-axis daughters are ever supported, add a transverse-extent check.
+    // axis (x = y = 0). Each daughter must fit the envelope: its centre, and the
+    // min and max of its box along x, y and z.
     for (const auto& d : m_daughters) {
         const double localZ = d.worldCentreZ_mm - m_centreZ_mm;
-        if (std::abs(localZ) > halfZ)
+        if (std::abs(localZ) > halfZ) {
             throw std::runtime_error("MuonShieldFactory: embedded daughter '" + d.name +
-                                     "' lies outside the shield envelope in Z");
+                                     "' has its centre outside the shield envelope in Z");
+        }
+
+        // Daughters are boxes centred on their own origin, so the extent is the
+        // centre ± half-length along each axis.
+        const auto* box = dynamic_cast<const GeoBox*>(d.volume->getLogVol()->getShape());
+        if (box == nullptr) {
+            throw std::runtime_error("MuonShieldFactory: embedded daughter '" + d.name +
+                                     "' must be a GeoBox");
+        }
+        const double xMin = -box->getXHalfLength();
+        const double xMax = box->getXHalfLength();
+        const double yMin = -box->getYHalfLength();
+        const double yMax = box->getYHalfLength();
+        const double zMin = localZ - box->getZHalfLength();
+        const double zMax = localZ + box->getZHalfLength();
+
+        constexpr double kEps = 1e-6;
+        const bool outX =
+            xMin < -cfg.envelope_half_x_mm - kEps || xMax > cfg.envelope_half_x_mm + kEps;
+        const bool outY =
+            yMin < -cfg.envelope_half_y_mm - kEps || yMax > cfg.envelope_half_y_mm + kEps;
+        const bool outZ = zMin < -halfZ - kEps || zMax > halfZ + kEps;
+        if (outX || outY || outZ) {
+            // Report every axis that does not fit, with both ranges (z in world coordinates).
+            const auto range = [](double lo, double hi) {
+                return std::to_string(lo) + " to " + std::to_string(hi) + " mm";
+            };
+            std::string msg = "MuonShieldFactory: embedded daughter '" + d.name +
+                              "' extends beyond the shield envelope in";
+            if (outX) {
+                msg += " x (daughter " + range(xMin, xMax) + ", envelope " +
+                       range(-cfg.envelope_half_x_mm, cfg.envelope_half_x_mm) + ")";
+            }
+            if (outY) {
+                msg += " y (daughter " + range(yMin, yMax) + ", envelope " +
+                       range(-cfg.envelope_half_y_mm, cfg.envelope_half_y_mm) + ")";
+            }
+            if (outZ) {
+                msg += " z (daughter " + range(m_centreZ_mm + zMin, m_centreZ_mm + zMax) +
+                       ", envelope " + range(m_centreZ_mm - halfZ, m_centreZ_mm + halfZ) + ")";
+            }
+            throw std::runtime_error(msg);
+        }
+
         containerPhys->add(new GeoNameTag(d.name));
         containerPhys->add(new GeoIdentifierTag(childId++));
         containerPhys->add(new GeoTransform(GeoTrf::Translate3D(0.0, 0.0, localZ)));

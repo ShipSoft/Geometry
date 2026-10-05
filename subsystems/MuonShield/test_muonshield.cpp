@@ -10,14 +10,16 @@
 #include <GeoModelKernel/GeoPhysVol.h>
 #include <GeoModelKernel/GeoShapeSubtraction.h>
 #include <GeoModelKernel/GeoTrd.h>
+#include <GeoModelKernel/GeoTube.h>
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include <catch2/matchers/catch_matchers_string.hpp>
 #include <cmath>
 #include <fstream>
-#include <stdexcept>
 #include <string>
 
+using Catch::Matchers::ContainsSubstring;
 using SHiPGeometry::MuonShieldConfig;
 using SHiPGeometry::MuonShieldFactory;
 using SHiPGeometry::readMuonShieldConfig;
@@ -34,7 +36,7 @@ std::string writeTempToml(const std::string& name, const std::string& body) {
 }  // namespace
 
 // Default muon_shield.toml: the 7 FairShip TRY_2026 magnets (solid-block approximation)
-// inside an auto-sized envelope (4.54–32.08 m, 1760 × 1320 mm half-sizes).
+// inside an auto-sized envelope (z = 4540–32080 mm, 1760 × 1320 mm half-sizes).
 TEST_CASE("MuonShieldBuilds", "[muonshield]") {
     SHiPMaterials materials;
     MuonShieldFactory factory(materials);
@@ -47,7 +49,7 @@ TEST_CASE("MuonShieldBuilds", "[muonshield]") {
     CHECK_THAT(box->getYHalfLength(), Catch::Matchers::WithinAbs(1320.0, 1e-6));
     CHECK_THAT(box->getZHalfLength(), Catch::Matchers::WithinAbs(13770.0, 1e-6));
 
-    // Envelope centre = (4.54 + 32.08)/2 m = 18.31 m.
+    // Envelope centre = (4540 + 32080) / 2 = 18310 mm.
     CHECK_THAT(factory.centreZ_mm(), Catch::Matchers::WithinAbs(18310.0, 1e-6));
 }
 
@@ -59,7 +61,7 @@ TEST_CASE("MuonShieldDefaultLayout", "[muonshield]") {
     // 7 solid magnets (the SND cavity is carved by reserveSpace, not here).
     REQUIRE(ms->getNChildVols() == 7u);  // NOLINT(readability/check)
 
-    // Magnet 1: straight box, upstream face at z = 4.59 m, 2720 × 1600 × 3000 mm.
+    // Magnet 1: straight box, upstream face at z = 4590 mm, 2720 × 1600 × 3000 mm.
     auto* block0 = dynamic_cast<const GeoBox*>(ms->getChildVol(0)->getLogVol()->getShape());
     REQUIRE(block0 != nullptr);
     CHECK_THAT(block0->getXHalfLength(), Catch::Matchers::WithinAbs(1360.0, 1e-6));
@@ -76,7 +78,7 @@ TEST_CASE("MuonShieldDefaultLayout", "[muonshield]") {
 }
 
 TEST_CASE("MuonShieldReservationCarvesIron", "[muonshield]") {
-    // A reserved box (the SND envelope: 800 × 800 × 5100 mm at z = 28.95 m) is
+    // A reserved box (the SND envelope: 800 × 800 × 5100 mm at z = 28950 mm) is
     // subtracted (A - B) from every magnet it intersects, leaving upstream
     // magnets untouched.
     SHiPMaterials materials;
@@ -101,11 +103,11 @@ TEST_CASE("MuonShieldRejectsRotatedBlockOutsideEnvelope", "[muonshield]") {
     const std::string path = writeTempToml(
         "MS_rot_reject.toml",
         "envelope_half_x_mm = 1500\nenvelope_half_y_mm = 400\n"
-        "envelope_z_start_m = 0.0\nenvelope_z_end_m = 6.0\n"
+        "envelope_z_start_mm = 0.0\nenvelope_z_end_mm = 6000.0\n"
         "[[block]]\nstart = [0,0,2000]\nsize = [2400,200,400]\nrotation = [0,0,90]\n");
     SHiPMaterials materials;
     MuonShieldFactory factory(materials, path);
-    CHECK_THROWS_AS(factory.build(), std::runtime_error);
+    CHECK_THROWS_WITH(factory.build(), ContainsSubstring("bounding box exceeds the Air container"));
 }
 
 TEST_CASE("MuonShieldRotatedReservationCarves", "[muonshield]") {
@@ -169,7 +171,7 @@ TEST_CASE("MuonShieldEmbedsDaughter", "[muonshield]") {
     auto* dPhys = new GeoPhysVol(dLog);
 
     MuonShieldFactory factory(materials);  // default 7 solid magnets
-    factory.embedDaughter(dPhys, 28.95 * 1000.0, "/SHiP/dummy");
+    factory.embedDaughter(dPhys, 28950.0, "/SHiP/dummy");
     GeoPhysVol* ms = factory.build();
     REQUIRE(ms != nullptr);
     // 7 iron magnets + the embedded daughter.
@@ -182,23 +184,89 @@ TEST_CASE("MuonShieldEmbedsDaughter", "[muonshield]") {
     CHECK(found);
 }
 
+// An embedded daughter must fit the envelope: centre, and the min and max of
+// its extent in x, y and z. Default envelope: z = 4540–32080 mm, half-sizes
+// 1760 × 1320 mm.
+TEST_CASE("MuonShieldRejectsDaughterOutsideEnvelope", "[muonshield]") {
+    SHiPMaterials materials;
+    auto makeDaughter = [&](double hx, double hy, double hz) {
+        auto* box = new GeoBox(hx, hy, hz);
+        auto* log = new GeoLogVol("/SHiP/dummy", box, materials.requireMaterial("Air"));
+        return new GeoPhysVol(log);
+    };
+    auto buildWith = [&](GeoPhysVol* daughter, double worldCentreZ_mm) {
+        MuonShieldFactory factory(materials);
+        factory.embedDaughter(daughter, worldCentreZ_mm, "/SHiP/dummy");
+        return factory.build();
+    };
+
+    SECTION("centre outside in Z") {
+        // 40000 > 32080.
+        CHECK_THROWS_WITH(buildWith(makeDaughter(100.0, 100.0, 500.0), 40000.0),
+                          ContainsSubstring("centre outside the shield envelope"));
+    }
+    SECTION("centre inside, downstream end past the envelope end") {
+        // 31000 + 2550 = 33550 > 32080.
+        CHECK_THROWS_WITH(buildWith(makeDaughter(400.0, 400.0, 2550.0), 31000.0),
+                          ContainsSubstring(" z (daughter 28450") && !ContainsSubstring(" x (") &&
+                              !ContainsSubstring(" y ("));
+    }
+    SECTION("centre inside, upstream end before the envelope start") {
+        // 5000 - 2550 = 2450 < 4540.
+        CHECK_THROWS_WITH(buildWith(makeDaughter(400.0, 400.0, 2550.0), 5000.0),
+                          ContainsSubstring(" z (daughter 2450") && !ContainsSubstring(" x (") &&
+                              !ContainsSubstring(" y ("));
+    }
+    SECTION("wider than the envelope in X") {
+        // 1800 > 1760.
+        CHECK_THROWS_WITH(buildWith(makeDaughter(1800.0, 100.0, 500.0), 18310.0),
+                          ContainsSubstring(" x (daughter -1800") && !ContainsSubstring(" y (") &&
+                              !ContainsSubstring(" z ("));
+    }
+    SECTION("taller than the envelope in Y") {
+        // 1400 > 1320.
+        CHECK_THROWS_WITH(buildWith(makeDaughter(100.0, 1400.0, 500.0), 18310.0),
+                          ContainsSubstring(" y (daughter -1400") && !ContainsSubstring(" x (") &&
+                              !ContainsSubstring(" z ("));
+    }
+    SECTION("outside in X and Z reports both") {
+        CHECK_THROWS_WITH(buildWith(makeDaughter(1800.0, 100.0, 2550.0), 31000.0),
+                          ContainsSubstring(" x (daughter") && ContainsSubstring(" z (daughter") &&
+                              !ContainsSubstring(" y ("));
+    }
+    SECTION("a daughter that is not a box is rejected") {
+        auto* tube = new GeoTube(0.0, 100.0, 500.0);
+        auto* log = new GeoLogVol("/SHiP/dummy", tube, materials.requireMaterial("Air"));
+        CHECK_THROWS_WITH(buildWith(new GeoPhysVol(log), 18310.0),
+                          ContainsSubstring("must be a GeoBox"));
+    }
+    SECTION("exactly touching the envelope end is allowed") {
+        // 29530 + 2550 = 32080.
+        CHECK_NOTHROW(buildWith(makeDaughter(400.0, 400.0, 2550.0), 29530.0));
+    }
+}
+
 TEST_CASE("MuonShieldRejectsNonPositiveSize", "[muonshield]") {
     const std::string path = writeTempToml(
         "MS_badsize.toml", "[[block]]\nstart = [0,0,12000]\nsize = [-3000,2000,2000]\n");
-    CHECK_THROWS_AS(readMuonShieldConfig(path), std::runtime_error);
+    CHECK_THROWS_WITH(readMuonShieldConfig(path), ContainsSubstring("non-positive size"));
 }
 
 TEST_CASE("MuonShieldRejectsCollapsingTaper", "[muonshield]") {
     const std::string path = writeTempToml(
         "MS_badtaper.toml",
         "[[block]]\nstart = [0,0,12000]\nsize = [3000,2000,2000]\ntaper = [-45.0, 0.0]\n");
-    CHECK_THROWS_AS(readMuonShieldConfig(path), std::runtime_error);
+    // Far half-width 1500 + 2000 * tan(-45°) = -500.
+    CHECK_THROWS_WITH(readMuonShieldConfig(path),
+                      ContainsSubstring("collapses its downstream face"));
 }
 
 TEST_CASE("MuonShieldRejectsBlockOutsideEnvelope", "[muonshield]") {
     const std::string path = writeTempToml(
         "MS_outside.toml", "[[block]]\nstart = [0,0,40000]\nsize = [3000,2000,1000]\n");
-    CHECK_THROWS_AS(readMuonShieldConfig(path), std::runtime_error);
+    // Upstream face at 40000 > 32080.
+    CHECK_THROWS_WITH(readMuonShieldConfig(path), ContainsSubstring("upstream face (z = 40000") &&
+                                                      ContainsSubstring("outside the envelope"));
 }
 
 TEST_CASE("MuonShieldEmptyBlockList", "[muonshield]") {

@@ -63,7 +63,8 @@ GeoPhysVol* SHiPGeometryBuilder::build() {
     muonShieldFactory.reserveSpace(sndEnvelope.centre_mm, sndEnvelope.size_mm,
                                    sndEnvelope.rotation_deg);
 
-    NeutrinoDetectorFactory neutrinoDetectorFactory(materials);
+    // The detector container is sized from the same envelope as the cavity.
+    NeutrinoDetectorFactory neutrinoDetectorFactory(materials, sndEnvelope);
     GeoPhysVol* neutrinoDetector = neutrinoDetectorFactory.build();
     muonShieldFactory.embedDaughter(neutrinoDetector, sndEnvelope.centre_mm[2],
                                     "/SHiP/neutrino_detector");

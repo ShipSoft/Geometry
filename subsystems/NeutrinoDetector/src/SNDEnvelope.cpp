@@ -8,24 +8,22 @@
 
 #include <array>
 #include <cstddef>
-#include <iostream>
 #include <stdexcept>
 #include <string>
 #include <string_view>
 #include <toml++/toml.h>
 
-// Absolute fallback paths baked in by CMake so out-of-source builds always find
-// SD.toml even when the CWD doesn't contain a copy of it.
-#ifndef SD_TOML_DEFAULT_PATH
-#define SD_TOML_DEFAULT_PATH "SD.toml"
-#endif
-#ifndef SD_TOML_INSTALL_PATH
-#define SD_TOML_INSTALL_PATH ""
-#endif
+// SD_TOML_DEFAULT_PATH and SD_TOML_INSTALL_PATH are always defined by the
+// ship_add_toml_config() CMake helper.
 
 namespace SHiPGeometry {
 
 namespace {
+
+using namespace std::string_view_literals;
+
+// Recognised top-level keys. Anything outside this set triggers a warning.
+constexpr std::array kKnownKeys = {"centre"sv, "rotation"sv, "size"sv};
 
 std::array<double, 3> readVec3(const toml::table& table, const char* key, const std::string& path,
                                bool required, const std::array<double, 3>& fallback) {
@@ -50,14 +48,8 @@ SNDEnvelope readSNDEnvelope(const std::string& rawPath) {
 
     SNDEnvelope env;
 
-    // Warn about unknown top-level keys (typos / stale fields), like
-    // readMuonShieldConfig. Only centre, size and rotation are recognised.
-    for (const auto& [k, _] : table) {
-        const std::string_view key{k};
-        if (key != "centre" && key != "size" && key != "rotation")
-            std::cerr << "SNDEnvelope: warning: unknown key '" << k << "' in " << path
-                      << " (ignored)\n";
-    }
+    // Warn about unknown top-level keys (typos / stale fields).
+    tomlconfig::warnUnknownKeys(table, kKnownKeys, path, "SNDEnvelope");
 
     env.centre_mm = readVec3(table, "centre", path, true, env.centre_mm);
     env.size_mm = readVec3(table, "size", path, true, env.size_mm);

@@ -21,7 +21,6 @@
 #include <array>
 #include <cmath>
 #include <cstddef>
-#include <iostream>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -33,15 +32,15 @@ namespace {
 
 using namespace std::string_view_literals;
 
-// Recognised top-level keys (sorted for binary search). Anything outside this
-// set triggers a warning. "block" is the [[block]] array of tables.
+// Recognised top-level keys. Anything outside this set triggers a warning.
+// "block" is the [[block]] array of tables.
 static constexpr std::array kKnownKeys = {
     "block"sv,
     "block_material"sv,
     "envelope_half_x_mm"sv,
     "envelope_half_y_mm"sv,
-    "envelope_z_end_m"sv,
-    "envelope_z_start_m"sv,
+    "envelope_z_end_mm"sv,
+    "envelope_z_start_mm"sv,
 };
 
 // Mapping from TOML key name to MuonShieldConfig double member pointer.
@@ -53,16 +52,9 @@ struct NumericField {
 static constexpr NumericField kNumericFields[] = {
     {"envelope_half_x_mm", &MuonShieldConfig::envelope_half_x_mm},
     {"envelope_half_y_mm", &MuonShieldConfig::envelope_half_y_mm},
-    {"envelope_z_start_m", &MuonShieldConfig::envelope_z_start_m},
-    {"envelope_z_end_m", &MuonShieldConfig::envelope_z_end_m},
+    {"envelope_z_start_mm", &MuonShieldConfig::envelope_z_start_mm},
+    {"envelope_z_end_mm", &MuonShieldConfig::envelope_z_end_mm},
 };
-
-// Read a scalar double or integer as a double (shared numeric extraction).
-double readNumeric(const toml::node_view<toml::node>& node, const std::string& key) {
-    if (auto v = tomlconfig::asDouble(node.node()))
-        return *v;
-    throw std::runtime_error("MuonShieldConfig: '" + key + "' must be a number");
-}
 
 }  // namespace
 
@@ -78,17 +70,12 @@ MuonShieldConfig readMuonShieldConfig(const std::string& path) {
     }
 
     // First pass: warn about unknown keys.
-    for (const auto& [k, _] : table) {
-        if (!std::ranges::binary_search(kKnownKeys, std::string_view{k})) {
-            std::cerr << "MuonShieldConfig: warning: unknown key '" << k << "' in " << path
-                      << " (typo? stale field? — value will be ignored)\n";
-        }
-    }
+    tomlconfig::warnUnknownKeys(table, kKnownKeys, path, "MuonShieldConfig");
 
     // Numeric (double) envelope fields.
     for (const auto& [key, member] : kNumericFields)
         if (auto n = table[key]; n)
-            cfg.*member = readNumeric(n, key);
+            cfg.*member = tomlconfig::readNumeric(n, key, "MuonShieldConfig");
 
     // String field.
     if (auto n = table["block_material"]; n) {
@@ -123,17 +110,17 @@ MuonShieldConfig readMuonShieldConfig(const std::string& path) {
     }
 
     // ── Validation ──────────────────────────────────────────────────────
-    if (cfg.envelope_z_end_m <= cfg.envelope_z_start_m)
+    if (cfg.envelope_z_end_mm <= cfg.envelope_z_start_mm)
         throw std::runtime_error(
-            "MuonShieldConfig: envelope_z_end_m must be greater than envelope_z_start_m in " +
+            "MuonShieldConfig: envelope_z_end_mm must be greater than envelope_z_start_mm in " +
             path);
     if (cfg.envelope_half_x_mm <= 0.0 || cfg.envelope_half_y_mm <= 0.0)
         throw std::runtime_error(
             "MuonShieldConfig: envelope_half_x_mm and envelope_half_y_mm must be positive in " +
             path);
 
-    const double envStartMm = cfg.envelope_z_start_m * 1000.0;
-    const double envEndMm = cfg.envelope_z_end_m * 1000.0;
+    const double envStartMm = cfg.envelope_z_start_mm;
+    const double envEndMm = cfg.envelope_z_end_mm;
     constexpr double kEps = 1e-6;  // mm
 
     for (std::size_t i = 0; i < cfg.blocks.size(); ++i) {

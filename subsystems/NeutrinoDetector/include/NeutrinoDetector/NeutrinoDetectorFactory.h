@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "NeutrinoDetector/SNDEnvelope.h"
+
 class GeoPhysVol;
 
 namespace SHiPGeometry {
@@ -37,30 +39,33 @@ class SHiPMaterials;
  * `GeoSerialTransformer`, so each plane costs O(1) tree nodes regardless of
  * fibre count. The X/Y plane names are preserved for readout.
  *
- * The container is a box approximation of the SND envelope
- * (`subsystem_envelopes.csv`: z 26.40–31.50 m WARM, half-width/height up to
- * 0.40 m); placement is handled by SHiPGeometry.
+ * The container is a box sized from the SD.toml reservation envelope
+ * (`size`), the same box that is carved out of the muon-shield iron, so the
+ * container always matches its cavity. Placement is handled by SHiPGeometry.
  */
 class NeutrinoDetectorFactory {
    public:
-    /// Construct the factory against the shared materials catalogue.
-    explicit NeutrinoDetectorFactory(SHiPMaterials& materials);
+    /// Construct the factory against the shared materials catalogue. The
+    /// container size is taken from @p envelope (by default, read from SD.toml).
+    explicit NeutrinoDetectorFactory(SHiPMaterials& materials,
+                                     const SNDEnvelope& envelope = readSNDEnvelope());
 
     /// Defaulted destructor.
     ~NeutrinoDetectorFactory() = default;
 
     /// Build the SND geometry; returns the air container.
+    /// @throws std::runtime_error if the contents do not fit in the container.
     [[nodiscard]] GeoPhysVol* build();
 
    private:
     SHiPMaterials& m_materials;
 
     // ── Container envelope (mm) ─────────────────────────────────────────
-    // Box approximation of the frustum SND envelope, sized to the largest
-    // (downstream) half-width/height and the full 5.10 m length.
-    static constexpr double s_halfX = 400.0;
-    static constexpr double s_halfY = 400.0;
-    static constexpr double s_halfZ = 2550.0;
+    // Half of the SD.toml envelope `size`, the same box that is carved out of
+    // the muon-shield iron.
+    double m_halfX;
+    double m_halfY;
+    double m_halfZ;
 };
 
 }  // namespace SHiPGeometry

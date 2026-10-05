@@ -56,21 +56,19 @@ struct MuonShieldConfig {
     double envelope_half_x_mm = 1760.0;
     double envelope_half_y_mm = 1320.0;
 
-    // Envelope Z extent in world coordinates (target-front-face origin, m).
+    // Envelope Z extent in world coordinates (target-front-face origin, mm).
     // This is the Air container and the world placement of the subsystem.
-    double envelope_z_start_m = 4.54;
-    double envelope_z_end_m = 32.08;
+    double envelope_z_start_mm = 4540.0;
+    double envelope_z_end_mm = 32080.0;
 
     // The iron blocks. Empty = no iron.
     std::vector<MuonShieldBlock> blocks;
 
     // ── Derived helpers ─────────────────────────────────────────────────
     /// Full Z length of the envelope (mm).
-    double envelopeLengthZ_mm() const { return (envelope_z_end_m - envelope_z_start_m) * 1000.0; }
+    double envelopeLengthZ_mm() const { return envelope_z_end_mm - envelope_z_start_mm; }
     /// World-Z centre of the envelope (mm).
-    double envelopeCentreZ_mm() const {
-        return 0.5 * (envelope_z_start_m + envelope_z_end_m) * 1000.0;
-    }
+    double envelopeCentreZ_mm() const { return 0.5 * (envelope_z_start_mm + envelope_z_end_mm); }
 };
 
 /**

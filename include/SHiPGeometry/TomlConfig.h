@@ -4,16 +4,20 @@
 #pragma once
 
 // Small shared helpers for the subsystem TOML config parsers (calorimeter,
-// muon shield, neutrino detector). Factors out the numeric conversion and the
-// fixed-length numeric-array parsing that were duplicated across parsers. Each
-// caller passes its own error prefix (e.g. "MuonShieldConfig") so messages stay
-// self-identifying.
+// muon shield, neutrino detector). Factors out the unknown-key warning, the
+// numeric conversion and the fixed-length numeric-array parsing that were
+// duplicated across parsers. Each caller passes its own error prefix (e.g.
+// "MuonShieldConfig") so messages stay self-identifying.
 
+#include <algorithm>
 #include <array>
 #include <cstddef>
+#include <iostream>
 #include <optional>
+#include <span>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <toml++/toml.h>
 
 namespace SHiPGeometry::tomlconfig {
@@ -27,6 +31,27 @@ inline std::optional<double> asDouble(const toml::node* node) {
             return static_cast<double>(*i);
     }
     return std::nullopt;
+}
+
+// Warn on stderr about every top-level key of @p table that is not in
+// @p knownKeys (typos, stale fields). Unknown keys are ignored, not an error.
+inline void warnUnknownKeys(const toml::table& table, std::span<const std::string_view> knownKeys,
+                            const std::string& path, const char* who) {
+    for (const auto& [k, _] : table) {
+        if (std::ranges::find(knownKeys, std::string_view{k}) == knownKeys.end()) {
+            std::cerr << who << ": warning: unknown key '" << k << "' in " << path
+                      << " (typo? stale field? — value will be ignored)\n";
+        }
+    }
+}
+
+// Read a scalar TOML numeric (integer or float) as a double. Throws (with the
+// caller's @p who prefix) if the value is not a number.
+inline double readNumeric(const toml::node_view<toml::node>& node, std::string_view key,
+                          const char* who) {
+    if (auto v = asDouble(node.node()))
+        return *v;
+    throw std::runtime_error(std::string(who) + ": '" + std::string(key) + "' must be a number");
 }
 
 // Read a fixed-length numeric array (e.g. size = [x, y, z]) from a table.
