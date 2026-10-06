@@ -4,6 +4,7 @@
 #include "MuonShield/MuonShieldFactory.h"
 
 #include "SHiPGeometry/SHiPMaterials.h"
+#include "SHiPGeometry/StaticChecks.h"
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoDefinitions.h>
@@ -14,6 +15,7 @@
 #include <GeoModelKernel/GeoTransform.h>
 
 #include <string>
+#include <string_view>
 
 namespace SHiPGeometry {
 
@@ -26,7 +28,7 @@ using units::mm;
 // ship_geometry.gdml. Station z-positions are relative to the MuonShieldArea
 // container centre (GDML station_z_cm - 1676.33 cm) × 10 mm/cm.
 // ---------------------------------------------------------------------------
-const MuonShieldFactory::StationData MuonShieldFactory::k_stations[6] = {
+constexpr MuonShieldFactory::StationData MuonShieldFactory::k_stations[6] = {
     // ── MagnAbsorb  (GDML z = 319.5 cm, dz = 115.5 cm) ──────────────────
     {"magn_absorb",
      -13568.3 * mm,
@@ -129,6 +131,60 @@ const MuonShieldFactory::StationData MuonShieldFactory::k_stations[6] = {
          {904.0 * mm, 200.0 * mm, 2338.2 * mm, -904.0 * mm, -760.0 * mm, "mag_bot_right"},
      }},
 };
+
+// ── Compile-time validation ──────────────────────────────────────────────
+namespace {
+
+using MSF = MuonShieldFactory;
+
+constexpr checks::Box stationBox(const MSF::StationData& st) {
+    return checks::box(0.0 * mm, 0.0 * mm, st.stationZ, st.containerHalfX, st.containerHalfY,
+                       st.containerHalfZ);
+}
+
+// Pieces are placed in the station's XY frame at z = 0.
+constexpr bool pieceFits(const MSF::StationData& st, const MSF::PieceData& p) {
+    return checks::contains(checks::box(st.containerHalfX, st.containerHalfY, st.containerHalfZ),
+                            checks::box(p.centX, p.centY, 0.0 * mm, p.halfX, p.halfY, p.halfZ));
+}
+
+// Known deviation: the magn_5 return-yoke pieces (1079.2 + 728.9 mm) reach
+// 0.1 mm past the station container half-width (1808.0 mm).
+constexpr bool isKnownProtrusion(const MSF::StationData& st, const MSF::PieceData& p) {
+    const std::string_view station = st.name;
+    const std::string_view piece = p.name;
+    return station == "magn_5" && (piece == "mag_ret_l" || piece == "mag_ret_r");
+}
+
+constexpr bool piecesFitStations() {
+    for (const auto& st : MSF::k_stations) {
+        for (const auto& p : st.pieces) {
+            if (pieceFits(st, p) == isKnownProtrusion(st, p)) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+}  // namespace
+
+static_assert(piecesFitStations(),
+              "a muon-shield piece sticks out of its station container, or a known "
+              "protrusion has been fixed (then drop it from isKnownProtrusion)");
+static_assert(checks::firstFailure(MSF::k_stations,
+                                   [](const MSF::StationData& st) {
+                                       return checks::contains(
+                                           checks::box(MSF::s_areaHalfX, MSF::s_areaHalfY,
+                                                       MSF::s_areaHalfZ),
+                                           stationBox(st));
+                                   }) == checks::npos,
+              "a muon-shield station sticks out of the MuonShieldArea container");
+static_assert(checks::firstPairFailure(MSF::k_stations,
+                                       [](const MSF::StationData& a, const MSF::StationData& b) {
+                                           return stationBox(a).z.hi <= stationBox(b).z.lo;
+                                       }) == checks::npos,
+              "muon-shield stations must be ordered along z without overlapping");
 
 // ---------------------------------------------------------------------------
 
