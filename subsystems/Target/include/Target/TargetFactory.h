@@ -51,6 +51,21 @@ class TargetFactory {
      */
     [[nodiscard]] GeoPhysVol* build();
 
+    // Unit shorthands (typed; constants below deduce their quantity type)
+    static constexpr auto cm = units::cm;
+    static constexpr auto mm = units::mm;
+    static constexpr auto deg = units::deg;
+
+    // Target vacuum box dimensions (half-sizes)
+    static constexpr auto s_vacuumBoxHalfX = 80.0 * cm;
+    static constexpr auto s_vacuumBoxHalfY = 113.55 * cm;
+    static constexpr auto s_vacuumBoxHalfZ = 150.0 * cm;
+
+    // TargetArea position within vacuum box: the target frame (z = 0 at the
+    // front face of the first disk) sits at this offset in the vacuum box
+    static constexpr auto s_targetAreaPosY = 14.45 * cm;
+    static constexpr auto s_targetAreaPosZ = -43.25 * cm;
+
    private:
     SHiPMaterials& m_materials;
 
@@ -61,16 +76,6 @@ class TargetFactory {
     GeoPhysVol* createShieldingPedestal();
     GeoPhysVol* createHeVolume();
     const GeoShape* createSteelCoreShape();
-
-    // Unit shorthands (typed; constants below deduce their quantity type)
-    static constexpr auto cm = units::cm;
-    static constexpr auto mm = units::mm;
-    static constexpr auto deg = units::deg;
-
-    // Target vacuum box dimensions (half-sizes)
-    static constexpr auto s_vacuumBoxHalfX = 80.0 * cm;
-    static constexpr auto s_vacuumBoxHalfY = 113.55 * cm;
-    static constexpr auto s_vacuumBoxHalfZ = 150.0 * cm;
 
     // Proximity shielding
     static constexpr auto s_proxEnvHalfX = 80.0 * cm;
@@ -104,11 +109,6 @@ class TargetFactory {
     static constexpr auto s_pedestalHalfZ = 108.5 * cm;
     static constexpr auto s_pedestalPosY = -51.55 * cm;
     static constexpr auto s_pedestalPosZ = 15.0 * cm;
-
-    // TargetArea position within vacuum box: the target frame (z = 0 at the
-    // front face of the first disk) sits at this offset in the vacuum box
-    static constexpr auto s_targetAreaPosY = 14.45 * cm;
-    static constexpr auto s_targetAreaPosZ = -43.25 * cm;
 
     // ---- 2026 BDF target (CATIA ST1A07710_01_AB.02) ----
     // All z values below are in the target frame (z = 0 at disk-1 front face).

@@ -54,15 +54,15 @@ class NeutrinoDetectorFactory {
     /// Build the SND geometry; returns the air container.
     [[nodiscard]] GeoPhysVol* build();
 
-   private:
-    SHiPMaterials& m_materials;
-
     // ── Container envelope ──────────────────────────────────────────────
     // Box approximation of the frustum SND envelope, sized to the largest
     // (downstream) half-width/height and the full 5.10 m length.
     static constexpr auto s_halfX = 400.0 * units::mm;
     static constexpr auto s_halfY = 400.0 * units::mm;
     static constexpr auto s_halfZ = 2550.0 * units::mm;
+
+   private:
+    SHiPMaterials& m_materials;
 };
 
 }  // namespace SHiPGeometry
