@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "SHiPGeometry/Units.h"
+
 #include <algorithm>
 #include <string_view>
 
@@ -11,19 +13,21 @@
  *
  * Drives the steel H-beam supporting structure, the LAB scintillator sensor
  * containers, and the central helium volume of the DecayVolume subsystem.
- * All lengths are raw doubles in mm (GeoModel's native unit). The
- * invariants of these constants are static_asserts at the bottom of this
- * header.
+ * All lengths are mp-units quantities in mm. The invariants of these
+ * constants are static_asserts at the bottom of this header.
  */
 namespace SHiPGeometry::SBT {
 
+using units::LengthMm;
+using units::mm;
+
 /**
- * @brief Every dimension the SBT geometry is parameterised by (mm).
+ * @brief Every dimension the SBT geometry is parameterised by.
  *
  * A literal aggregate, so a perturbed copy is itself a constant expression:
  *
  *     constexpr SBTParams taller = [] { SBTParams p = kSBT;
- *                                       p.hbeamHeight = 400.0; return p; }();
+ *                                       p.hbeamHeight = 400.0 * mm; return p; }();
  *
  * That is what lets test_decayvolume exercise configurations other than the
  * shipped one — which is the only way to test that the helium *derivation* is
@@ -32,26 +36,26 @@ namespace SHiPGeometry::SBT {
  */
 struct SBTParams {
     // ── Frustum envelope ────────────────────────────────────────────────
-    double xHalfEntrance = 1000.0;
-    double yHalfEntrance = 1500.0;
-    double xHalfExit = 2000.0;
-    double yHalfExit = 3000.0;
-    double totalLength = 50000.0;
+    LengthMm xHalfEntrance = 1000.0 * mm;
+    LengthMm yHalfEntrance = 1500.0 * mm;
+    LengthMm xHalfExit = 2000.0 * mm;
+    LengthMm yHalfExit = 3000.0 * mm;
+    LengthMm totalLength = 50000.0 * mm;
     int nSubFrustum = 10;
-    double yFloor = -3000.0;
-    double zEntrance = -25000.0;
+    LengthMm yFloor = -3000.0 * mm;
+    LengthMm zEntrance = -25000.0 * mm;
 
     // ── H-beam cross-section (HEA 260 approximation) ────────────────────
-    double hbeamHeight = 250.0;
-    double hbeamFlangeWidth = 260.0;
-    double hbeamFlangeThickness = 12.5;
-    double hbeamWebThickness = 7.5;
+    LengthMm hbeamHeight = 250.0 * mm;
+    LengthMm hbeamFlangeWidth = 260.0 * mm;
+    LengthMm hbeamFlangeThickness = 12.5 * mm;
+    LengthMm hbeamWebThickness = 7.5 * mm;
 
     // ── Sensor containers / cells ───────────────────────────────────────
-    double containerThickness = 225.0;
-    double cellWallThickness = 5.0;
+    LengthMm containerThickness = 225.0 * mm;
+    LengthMm cellWallThickness = 5.0 * mm;
     int nCells = 6;
-    double sensorClearance = 1.0;
+    LengthMm sensorClearance = 1.0 * mm;
 
     // ── Helium decay region ─────────────────────────────────────────────
     // Gap left between the helium and the innermost SBT material, measured
@@ -60,7 +64,7 @@ struct SBTParams {
     // simply enough to stop the helium and the SBT sharing a surface, which
     // Geant4's navigator handles badly. 0 is legal and gives exact
     // face-to-face contact.
-    double heliumClearance = 0.001;
+    LengthMm heliumClearance = 0.001 * mm;
 };
 
 /// The shipped SBT. Every primitive below defaults to it, so a call site that
@@ -79,9 +83,9 @@ inline constexpr SBTParams kSBT{};
 // dimension and deliberately not part of SBTParams: nothing is derived from
 // it, and the three static_asserts at the bottom of this header are bounds the
 // SBT must fit *inside*, not parameters it is built *from*.
-inline constexpr double kEnvelopeHalfX = 2200.0;
-inline constexpr double kEnvelopeHalfY = 3300.0;
-inline constexpr double kEnvelopeHalfZ = 25200.0;
+inline constexpr auto kEnvelopeHalfX = 2200.0 * mm;
+inline constexpr auto kEnvelopeHalfY = 3300.0 * mm;
+inline constexpr auto kEnvelopeHalfZ = 25200.0 * mm;
 
 // ── Materials (names in SHiPMaterials) ──────────────────────────────────
 inline constexpr std::string_view kAirMaterial = "Air";                 // envelope container
@@ -99,12 +103,12 @@ inline constexpr std::string_view kHeliumMaterial = "PressurisedHe90";  // decay
 //  `p`, because `p` is the conventional loop variable for a HeliumPiece in
 //  SBTEnvelope and in the tests.
 
-/// Length of one sub-frustum along Z (mm).
-constexpr double subLength(const SBTParams& params = kSBT) {
+/// Length of one sub-frustum along Z.
+constexpr LengthMm subLength(const SBTParams& params = kSBT) {
     return params.totalLength / params.nSubFrustum;
 }
-/// Clear web height = height - 2*flange thickness (mm).
-constexpr double webHeight(const SBTParams& params = kSBT) {
+/// Clear web height = height - 2*flange thickness.
+constexpr LengthMm webHeight(const SBTParams& params = kSBT) {
     return params.hbeamHeight - 2.0 * params.hbeamFlangeThickness;
 }
 /// Number of aluminium walls per container (nCells + 1).
@@ -113,38 +117,38 @@ constexpr int nWalls(const SBTParams& params = kSBT) {
 }
 
 // ── Frustum profile ─────────────────────────────────────────────────────
-/// Exit-face Z in the DecayVolume local frame (mm).
-constexpr double zExit(const SBTParams& params = kSBT) {
+/// Exit-face Z in the DecayVolume local frame.
+constexpr LengthMm zExit(const SBTParams& params = kSBT) {
     return params.zEntrance + params.totalLength;
 }
 /// dx_half/dz of the frustum (dimensionless).
 constexpr double xGrowth(const SBTParams& params = kSBT) {
-    return (params.xHalfExit - params.xHalfEntrance) / params.totalLength;
+    return units::ratio((params.xHalfExit - params.xHalfEntrance) / params.totalLength);
 }
 /// dy_half/dz of the frustum (dimensionless).
 constexpr double yGrowth(const SBTParams& params = kSBT) {
-    return (params.yHalfExit - params.yHalfEntrance) / params.totalLength;
+    return units::ratio((params.yHalfExit - params.yHalfEntrance) / params.totalLength);
 }
-/// Half-extent of the frustum envelope in X at a given Z (mm).
-constexpr double xHalfAt(double z_mm, const SBTParams& params = kSBT) {
-    return params.xHalfEntrance + (z_mm - params.zEntrance) * xGrowth(params);
+/// Half-extent of the frustum envelope in X at a given Z.
+constexpr LengthMm xHalfAt(LengthMm z, const SBTParams& params = kSBT) {
+    return params.xHalfEntrance + (z - params.zEntrance) * xGrowth(params);
 }
-/// Half-extent of the frustum envelope in Y at a given Z (mm).
-constexpr double yHalfAt(double z_mm, const SBTParams& params = kSBT) {
-    return params.yHalfEntrance + (z_mm - params.zEntrance) * yGrowth(params);
+/// Half-extent of the frustum envelope in Y at a given Z.
+constexpr LengthMm yHalfAt(LengthMm z, const SBTParams& params = kSBT) {
+    return params.yHalfEntrance + (z - params.zEntrance) * yGrowth(params);
 }
-/// Z of the start of sub-frustum @p s (mm).
-constexpr double zSubLo(int s, const SBTParams& params = kSBT) {
+/// Z of the start of sub-frustum @p s.
+constexpr LengthMm zSubLo(int s, const SBTParams& params = kSBT) {
     return params.zEntrance + s * subLength(params);
 }
 
 // ── H-beam cross-section primitives ─────────────────────────────────────
-/// Offset of a flange's mid-plane from the beam axis (mm).
-constexpr double hbeamFlangeOffset(const SBTParams& params = kSBT) {
+/// Offset of a flange's mid-plane from the beam axis.
+constexpr LengthMm hbeamFlangeOffset(const SBTParams& params = kSBT) {
     return 0.5 * params.hbeamHeight - 0.5 * params.hbeamFlangeThickness;
 }
-/// Reach of a flange's *outer* surface from the beam axis (mm) = h/2.
-constexpr double hbeamHalfHeight(const SBTParams& params = kSBT) {
+/// Reach of a flange's *outer* surface from the beam axis = h/2.
+constexpr LengthMm hbeamHalfHeight(const SBTParams& params = kSBT) {
     return 0.5 * params.hbeamHeight;
 }
 
@@ -161,38 +165,38 @@ constexpr double hbeamHalfHeight(const SBTParams& params = kSBT) {
 /// Z offset, from the start of a sub-frustum, of the column front-flange
 /// outer edge. Sensor containers are split here: the piece upstream of it
 /// must present a *flat* outer face, or it would eat into the column.
-constexpr double zSplitOffset(const SBTParams& params = kSBT) {
+constexpr LengthMm zSplitOffset(const SBTParams& params = kSBT) {
     return 0.5 * params.hbeamHeight + 0.5 * params.hbeamFlangeThickness;
 }
 
 // --- Side (±X) scintillator containers -------------------------------
-/// Half-thickness of a side container in X (mm).
-constexpr double sideContainerHalfThickness(const SBTParams& params = kSBT) {
+/// Half-thickness of a side container in X.
+constexpr LengthMm sideContainerHalfThickness(const SBTParams& params = kSBT) {
     return 0.5 * params.containerThickness;
 }
 /// |X| of a side container's centroid, given the local frustum half-width.
-constexpr double sideContainerCentreX(double x_half_mm, const SBTParams& params = kSBT) {
-    return x_half_mm - 0.5 * params.hbeamFlangeWidth - sideContainerHalfThickness(params);
+constexpr LengthMm sideContainerCentreX(LengthMm xHalf, const SBTParams& params = kSBT) {
+    return xHalf - 0.5 * params.hbeamFlangeWidth - sideContainerHalfThickness(params);
 }
-/// |X| of a side container's innermost face (mm).
-constexpr double sideSensorInnerX(double x_half_mm, const SBTParams& params = kSBT) {
-    return sideContainerCentreX(x_half_mm, params) - sideContainerHalfThickness(params);
+/// |X| of a side container's innermost face.
+constexpr LengthMm sideSensorInnerX(LengthMm xHalf, const SBTParams& params = kSBT) {
+    return sideContainerCentreX(xHalf, params) - sideContainerHalfThickness(params);
 }
 
 // --- Top/bottom (±Y) scintillator containers -------------------------
-/// Half-thickness of a top/bottom container in Y (mm).
-constexpr double topBottomContainerHalfThickness(const SBTParams& params = kSBT) {
+/// Half-thickness of a top/bottom container in Y.
+constexpr LengthMm topBottomContainerHalfThickness(const SBTParams& params = kSBT) {
     return 0.5 * params.containerThickness - params.sensorClearance;
 }
-/// |Y| of a top/bottom container's centroid (mm).
-constexpr double topBottomContainerCentreY(double y_half_mm, const SBTParams& params = kSBT) {
-    return y_half_mm - 0.5 * params.containerThickness;
+/// |Y| of a top/bottom container's centroid.
+constexpr LengthMm topBottomContainerCentreY(LengthMm yHalf, const SBTParams& params = kSBT) {
+    return yHalf - 0.5 * params.containerThickness;
 }
-/// |Y| of a top/bottom container's innermost face (mm).
-constexpr double topBottomSensorInnerY(double y_half_mm, const SBTParams& params = kSBT) {
-    return topBottomContainerCentreY(y_half_mm, params) - topBottomContainerHalfThickness(params);
+/// |Y| of a top/bottom container's innermost face.
+constexpr LengthMm topBottomSensorInnerY(LengthMm yHalf, const SBTParams& params = kSBT) {
+    return topBottomContainerCentreY(yHalf, params) - topBottomContainerHalfThickness(params);
 }
-/// Half-extent in X available to top/bottom containers (mm).
+/// Half-extent in X available to top/bottom containers.
 ///
 /// The container stops half a flange width short of the frustum wall (that
 /// is where the columns' inner face is), less a 1 mm gap so it does not
@@ -201,8 +205,8 @@ constexpr double topBottomSensorInnerY(double y_half_mm, const SBTParams& params
 /// happen to be equal at the current settings, which is worth being aware
 /// of when changing sensorClearance, but they are not the same quantity
 /// and this one is deliberately left as-is.
-constexpr double topBottomAvailX(double x_half_mm, const SBTParams& params = kSBT) {
-    return x_half_mm - 0.5 * params.hbeamFlangeWidth - 1.0;
+constexpr LengthMm topBottomAvailX(LengthMm xHalf, const SBTParams& params = kSBT) {
+    return xHalf - 0.5 * params.hbeamFlangeWidth - 1.0 * mm;
 }
 
 // --- Top/bottom longitudinal beams -----------------------------------
@@ -210,9 +214,9 @@ constexpr double topBottomAvailX(double x_half_mm, const SBTParams& params = kSB
 //  sits above it, the web is omitted (it would pass through the cells),
 //  and the INNER FLANGE HANGS BELOW IT, INSIDE THE DECAY REGION. It, not
 //  the scintillator, is the innermost material in ±Y.
-/// |Y| of a top/bottom longitudinal beam's axis (mm).
-constexpr double longBeamCentreY(double y_half_mm, const SBTParams& params = kSBT) {
-    return y_half_mm - 0.5 * webHeight(params);
+/// |Y| of a top/bottom longitudinal beam's axis.
+constexpr LengthMm longBeamCentreY(LengthMm yHalf, const SBTParams& params = kSBT) {
+    return yHalf - 0.5 * webHeight(params);
 }
 
 namespace detail {
@@ -253,14 +257,13 @@ constexpr double longBeamTaper(const SBTParams& params = kSBT) {
 
 }  // namespace detail
 
-/// |Y| reached by a longitudinal beam's inner flange surface (mm).
+/// |Y| reached by a longitudinal beam's inner flange surface.
 ///
 /// The beam is inclined by the frustum taper, so its cross-section is
 /// rotated: the flange surface lies hbeamHalfHeight()/cos(atan(yGrowth))
 /// from the axis measured in world Y, not hbeamHalfHeight().
-constexpr double longBeamInnerY(double y_half_mm, const SBTParams& params = kSBT) {
-    return longBeamCentreY(y_half_mm, params) -
-           hbeamHalfHeight(params) * detail::longBeamTaper(params);
+constexpr LengthMm longBeamInnerY(LengthMm yHalf, const SBTParams& params = kSBT) {
+    return longBeamCentreY(yHalf, params) - hbeamHalfHeight(params) * detail::longBeamTaper(params);
 }
 
 // ── Compile-time validation ─────────────────────────────────────────────
@@ -274,13 +277,15 @@ constexpr double longBeamInnerY(double y_half_mm, const SBTParams& params = kSBT
 /// sensor clearance under half a container thickness and the flanges under
 /// half the beam height. leavesDecayRegion() and both builders check it.
 constexpr bool isWellFormed(const SBTParams& params = kSBT) {
-    return params.totalLength > 0.0 && params.xHalfEntrance > 0.0 && params.yHalfEntrance > 0.0 &&
-           params.xHalfExit > 0.0 && params.yHalfExit > 0.0 && params.hbeamFlangeWidth > 0.0 &&
-           params.hbeamFlangeThickness > 0.0 && params.hbeamWebThickness > 0.0 &&
-           params.containerThickness > 0.0 && params.cellWallThickness > 0.0 &&
-           params.nSubFrustum > 0 && params.nCells > 0 && params.sensorClearance > 0.0 &&
+    return params.totalLength > 0.0 * mm && params.xHalfEntrance > 0.0 * mm &&
+           params.yHalfEntrance > 0.0 * mm && params.xHalfExit > 0.0 * mm &&
+           params.yHalfExit > 0.0 * mm && params.hbeamFlangeWidth > 0.0 * mm &&
+           params.hbeamFlangeThickness > 0.0 * mm && params.hbeamWebThickness > 0.0 * mm &&
+           params.containerThickness > 0.0 * mm && params.cellWallThickness > 0.0 * mm &&
+           params.nSubFrustum > 0 && params.nCells > 0 && params.sensorClearance > 0.0 * mm &&
            params.sensorClearance < 0.5 * params.containerThickness &&
-           params.hbeamHeight > 2.0 * params.hbeamFlangeThickness && params.heliumClearance >= 0.0;
+           params.hbeamHeight > 2.0 * params.hbeamFlangeThickness &&
+           params.heliumClearance >= 0.0 * mm;
 }
 
 static_assert(isWellFormed(kSBT),
@@ -309,11 +314,11 @@ static_assert(std::max(kSBT.xHalfEntrance, kSBT.xHalfExit) + 0.5 * kSBT.hbeamFla
                   kEnvelopeHalfX,
               "SBT structure pierces the decay-volume envelope in X");
 static_assert(kSBT.yHalfExit + kSBT.hbeamHeight + 0.5 * kSBT.hbeamFlangeWidth * yGrowth(kSBT) +
-                      10.0 <=
+                      10.0 * mm <=
                   kEnvelopeHalfY,
               "SBT structure pierces the decay-volume envelope in Y");
-static_assert(std::max(kSBT.zEntrance < 0.0 ? -kSBT.zEntrance : kSBT.zEntrance,
-                       zExit(kSBT) < 0.0 ? -zExit(kSBT) : zExit(kSBT)) +
+static_assert(std::max(kSBT.zEntrance < 0.0 * mm ? -kSBT.zEntrance : kSBT.zEntrance,
+                       zExit(kSBT) < 0.0 * mm ? -zExit(kSBT) : zExit(kSBT)) +
                       0.5 * kSBT.hbeamFlangeWidth <=
                   kEnvelopeHalfZ,
               "SBT structure pierces the decay-volume envelope in Z");

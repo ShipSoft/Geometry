@@ -51,12 +51,12 @@ namespace SHiPGeometry::SBT {
 
 /// One Z slab of the helium: a GeoTrap with rectangular faces at z_lo/z_hi.
 struct HeliumPiece {
-    double z_lo_mm = 0.0;
-    double z_hi_mm = 0.0;
-    double dx_lo_mm = 0.0;  ///< half-width in X at z_lo
-    double dx_hi_mm = 0.0;  ///< half-width in X at z_hi
-    double dy_lo_mm = 0.0;  ///< half-height in Y at z_lo
-    double dy_hi_mm = 0.0;  ///< half-height in Y at z_hi
+    LengthMm z_lo{};
+    LengthMm z_hi{};
+    LengthMm dx_lo{};  ///< half-width in X at z_lo
+    LengthMm dx_hi{};  ///< half-width in X at z_hi
+    LengthMm dy_lo{};  ///< half-height in Y at z_lo
+    LengthMm dy_hi{};  ///< half-height in Y at z_hi
 };
 
 namespace detail {
@@ -67,8 +67,8 @@ namespace detail {
 // same index for every f: the two agree for f >= 0, and a negative f clamps
 // to 0 whichever way it was rounded. Truncating also keeps this header clear
 // of C++23's constexpr <cmath>, which not every standard library ships yet.
-constexpr int subFrustumAt(double z_mm, const SBTParams& params = kSBT) {
-    const double f = (z_mm - params.zEntrance) / subLength(params);
+constexpr int subFrustumAt(LengthMm z, const SBTParams& params = kSBT) {
+    const double f = units::ratio((z - params.zEntrance) / subLength(params));
     return std::clamp(static_cast<int>(f), 0, params.nSubFrustum - 1);
 }
 
@@ -76,44 +76,44 @@ constexpr int subFrustumAt(double z_mm, const SBTParams& params = kSBT) {
 // sub-frustum they are frozen at that sub-frustum's entrance half-width (see
 // SBTSensorBuilder::placeSideContainer), which is what makes the X envelope a
 // sawtooth rather than a straight line.
-constexpr double sideTrackedXHalf(double z_mm, const SBTParams& params = kSBT) {
-    const int s = subFrustumAt(z_mm, params);
-    const double zLo = zSubLo(s, params);
-    if (z_mm <= zLo + zSplitOffset(params)) {
+constexpr LengthMm sideTrackedXHalf(LengthMm z, const SBTParams& params = kSBT) {
+    const int s = subFrustumAt(z, params);
+    const LengthMm zLo = zSubLo(s, params);
+    if (z <= zLo + zSplitOffset(params)) {
         return xHalfAt(zLo, params);
     }
-    return xHalfAt(z_mm, params);
+    return xHalfAt(z, params);
 }
 
 }  // namespace detail
 
 /**
- * @brief |X| of the innermost SBT material at @p z_mm (mm).
+ * @brief |X| of the innermost SBT material at @p z.
  *
  * Minimum over every volume class that can reach the decay region in X.
  * Currently only the side scintillator containers do; the columns and corner
  * beams sit a further half-flange-width outboard.
  */
-constexpr double innerFreeHalfX(double z_mm, const SBTParams& params = kSBT) {
+constexpr LengthMm innerFreeHalfX(LengthMm z, const SBTParams& params = kSBT) {
     // Side scintillator containers. (Columns and corner beams are outboard of
     // these by construction: their inner face is at x_half - flange_width/2,
     // a full container_thickness further out.)
-    return sideSensorInnerX(detail::sideTrackedXHalf(z_mm, params), params);
+    return sideSensorInnerX(detail::sideTrackedXHalf(z, params), params);
 }
 
 /**
- * @brief |Y| of the innermost SBT material at @p z_mm (mm).
+ * @brief |Y| of the innermost SBT material at @p z.
  *
  * Minimum over every volume class that can reach the decay region in Y: the
  * top/bottom scintillator containers *and* the inner flange of the top/bottom
  * longitudinal beams, which is the binding one.
  */
-constexpr double innerFreeHalfY(double z_mm, const SBTParams& params = kSBT) {
-    const double yHalf = yHalfAt(z_mm, params);
+constexpr LengthMm innerFreeHalfY(LengthMm z, const SBTParams& params = kSBT) {
+    const LengthMm yHalf = yHalfAt(z, params);
     // Top/bottom scintillator containers ...
-    const double sensor = topBottomSensorInnerY(yHalf, params);
+    const LengthMm sensor = topBottomSensorInnerY(yHalf, params);
     // ... and the longitudinal beams' inner flange, which hangs below them.
-    const double beam = longBeamInnerY(yHalf, params);
+    const LengthMm beam = longBeamInnerY(yHalf, params);
     // (Cross-beams sit a full beam-height above y_half and never reach in.)
     //
     // KNOWN LIMITATION (conservative): the longitudinal beams do not run the
@@ -143,7 +143,7 @@ namespace detail {
  * Indexed rather than tabulated because the table's *type* would carry
  * nSubFrustum, and nothing outside this header ever read the table.
  */
-constexpr double knotAt(int i, const SBTParams& params = kSBT) {
+constexpr LengthMm knotAt(int i, const SBTParams& params = kSBT) {
     if (i >= 2 * params.nSubFrustum) {
         return zExit(params);
     }
@@ -162,10 +162,10 @@ constexpr double knotAt(int i, const SBTParams& params = kSBT) {
 // So evaluate the envelope as a *closed* set: at a knot, take the smaller of
 // the two one-sided limits. The helium is then continuous, strictly inscribed,
 // and keeps its full clearance everywhere.
-constexpr double envelopeAtKnot(double z_mm, bool isX, const SBTParams& params = kSBT) {
-    constexpr double kEps = 1e-6;
-    const double lo = std::max(z_mm - kEps, params.zEntrance);
-    const double hi = std::min(z_mm + kEps, zExit(params));
+constexpr LengthMm envelopeAtKnot(LengthMm z, bool isX, const SBTParams& params = kSBT) {
+    constexpr auto kEps = 1e-6 * mm;
+    const LengthMm lo = std::max(z - kEps, params.zEntrance);
+    const LengthMm hi = std::min(z + kEps, zExit(params));
     return isX ? std::min(innerFreeHalfX(lo, params), innerFreeHalfX(hi, params))
                : std::min(innerFreeHalfY(lo, params), innerFreeHalfY(hi, params));
 }
@@ -183,15 +183,15 @@ constexpr double envelopeAtKnot(double z_mm, bool isX, const SBTParams& params =
  * is what lets it answer for an nSubFrustum no array could hold.
  */
 constexpr HeliumPiece heliumPieceAt(int i, const SBTParams& params = kSBT) {
-    const double zLo = detail::knotAt(i, params);
-    const double zHi = detail::knotAt(i + 1, params);
+    const LengthMm zLo = detail::knotAt(i, params);
+    const LengthMm zHi = detail::knotAt(i + 1, params);
     return HeliumPiece{
-        .z_lo_mm = zLo,
-        .z_hi_mm = zHi,
-        .dx_lo_mm = detail::envelopeAtKnot(zLo, /*isX=*/true, params) - params.heliumClearance,
-        .dx_hi_mm = detail::envelopeAtKnot(zHi, /*isX=*/true, params) - params.heliumClearance,
-        .dy_lo_mm = detail::envelopeAtKnot(zLo, /*isX=*/false, params) - params.heliumClearance,
-        .dy_hi_mm = detail::envelopeAtKnot(zHi, /*isX=*/false, params) - params.heliumClearance,
+        .z_lo = zLo,
+        .z_hi = zHi,
+        .dx_lo = detail::envelopeAtKnot(zLo, /*isX=*/true, params) - params.heliumClearance,
+        .dx_hi = detail::envelopeAtKnot(zHi, /*isX=*/true, params) - params.heliumClearance,
+        .dy_lo = detail::envelopeAtKnot(zLo, /*isX=*/false, params) - params.heliumClearance,
+        .dy_hi = detail::envelopeAtKnot(zHi, /*isX=*/false, params) - params.heliumClearance,
     };
 }
 
@@ -223,11 +223,11 @@ constexpr bool leavesDecayRegion(const SBTParams& params = kSBT) {
     }
     for (int i = 0; i < 2 * params.nSubFrustum; ++i) {
         const HeliumPiece piece = heliumPieceAt(i, params);
-        if (piece.z_hi_mm <= piece.z_lo_mm) {
+        if (piece.z_hi <= piece.z_lo) {
             return false;
         }
-        if (piece.dx_lo_mm <= 0.0 || piece.dx_hi_mm <= 0.0 || piece.dy_lo_mm <= 0.0 ||
-            piece.dy_hi_mm <= 0.0) {
+        if (piece.dx_lo <= 0.0 * mm || piece.dx_hi <= 0.0 * mm || piece.dy_lo <= 0.0 * mm ||
+            piece.dy_hi <= 0.0 * mm) {
             return false;
         }
     }

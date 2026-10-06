@@ -4,8 +4,7 @@
 #pragma once
 
 #include "SHiPGeometry/SubsystemDescriptor.h"
-
-#include <GeoModelKernel/Units.h>
+#include "SHiPGeometry/Units.h"
 
 class GeoPhysVol;
 
@@ -38,8 +37,9 @@ class DecayVolumeFactory {
      * Z: 32.92 to 83.32 m, so the container is centred at z = 58.12 m.
      */
     static SubsystemDescriptor descriptor() {
-        using GeoModelKernelUnits::m;
-        return {"DecayVolume", "/SHiP/decay_volume", 4, 0.0, 0.0, 58.12 * m, false};
+        using units::gm;
+        using units::m;
+        return {"DecayVolume", "/SHiP/decay_volume", 4, 0.0, 0.0, gm(58.12 * m), false};
     }
     /// Build the DecayVolume geometry; returns the air container.
     [[nodiscard]] GeoPhysVol* build();
