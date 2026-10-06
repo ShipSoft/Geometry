@@ -28,6 +28,7 @@
 
 using SHiPGeometry::SHiPMaterials;
 namespace SBT = SHiPGeometry::SBT;
+using SHiPGeometry::units::mm;
 
 namespace {
 // The SBT is placed flat (every child of the container is a leaf), so the
@@ -347,6 +348,13 @@ Built buildFromParams(const SBT::SBTParams& params, const std::string& tag) {
 // above double-precision noise on ~1e4 mm coordinates (~1e-8 mm).
 constexpr double kTol = 1e-6;
 
+// The SAT arithmetic below is all raw doubles in mm (GeoModel's native
+// unit), so materialize the typed constants once at the boundary.
+constexpr double asMm(SHiPGeometry::units::LengthMm q) {
+    return q.numerical_value_in(mm);
+}
+constexpr double kHeliumClearanceMm = asMm(SBT::kSBT.heliumClearance);
+
 // heliumClearance is a gap measured along a coordinate axis. SAT returns a
 // Euclidean distance, and the surfaces bounding the helium are tilted by the
 // frustum taper, so an axis gap of c shows up as c*cos(tilt). Assert the band.
@@ -357,7 +365,7 @@ constexpr double kTol = 1e-6;
 // combination is the rigorous lower bound; max() alone overestimates the gap.
 double minExpectedSeparation(const SBT::SBTParams& params = SBT::kSBT) {
     const double gx = SBT::xGrowth(params), gy = SBT::yGrowth(params);
-    return params.heliumClearance / std::sqrt(1.0 + gx * gx + gy * gy);
+    return asMm(params.heliumClearance) / std::sqrt(1.0 + (gx * gx) + (gy * gy));
 }
 
 // Closest approach between any helium slab and any SBT volume.
@@ -416,9 +424,9 @@ TEST_CASE("HeliumIsFlushWithTheSBT", "[decayvolume][envelope]") {
     const double worst = closestApproach(b);
 
     INFO("closest approach: " << worst << " mm; want [" << minExpectedSeparation() << ", "
-                              << SBT::kSBT.heliumClearance << "]");
-    CHECK(worst >= minExpectedSeparation() - kTol);    // NOLINT(readability/check) no gouging
-    CHECK(worst <= SBT::kSBT.heliumClearance + kTol);  // NOLINT(readability/check) no margin
+                              << kHeliumClearanceMm << "]");
+    CHECK(worst >= minExpectedSeparation() - kTol);  // NOLINT(readability/check) no gouging
+    CHECK(worst <= kHeliumClearanceMm + kTol);       // NOLINT(readability/check) no margin
 }
 
 // The helium fills the analytic envelope exactly, sampled densely rather than
@@ -428,21 +436,27 @@ TEST_CASE("HeliumMatchesAnalyticEnvelope", "[decayvolume][envelope]") {
     static_assert(SBT::kHeliumPieces.size() == 2u * SBT::kSBT.nSubFrustum);
 
     for (const auto& p : SBT::kHeliumPieces) {
+        const double zLo = asMm(p.z_lo);
+        const double zHi = asMm(p.z_hi);
+        const double dxLo = asMm(p.dx_lo);
+        const double dxHi = asMm(p.dx_hi);
+        const double dyLo = asMm(p.dy_lo);
+        const double dyHi = asMm(p.dy_hi);
         for (int k = 0; k <= 32; ++k) {
             const double t = static_cast<double>(k) / 32.0;
-            const double z = p.z_lo_mm + t * (p.z_hi_mm - p.z_lo_mm);
-            const double dx = p.dx_lo_mm + t * (p.dx_hi_mm - p.dx_lo_mm);
-            const double dy = p.dy_lo_mm + t * (p.dy_hi_mm - p.dy_lo_mm);
+            const double z = zLo + (t * (zHi - zLo));
+            const double dx = dxLo + (t * (dxHi - dxLo));
+            const double dy = dyLo + (t * (dyHi - dyLo));
 
             // Sample strictly inside the slab so the flat/tracking branch of
             // the X envelope is evaluated on the right side of a knot.
-            const double zs = std::min(std::max(z, p.z_lo_mm + 1e-6), p.z_hi_mm - 1e-6);
-            const double freeX = SBT::innerFreeHalfX(zs);
-            const double freeY = SBT::innerFreeHalfY(zs);
+            const double zs = std::min(std::max(z, zLo + 1e-6), zHi - 1e-6);
+            const double freeX = asMm(SBT::innerFreeHalfX(zs * mm));
+            const double freeY = asMm(SBT::innerFreeHalfY(zs * mm));
 
             // Upper bound: the helium never protrudes past the analytic envelope.
-            CHECK(dx <= freeX - SBT::kSBT.heliumClearance + kTol);  // NOLINT(readability/check)
-            CHECK(dy <= freeY - SBT::kSBT.heliumClearance + kTol);  // NOLINT(readability/check)
+            CHECK(dx <= freeX - kHeliumClearanceMm + kTol);  // NOLINT(readability/check)
+            CHECK(dy <= freeY - kHeliumClearanceMm + kTol);  // NOLINT(readability/check)
 
             // Lower bound: the helium is flush, not merely inside. In Y the
             // envelope is continuous across a slab, so the interpolated edge
@@ -451,10 +465,9 @@ TEST_CASE("HeliumMatchesAnalyticEnvelope", "[decayvolume][envelope]") {
             // while freeX just inside the tracking piece is up to
             // xGrowth * zSplitOffset higher — so allow exactly that documented
             // sawtooth slack there, and no more.
-            const double xSlack = std::abs(SBT::xGrowth()) * SBT::zSplitOffset();
-            CHECK(dx >=
-                  freeX - SBT::kSBT.heliumClearance - xSlack - kTol);  // NOLINT(readability/check)
-            CHECK(dy >= freeY - SBT::kSBT.heliumClearance - kTol);     // NOLINT(readability/check)
+            const double xSlack = std::abs(SBT::xGrowth()) * asMm(SBT::zSplitOffset());
+            CHECK(dx >= freeX - kHeliumClearanceMm - xSlack - kTol);  // NOLINT(readability/check)
+            CHECK(dy >= freeY - kHeliumClearanceMm - kTol);           // NOLINT(readability/check)
         }
     }
 }
@@ -466,8 +479,8 @@ TEST_CASE("HeliumMatchesAnalyticEnvelope", "[decayvolume][envelope]") {
 TEST_CASE("HeliumSlabsAreUnchanged", "[decayvolume][envelope]") {
     std::uint64_t h = 0xcbf29ce484222325ULL;  // FNV-1a over the raw bit patterns
     for (const auto& p : SBT::kHeliumPieces) {
-        for (const double d :
-             {p.z_lo_mm, p.z_hi_mm, p.dx_lo_mm, p.dx_hi_mm, p.dy_lo_mm, p.dy_hi_mm}) {
+        for (const double d : {asMm(p.z_lo), asMm(p.z_hi), asMm(p.dx_lo), asMm(p.dx_hi),
+                               asMm(p.dy_lo), asMm(p.dy_hi)}) {
             h = (h ^ std::bit_cast<std::uint64_t>(d)) * 0x100000001b3ULL;
         }
     }
@@ -503,22 +516,22 @@ struct Variation {
 // NOLINTBEGIN(readability/braces)
 constexpr std::array<Variation, 14> kVariations{{
     {"baseline", SBT::kSBT},
-    {"steeper X taper", vary([](SBT::SBTParams& p) { p.xHalfExit = 3000.0; })},
-    {"steeper Y taper", vary([](SBT::SBTParams& p) { p.yHalfExit = 4500.0; })},
+    {"steeper X taper", vary([](SBT::SBTParams& p) { p.xHalfExit = 3000.0 * mm; })},
+    {"steeper Y taper", vary([](SBT::SBTParams& p) { p.yHalfExit = 4500.0 * mm; })},
     {"no taper at all", vary([](SBT::SBTParams& p) {
          p.xHalfExit = p.xHalfEntrance;
          p.yHalfExit = p.yHalfEntrance;
      })},
-    {"wider flange", vary([](SBT::SBTParams& p) { p.hbeamFlangeWidth = 400.0; })},
-    {"taller beam", vary([](SBT::SBTParams& p) { p.hbeamHeight = 400.0; })},
-    {"thicker flange", vary([](SBT::SBTParams& p) { p.hbeamFlangeThickness = 30.0; })},
-    {"thinner containers", vary([](SBT::SBTParams& p) { p.containerThickness = 120.0; })},
-    {"thicker containers", vary([](SBT::SBTParams& p) { p.containerThickness = 300.0; })},
+    {"wider flange", vary([](SBT::SBTParams& p) { p.hbeamFlangeWidth = 400.0 * mm; })},
+    {"taller beam", vary([](SBT::SBTParams& p) { p.hbeamHeight = 400.0 * mm; })},
+    {"thicker flange", vary([](SBT::SBTParams& p) { p.hbeamFlangeThickness = 30.0 * mm; })},
+    {"thinner containers", vary([](SBT::SBTParams& p) { p.containerThickness = 120.0 * mm; })},
+    {"thicker containers", vary([](SBT::SBTParams& p) { p.containerThickness = 300.0 * mm; })},
     {"more sub-frusta", vary([](SBT::SBTParams& p) { p.nSubFrustum = 20; })},
     {"fewer sub-frusta", vary([](SBT::SBTParams& p) { p.nSubFrustum = 5; })},
-    {"bigger sensor clearance", vary([](SBT::SBTParams& p) { p.sensorClearance = 5.0; })},
-    {"non-zero helium clearance", vary([](SBT::SBTParams& p) { p.heliumClearance = 10.0; })},
-    {"shorter SBT", vary([](SBT::SBTParams& p) { p.totalLength = 20000.0; })},
+    {"bigger sensor clearance", vary([](SBT::SBTParams& p) { p.sensorClearance = 5.0 * mm; })},
+    {"non-zero helium clearance", vary([](SBT::SBTParams& p) { p.heliumClearance = 10.0 * mm; })},
+    {"shorter SBT", vary([](SBT::SBTParams& p) { p.totalLength = 20000.0 * mm; })},
 }};
 // NOLINTEND(readability/braces)
 }  // namespace
@@ -537,11 +550,13 @@ TEST_CASE("HeliumIsFlushAcrossTheParameterSpace", "[decayvolume][envelope][sweep
         const double worst = closestApproach(b, &culprit);
 
         INFO("closest approach " << worst << " mm; want [" << minExpectedSeparation(v.params)
-                                 << ", " << v.params.heliumClearance << "], nearest " << culprit);
+                                 << ", " << asMm(v.params.heliumClearance) << "], nearest "
+                                 << culprit);
         CHECK(worst >= -kTol);  // NOLINT(readability/check) no overlap
         CHECK(worst >=
-              minExpectedSeparation(v.params) - kTol);    // NOLINT(readability/check) clearance
-        CHECK(worst <= v.params.heliumClearance + kTol);  // NOLINT(readability/check) no margin
+              minExpectedSeparation(v.params) - kTol);  // NOLINT(readability/check) clearance
+        CHECK(worst <=
+              asMm(v.params.heliumClearance) + kTol);  // NOLINT(readability/check) no margin
     }
 }
 
@@ -551,18 +566,18 @@ TEST_CASE("HeliumIsFlushAcrossTheParameterSpace", "[decayvolume][envelope][sweep
 // these configurations can become the shipped geometry.
 namespace {
 constexpr SBT::SBTParams kContainersTooThick =
-    vary([](SBT::SBTParams& p) { p.containerThickness = 5000.0; });
+    vary([](SBT::SBTParams& p) { p.containerThickness = 5000.0 * mm; });
 // subLength 100 mm < zSplitOffset 131.25 mm, so two knots cross.
 constexpr SBT::SBTParams kSubFrustaTooShort = vary([](SBT::SBTParams& p) { p.nSubFrustum = 500; });
 constexpr SBT::SBTParams kNegativeClearance =
-    vary([](SBT::SBTParams& p) { p.heliumClearance = -5.0; });
+    vary([](SBT::SBTParams& p) { p.heliumClearance = -5.0 * mm; });
 // Malformed before any slab is derived: a sensor clearance past half the
 // container thickness turns the top/bottom containers inside out ...
 constexpr SBT::SBTParams kInsideOutContainers =
-    vary([](SBT::SBTParams& p) { p.sensorClearance = 200.0; });
+    vary([](SBT::SBTParams& p) { p.sensorClearance = 200.0 * mm; });
 // ... and two flanges thicker than the beam is high leave a negative web.
 constexpr SBT::SBTParams kNegativeWeb =
-    vary([](SBT::SBTParams& p) { p.hbeamFlangeThickness = 130.0; });
+    vary([](SBT::SBTParams& p) { p.hbeamFlangeThickness = 130.0 * mm; });
 
 // The assertions proper. A positive control keeps the predicate from passing
 // vacuously.
@@ -624,7 +639,7 @@ TEST_CASE("SBTBuildersRejectMalformedParameters", "[decayvolume][envelope]") {
     // 7 walls x 20 mm = 140 mm overfills the 131.25 mm near piece; with
     // kSubFrustaTooShort the far piece is negative.
     constexpr SBT::SBTParams kWallsOverfillNearPiece =
-        vary([](SBT::SBTParams& p) { p.cellWallThickness = 20.0; });
+        vary([](SBT::SBTParams& p) { p.cellWallThickness = 20.0 * mm; });
     for (const SBT::SBTParams& params : {kWallsOverfillNearPiece, kSubFrustaTooShort}) {
         CHECK_THROWS_AS(
             SHiPGeometry::SBTSensorBuilder::build(
