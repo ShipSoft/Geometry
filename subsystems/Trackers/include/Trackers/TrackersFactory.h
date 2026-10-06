@@ -100,6 +100,13 @@ class TrackersFactory {
     static constexpr auto s_containerHalfZ = (s_station4Z - s_station1Z) / 2.0 + s_halfZ;
     static constexpr auto s_containerCentreZ = (s_station1Z + s_station4Z) / 2.0;
 
+    static_assert(s_nStraws * 2.0 * s_strawRadius == s_apertureY,
+                  "the aperture must hold a whole number of straws");
+    static_assert(s_station1Z + s_halfZ <= s_station2Z - s_halfZ &&
+                      s_station2Z + s_halfZ <= s_station3Z - s_halfZ &&
+                      s_station3Z + s_halfZ <= s_station4Z - s_halfZ,
+                  "tracker stations must be ordered along z without overlapping");
+
    private:
     SHiPMaterials& m_materials;
 
