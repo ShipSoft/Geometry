@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "SHiPGeometry/StaticChecks.h"
 #include "SHiPGeometry/Units.h"
 
 class GeoPhysVol;
@@ -35,10 +36,6 @@ class TimingDetectorFactory {
     /** Number of bars placed during the last build() call. */
     int barCount() const { return m_barCount; }
 
-   private:
-    SHiPMaterials& m_materials;
-    int m_barCount{0};
-
     // Container dimensions
     static constexpr auto s_containerHalfX = 2750.0 * units::mm;
     static constexpr auto s_containerHalfY = 3250.0 * units::mm;
@@ -57,6 +54,28 @@ class TimingDetectorFactory {
     static constexpr auto s_rowStepY = 6440.0 / 109.0 * units::mm;  // row pitch ≈ 59.083 mm
     static constexpr auto s_zStaggerRow = 12.0 * units::mm;         // odd-row Z offset
     static constexpr auto s_zStaggerCol = 90.0 * units::mm;         // odd-column Z offset
+
+    struct BarCentre {
+        units::LengthMm x, y, z;
+    };
+
+    /// Centre of the bar in column @p ic, row @p ir:
+    ///   x = (ic - 1) * pitch          → -1300, 0, +1300 mm
+    ///   y = y0 + ir * step            → -3220 … +3220 mm (step 6440/109)
+    ///   z = (ir%2)*12 + (ic%2)*90     → 4 stagger levels: 0, 12, 90, 102 mm
+    static constexpr BarCentre barCentre(int ic, int ir) {
+        return {(ic - 1) * s_columnPitchX, s_rowY0 + ir * s_rowStepY,
+                (ir % 2) * s_zStaggerRow + (ic % 2) * s_zStaggerCol};
+    }
+
+    static constexpr checks::Box barBox(int ic, int ir) {
+        const auto c = barCentre(ic, ir);
+        return checks::box(c.x, c.y, c.z, s_barHalfX, s_barHalfY, s_barHalfZ);
+    }
+
+   private:
+    SHiPMaterials& m_materials;
+    int m_barCount{0};
 };
 
 }  // namespace SHiPGeometry

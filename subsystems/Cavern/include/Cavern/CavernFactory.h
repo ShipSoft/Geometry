@@ -25,12 +25,6 @@ class CavernFactory {
      */
     [[nodiscard]] GeoPhysVol* build();
 
-   private:
-    SHiPMaterials& m_materials;
-
-    GeoPhysVol* m_world{nullptr};
-    GeoPhysVol* m_cavern{nullptr};
-
     // World volume dimensions (half-sizes)
     static constexpr auto s_worldHalfX = 200.0 * units::m;
     static constexpr auto s_worldHalfY = 200.0 * units::m;
@@ -83,6 +77,12 @@ class CavernFactory {
 
     // Cavern position in world
     static constexpr auto s_cavernPosZ = -3.336 * units::m;
+
+   private:
+    SHiPMaterials& m_materials;
+
+    GeoPhysVol* m_world{nullptr};
+    GeoPhysVol* m_cavern{nullptr};
 };
 
 }  // namespace SHiPGeometry

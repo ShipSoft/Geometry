@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
+#include "SHiPGeometry/Layout.h"
 #include "SHiPGeometry/SHiPGeometry.h"
+#include "SHiPGeometry/StaticChecks.h"
+#include "SHiPGeometry/Units.h"
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoDefinitions.h>
@@ -10,62 +13,46 @@
 #include <GeoModelKernel/GeoTube.h>
 #include <GeoModelKernel/GeoVPhysVol.h>
 
-#include <algorithm>
+#include <array>
 #include <catch2/catch_test_macros.hpp>
+#include <optional>
 #include <string>
+#include <string_view>
+#include <utility>
 #include <vector>
 
 using SHiPGeometry::SHiPGeometryBuilder;
+namespace Layout = SHiPGeometry::Layout;
+namespace units = SHiPGeometry::units;
+using units::gm;
 
 namespace {
 
-struct SubsystemInfo {
-    std::string name;
-    double centreZ;  // mm, from world origin
-    double halfZ;    // mm
+// Names of the world's subsystem children (the Cavern rock is skipped).
+std::vector<std::string> collectSubsystems(const GeoPhysVol* world) {
+    std::vector<std::string> names;
+    for (unsigned int i = 0; i < world->getNChildVols(); ++i) {
+        std::string name = world->getChildVol(i)->getLogVol()->getName();
+        if (name != "/SHiP/cavern") {
+            names.push_back(std::move(name));
+        }
+    }
+    return names;
+}
+
+struct FoundChild {
+    const GeoVPhysVol* vol;
+    unsigned int index;
 };
 
-// Extract Z translation from a Transform3D
-double extractZ(const GeoTrf::Transform3D& trf) {
-    return trf.translation().z();
-}
-
-// Get the Z half-length of a volume, assuming GeoBox shape
-double getHalfZ(const GeoVPhysVol* vol) {
-    const auto* box = dynamic_cast<const GeoBox*>(vol->getLogVol()->getShape());
-    if (box) {
-        return box->getZHalfLength();
-    }
-    // For non-box shapes (e.g. GeoFullPhysVol with GeoBox), try the tube
-    const auto* tube = dynamic_cast<const GeoTube*>(vol->getLogVol()->getShape());
-    if (tube) {
-        return tube->getZHalfLength();
-    }
-    return 0.0;
-}
-
-// Collect info about all children of the cavern volume (skipping cavern itself)
-std::vector<SubsystemInfo> collectSubsystems(GeoPhysVol* world) {
-    // The world's first child is the Cavern rock; the subsystems are children
-    // of the world placed after the Cavern. Find the cavern first.
-    std::vector<SubsystemInfo> subsystems;
-
-    for (unsigned int i = 0; i < world->getNChildVols(); ++i) {
-        PVConstLink child = world->getChildVol(i);
-        std::string name = child->getLogVol()->getName();
-        GeoTrf::Transform3D trf = world->getXToChildVol(i);
-        double zCentre = extractZ(trf);
-        double halfZ = getHalfZ(&*child);
-
-        // Skip the cavern rock — it's infrastructure, not a subsystem
-        if (name == "/SHiP/cavern") {
-            continue;
+std::optional<FoundChild> findChild(const GeoPhysVol* parent, std::string_view name) {
+    for (unsigned int i = 0; i < parent->getNChildVols(); ++i) {
+        const GeoVPhysVol* child = &*parent->getChildVol(i);
+        if (child->getLogVol()->getName() == name) {
+            return FoundChild{child, i};
         }
-
-        subsystems.push_back({name, zCentre, halfZ});
     }
-
-    return subsystems;
+    return std::nullopt;
 }
 
 // Recursively assert every placement transform is a pure rotation (no
@@ -100,103 +87,59 @@ TEST_CASE("ConsistencyTest.ExpectedSubsystemCount", "[consistency]") {
     REQUIRE(world != nullptr);
 
     auto subsystems = collectSubsystems(world);
-    // 9 subsystems: target, muon_shield, neutrino_detector, upstream_tagger,
-    // decay_volume, trackers, magnet, timing_detector, calorimeter
-    CHECK(subsystems.size() == 9u);  // NOLINT(readability/check)
+    CHECK(subsystems.size() == Layout::kSlots.size());  // NOLINT(readability/check)
 }
 
-TEST_CASE("ConsistencyTest.SubsystemsGenerallyInZOrder", "[consistency]") {
+// Ordering, overlaps and envelope fits are static_asserts in Layout.h; this
+// checks that the builder actually places each container at its slot with the
+// extents the layout assumed.
+TEST_CASE("ConsistencyTest.SubsystemsPlacedAsInLayout", "[consistency]") {
     SHiPGeometryBuilder builder;
     GeoPhysVol* world = builder.build();
     REQUIRE(world != nullptr);
 
-    auto subsystems = collectSubsystems(world);
-    REQUIRE(subsystems.size() >= 2);
+    for (const auto& slot : Layout::kSlots) {
+        INFO("Subsystem " << slot.path);
+        const auto child = findChild(world, slot.path);
+        REQUIRE(child.has_value());
+        const GeoTrf::Vector3D t = world->getXToChildVol(child->index).translation();
+        CHECK(t.x() == gm(slot.x));
+        CHECK(t.y() == gm(slot.y));
+        CHECK(t.z() == gm(slot.z));
 
-    // Verify monotonically increasing Z for placement order, allowing
-    // co-located subsystems (trackers/magnet overlap is intentional).
-    // Use a weaker check: each subsystem's centre should be >= previous - tolerance
-    for (size_t i = 1; i < subsystems.size(); ++i) {
-        INFO("Subsystem " << subsystems[i].name << " at Z=" << subsystems[i].centreZ
-                          << " should not be before " << subsystems[i - 1].name
-                          << " at Z=" << subsystems[i - 1].centreZ);
-        CHECK(subsystems[i].centreZ >= subsystems[i - 1].centreZ - 1.0);
+        const auto* box = dynamic_cast<const GeoBox*>(child->vol->getLogVol()->getShape());
+        REQUIRE(box != nullptr);
+        CHECK(box->getXHalfLength() == gm(slot.halfX));
+        CHECK(box->getYHalfLength() == gm(slot.halfY));
+        CHECK(box->getZHalfLength() == gm(slot.halfZ));
     }
 }
 
-TEST_CASE("ConsistencyTest.NoUnexpectedZOverlaps", "[consistency]") {
-    SHiPGeometryBuilder builder;
-    GeoPhysVol* world = builder.build();
-    REQUIRE(world != nullptr);
+// Negative controls for the Layout.h predicates: each must reject a layout
+// that is broken in the way it is meant to catch.
+namespace {
+using Layout::Slot;
+constexpr auto kSwapped = [] {
+    auto slots = Layout::kSlots;
+    std::swap(slots[3], slots[4]);
+    return slots;
+}();
+constexpr auto kMagnetOnTiming = [] {
+    auto slots = Layout::kSlots;
+    slots[6].z = Layout::kTimingDetector.z;
+    return slots;
+}();
+constexpr std::array<std::array<std::string_view, 2>, 0> kNoOverlapsAllowed{};
+}  // namespace
 
-    auto subsystems = collectSubsystems(world);
-    REQUIRE(subsystems.size() >= 2);
-
-    // The trackers container intentionally spans across the magnet
-    // (stations 1-2 before, stations 3-4 after), so that pair is allowed to overlap.
-    // The SND sits inside the downstream end of the muon-shield region, so the
-    // muon_shield / neutrino_detector pair is also an intentional overlap.
-    auto isAllowedOverlap = [](const std::string& a, const std::string& b) {
-        return (a == "/SHiP/trackers" && b == "/SHiP/magnet") ||
-               (a == "/SHiP/magnet" && b == "/SHiP/trackers") ||
-               (a == "/SHiP/muon_shield" && b == "/SHiP/neutrino_detector") ||
-               (a == "/SHiP/neutrino_detector" && b == "/SHiP/muon_shield");
-    };
-
-    // Sort by Z centre
-    std::sort(subsystems.begin(), subsystems.end(),
-              [](const SubsystemInfo& a, const SubsystemInfo& b) { return a.centreZ < b.centreZ; });
-
-    for (size_t i = 1; i < subsystems.size(); ++i) {
-        if (isAllowedOverlap(subsystems[i - 1].name, subsystems[i].name)) {
-            continue;
-        }
-
-        double previousEnd = subsystems[i - 1].centreZ + subsystems[i - 1].halfZ;
-        double currStart = subsystems[i].centreZ - subsystems[i].halfZ;
-
-        INFO("Checking " << subsystems[i - 1].name << " (ends at Z=" << previousEnd << ") vs "
-                         << subsystems[i].name << " (starts at Z=" << currStart << ")");
-        CHECK(previousEnd <= currStart + 1.0);  // 1 mm tolerance for numerical precision
-    }
-}
-
-TEST_CASE("ConsistencyTest.PositionsSanity", "[consistency]") {
-    SHiPGeometryBuilder builder;
-    GeoPhysVol* world = builder.build();
-    REQUIRE(world != nullptr);
-
-    auto subsystems = collectSubsystems(world);
-
-    // Expected centres derived from subsystem_envelopes.csv (z_start + z_end) / 2, in mm
-    // These are approximate — the actual placements may differ slightly from the
-    // CSV midpoints due to coordinate system offsets.
-    struct Expected {
-        std::string name;
-        double approxZ;    // mm
-        double tolerance;  // mm
-    };
-
-    // Centres as placed in SHiPGeometryBuilder::build()
-    std::vector<Expected> expected = {
-        {"/SHiP/target", 432.5, 500.0},
-        {"/SHiP/muon_shield", 16763.3, 500.0},
-        {"/SHiP/neutrino_detector", 28950.0, 500.0},
-        {"/SHiP/upstream_tagger", 32720.0, 500.0},
-        {"/SHiP/decay_volume", 58120.0, 500.0},
-        {"/SHiP/trackers", 89570.0, 500.0},
-        {"/SHiP/magnet", 89570.0, 500.0},
-        {"/SHiP/timing_detector", 95902.0, 500.0},
-        {"/SHiP/calorimeter", 98320.0, 500.0},
-    };
-
-    for (const auto& exp : expected) {
-        auto it = std::find_if(subsystems.begin(), subsystems.end(),
-                               [&](const SubsystemInfo& s) { return s.name == exp.name; });
-
-        INFO("Looking for subsystem " << exp.name);
-        REQUIRE(it != subsystems.end());
-        INFO(exp.name << " at Z=" << it->centreZ << ", expected ~" << exp.approxZ);
-        CHECK(std::abs(it->centreZ - exp.approxZ) < exp.tolerance);
-    }
-}
+static_assert(Layout::firstOutOfOrder(kSwapped) == 3);
+static_assert(Layout::firstUnexpectedOverlap(kMagnetOnTiming) != SHiPGeometry::checks::npos);
+static_assert(Layout::firstUnexpectedOverlap(Layout::kSlots, kNoOverlapsAllowed) == 1,
+              "muon shield / SND is the first intended overlap");
+static_assert(!Layout::fitsEnvelopeZ(Slot{.z = Layout::kDecayVolume.z + 1.0 * units::mm,
+                                          .halfZ = Layout::kDecayVolume.halfZ},
+                                     SHiPGeometry::Envelopes::kDecayVolume));
+static_assert(
+    !SHiPGeometry::checks::overlaps(SHiPGeometry::checks::Span{0.0 * units::mm, 1.0 * units::mm},
+                                    SHiPGeometry::checks::Span{1.0 * units::mm, 2.0 * units::mm}),
+    "touching spans do not overlap");

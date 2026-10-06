@@ -13,11 +13,70 @@
 #include <GeoModelKernel/GeoPhysVol.h>
 #include <GeoModelKernel/GeoTransform.h>
 
+#include <array>
 #include <string>
 
 namespace SHiPGeometry {
 
 using units::gm;
+
+// ── Compile-time validation ──────────────────────────────────────────────
+// Kept here rather than in the header so that only this file pays for the
+// loops over all bars.
+namespace {
+using TD = TimingDetectorFactory;
+
+/// Every bar's box, indexed [column][row].
+constexpr auto kBars = [] {
+    std::array<std::array<checks::Box, TD::s_nRows>, TD::s_nColumns> bars{};
+    for (int ic = 0; ic < TD::s_nColumns; ++ic) {
+        for (int ir = 0; ir < TD::s_nRows; ++ir) {
+            bars[ic][ir] = TD::barBox(ic, ir);
+        }
+    }
+    return bars;
+}();
+
+// Bars three or more rows apart are separated in y, so only nearer rows need
+// the pairwise check, which keeps it within Clang's constexpr step limit.
+// Neighbouring rows and columns do overlap transversely and are kept apart
+// only by the z stagger.
+constexpr int kRowReach = 3;
+}  // namespace
+
+static_assert(
+    [] {
+        const auto container =
+            checks::box(TD::s_containerHalfX, TD::s_containerHalfY, TD::s_containerHalfZ);
+        for (const auto& column : kBars) {
+            for (const auto& bar : column) {
+                if (!checks::contains(container, bar)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }(),
+    "a timing-detector bar sticks out of the container");
+static_assert(kRowReach * TD::s_rowStepY >= 2.0 * TD::s_barHalfY,
+              "bars kRowReach rows apart overlap in y: raise kRowReach");
+static_assert(
+    [] {
+        for (int ic = 0; ic < TD::s_nColumns; ++ic) {
+            for (int ir = 0; ir < TD::s_nRows; ++ir) {
+                for (int jc = 0; jc < TD::s_nColumns; ++jc) {
+                    for (int jr = ir; jr < ir + kRowReach && jr < TD::s_nRows; ++jr) {
+                        const bool same = (jc == ic && jr == ir);
+                        if (!same && checks::overlaps(kBars[ic][ir], kBars[jc][jr])) {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+        return true;
+    }(),
+    "two timing-detector bars overlap");
 
 TimingDetectorFactory::TimingDetectorFactory(SHiPMaterials& materials) : m_materials(materials) {}
 
@@ -35,16 +94,12 @@ GeoPhysVol* TimingDetectorFactory::build() {
     auto* barLog = new GeoLogVol("/SHiP/timing_detector/bar",
                                  new GeoBox(gm(s_barHalfX), gm(s_barHalfY), gm(s_barHalfZ)), scint);
 
-    // 3 columns × 110 rows = 330 bars. Positions are analytic:
-    //   x = (ic - 1) * pitch          → -1300, 0, +1300 mm
-    //   y = y0 + ir * step            → -3220 … +3220 mm (step 6440/109)
-    //   z = (ir%2)*12 + (ic%2)*90     → 4 stagger levels: 0, 12, 90, 102 mm
+    // 3 columns × 110 rows = 330 bars at the analytic positions of
+    // barCentre(), which the header checks at compile time.
     m_barCount = 0;
     for (int ic = 0; ic < s_nColumns; ++ic) {
-        const auto x = (ic - 1) * s_columnPitchX;
         for (int ir = 0; ir < s_nRows; ++ir) {
-            const auto y = s_rowY0 + ir * s_rowStepY;
-            const auto z = (ir % 2) * s_zStaggerRow + (ic % 2) * s_zStaggerCol;
+            const auto [x, y, z] = barCentre(ic, ir);
             const std::string name =
                 "/SHiP/timing_detector/bar_" + std::to_string(ic) + "_" + std::to_string(ir);
             containerPhys->add(new GeoNameTag(name));
