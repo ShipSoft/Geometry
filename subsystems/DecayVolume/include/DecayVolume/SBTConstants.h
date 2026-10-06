@@ -295,6 +295,9 @@ static_assert(isWellFormed(kSBT),
 static_assert(zSplitOffset(kSBT) < subLength(kSBT),
               "the sensor containers' flat piece no longer fits inside a sub-frustum; "
               "reduce nSubFrustum or hbeamHeight");
+static_assert(nWalls(kSBT) * kSBT.cellWallThickness < zSplitOffset(kSBT) &&
+                  nWalls(kSBT) * kSBT.cellWallThickness < subLength(kSBT) - zSplitOffset(kSBT),
+              "the cell walls do not fit both pieces of a split sensor container");
 
 // The SBT structure must fit the fixed decay-volume envelope. Bounds on the
 // outermost structure reach; with the current values the reaches are
