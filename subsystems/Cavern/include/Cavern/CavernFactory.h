@@ -30,12 +30,6 @@ class CavernFactory {
     static constexpr auto s_worldHalfY = 200.0 * units::m;
     static constexpr auto s_worldHalfZ = 200.0 * units::m;
 
-   private:
-    SHiPMaterials& m_materials;
-
-    GeoPhysVol* m_world{nullptr};
-    GeoPhysVol* m_cavern{nullptr};
-
     // ── Layout (global frame: origin at the target front face) ──────
     //
     // Inner concrete surfaces of the civil-engineering solid in the CAD model
@@ -116,6 +110,12 @@ class CavernFactory {
     static constexpr auto s_targetPitPosX = 0.0 * units::m;
     static constexpr auto s_targetPitPosY = s_tcc8FloorY - s_targetPitHalfY;
     static constexpr auto s_targetPitPosZ = s_targetEndZ - s_cavernPosZ;
+
+   private:
+    SHiPMaterials& m_materials;
+
+    GeoPhysVol* m_world{nullptr};
+    GeoPhysVol* m_cavern{nullptr};
 };
 
 }  // namespace SHiPGeometry

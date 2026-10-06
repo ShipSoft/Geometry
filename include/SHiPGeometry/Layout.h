@@ -232,6 +232,50 @@ static_assert(checks::firstFailure(kAllowedOverlaps,
               "an allowlisted pair no longer overlaps (or names an unknown subsystem): "
               "drop it from kAllowedOverlaps");
 
+// ── Cavern ──────────────────────────────────────────────────────────────
+
+/// The halls CavernFactory cuts out of the rock, in the world frame. The
+/// subsystems are siblings of the rock in the world, so each must sit in a
+/// hall, or it overlaps solid rock.
+inline constexpr std::array kCavities = [] {
+    using C = CavernFactory;
+    auto hall = [](LengthMm px, LengthMm py, LengthMm pz, LengthMm hx, LengthMm hy, LengthMm hz) {
+        return checks::box(px, py, pz + C::s_cavernPosZ, hx, hy, hz);
+    };
+    return std::array{
+        hall(C::s_muonCavernPosX, C::s_muonCavernPosY, C::s_muonCavernPosZ, C::s_muonCavernHalfX,
+             C::s_muonCavernHalfY, C::s_muonCavernHalfZ),
+        hall(C::s_expCavernPosX, C::s_expCavernPosY, C::s_expCavernPosZ, C::s_expCavernHalfX,
+             C::s_expCavernHalfY, C::s_expCavernHalfZ),
+        hall(C::s_stairPosX, C::s_stairPosY, C::s_stairPosZ, C::s_stairHalfX, C::s_stairHalfY,
+             C::s_stairHalfZ),
+        hall(C::s_yokePitPosX, C::s_yokePitPosY, C::s_yokePitPosZ, C::s_yokePitHalfX,
+             C::s_yokePitHalfY, C::s_yokePitHalfZ),
+        hall(C::s_targetPitPosX, C::s_targetPitPosY, C::s_targetPitPosZ, C::s_targetPitHalfX,
+             C::s_targetPitHalfY, C::s_targetPitHalfZ),
+    };
+}();
+
+/// The container lies entirely within one hall.
+[[nodiscard]] constexpr bool isInCavity(const Slot& slot) {
+    for (const auto& cavity : kCavities) {
+        if (checks::contains(cavity, slot.box())) {
+            return true;
+        }
+    }
+    return false;
+}
+
+static_assert(checks::firstFailure(kSlots,
+                                   [](const Slot& s) {
+                                       return isInCavity(s) || s.path == kCalorimeter.path;
+                                   }) == checks::npos,
+              "a subsystem container reaches into the cavern rock");
+// Known deviation: the cavern was taken from GDML with a different z origin,
+// and the calorimeter reaches ~442 mm past the end of the experiment hall.
+static_assert(!isInCavity(kCalorimeter),
+              "the calorimeter now fits the experiment hall: drop its exception above");
+
 // ── EDMS envelopes ──────────────────────────────────────────────────────
 
 namespace detail {
