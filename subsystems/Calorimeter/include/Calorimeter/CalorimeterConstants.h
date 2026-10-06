@@ -164,6 +164,9 @@ static_assert(kWidePVTBarCount * kWidePVTBarPitch == kPlateXY,
               "plate size must be a whole number of wide PVT bars");
 static_assert(kThinPSBarCount * kThinPSBarPitch == kPlateXY,
               "plate size must be a whole number of thin PS bars");
+static_assert(kTotalStackZ == 2600.0 * units::mm,
+              "transcription guard: 40 lead + 40 scint + 8 HPL + 1 air gap in the ECAL "
+              "(1600 mm), 100 mm gap, 5 iron + 5 scint in the HCAL (900 mm)");
 static_assert(kTotalStackZ <= 2.0 * kContainerHalfZ, "layer stack exceeds the container in Z");
 static_assert(0.5 * kPlateXY + 0.5 * (kModuleNX - 1) * kModulePitchX <= kContainerHalfX,
               "module array exceeds the container in X");
