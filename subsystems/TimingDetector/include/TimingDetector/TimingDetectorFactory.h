@@ -35,14 +35,14 @@ class TimingDetectorFactory {
     /** Number of bars placed during the last build() call. */
     int barCount() const { return m_barCount; }
 
-   private:
-    SHiPMaterials& m_materials;
-    int m_barCount{0};
-
     // Container dimensions
     static constexpr auto s_containerHalfX = 2750.0 * units::mm;
     static constexpr auto s_containerHalfY = 3250.0 * units::mm;
     static constexpr auto s_containerHalfZ = 250.0 * units::mm;
+
+   private:
+    SHiPMaterials& m_materials;
+    int m_barCount{0};
 
     // Bar dimensions
     static constexpr auto s_barHalfX = 700.0 * units::mm;  // 140 cm full length

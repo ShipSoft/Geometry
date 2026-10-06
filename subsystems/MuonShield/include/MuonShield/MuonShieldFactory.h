@@ -27,6 +27,11 @@ class MuonShieldFactory {
 
     [[nodiscard]] GeoPhysVol* build();
 
+    // MuonShieldArea container dimensions
+    static constexpr auto s_areaHalfX = 1810.0 * units::mm;
+    static constexpr auto s_areaHalfY = 1700.0 * units::mm;
+    static constexpr auto s_areaHalfZ = 14724.0 * units::mm;
+
    private:
     SHiPMaterials& m_materials;
 
@@ -49,11 +54,6 @@ class MuonShieldFactory {
     static const StationData k_stations[6];
 
     GeoPhysVol* buildStation(const StationData& station);
-
-    // MuonShieldArea container dimensions
-    static constexpr auto s_areaHalfX = 1810.0 * units::mm;
-    static constexpr auto s_areaHalfY = 1700.0 * units::mm;
-    static constexpr auto s_areaHalfZ = 14724.0 * units::mm;
 };
 
 }  // namespace SHiPGeometry
