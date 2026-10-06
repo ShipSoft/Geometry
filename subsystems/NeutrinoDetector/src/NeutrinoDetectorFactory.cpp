@@ -69,6 +69,41 @@ constexpr int s_hcal_n_sections = 3;
 constexpr int s_hcal_n_layers = 14;
 constexpr LengthMm s_hcal_section_xy[s_hcal_n_sections] = {400.0 * mm, 500.0 * mm, 600.0 * mm};
 
+// Longitudinal layout (upstream → downstream), content centred in the container.
+constexpr auto s_tgt_depth = s_tgt_pitch * s_tgt_n_layers;
+constexpr auto s_hcal_depth =
+    s_hcal_gap_to_target + s_hcal_n_sections * (s_hcal_layer * s_hcal_n_layers);
+constexpr auto s_content_depth =
+    s_veto_total_thickness + s_veto_gap_to_target + s_tgt_depth + s_hcal_depth;
+
+// ── Compile-time validation ──────────────────────────────────────────────
+using SND = NeutrinoDetectorFactory;
+
+static_assert(s_content_depth <= 2.0 * SND::s_halfZ,
+              "veto, target and HCAL are longer than the SND container");
+static_assert(0.5 * s_veto_bar_length <= SND::s_halfX &&
+                  0.5 * s_veto_plane_xy + s_veto_shift_y <= SND::s_halfY,
+              "the staggered veto planes do not fit the container");
+static_assert(0.5 * s_tgt_plate_xy <= SND::s_halfX && 0.5 * s_tgt_plate_xy <= SND::s_halfY,
+              "the target plates do not fit the container");
+// A fibre plane's envelope is one fibre diameter wider than its section.
+static_assert(0.5 * s_hcal_section_xy[s_hcal_n_sections - 1] + s_hcal_fibre_diameter <=
+                  SND::s_halfX,
+              "the largest HCAL section does not fit the container");
+
+constexpr bool hcalSectionsTileExactly() {
+    for (const auto xy : s_hcal_section_xy) {
+        const int nTiles = static_cast<int>(units::ratio(xy / s_hcal_tile_xy));
+        const int nFibres = static_cast<int>(units::ratio(xy / s_hcal_fibre_diameter));
+        if (nTiles * s_hcal_tile_xy != xy || nFibres * s_hcal_fibre_diameter != xy) {
+            return false;
+        }
+    }
+    return true;
+}
+static_assert(hcalSectionsTileExactly(),
+              "every HCAL section must hold a whole number of tiles and of fibres");
+
 /// Place one shared log volume as a child with a per-instance name, copy id,
 /// and position.
 void placeChild(GeoVPhysVol* mother, const GeoLogVol* log, const std::string& name, int id,
@@ -275,17 +310,11 @@ GeoPhysVol* NeutrinoDetectorFactory::build() {
     auto* containerLog = new GeoLogVol(kBase, containerBox, air);
     auto* containerPhys = new GeoPhysVol(containerLog);
 
-    // Longitudinal layout (upstream → downstream), content centred in the container.
-    const LengthMm targetDepth = s_tgt_pitch * s_tgt_n_layers;
-    const LengthMm hcalDepth =
-        s_hcal_gap_to_target + s_hcal_n_sections * (s_hcal_layer * s_hcal_n_layers);
-    const LengthMm contentDepth =
-        s_veto_total_thickness + s_veto_gap_to_target + targetDepth + hcalDepth;
-    const LengthMm zStart = -0.5 * contentDepth;
+    const LengthMm zStart = -0.5 * s_content_depth;
 
     const LengthMm vetoDownstreamFace = zStart + s_veto_total_thickness;
     const LengthMm targetStart = vetoDownstreamFace + s_veto_gap_to_target;
-    const LengthMm hcalStart = targetStart + targetDepth;
+    const LengthMm hcalStart = targetStart + s_tgt_depth;
 
     buildVeto(containerPhys, pvt, vetoDownstreamFace);
     buildTarget(containerPhys, tungsten, silicon, targetStart);

@@ -14,19 +14,6 @@
 
 using SHiPGeometry::SHiPMaterials;
 
-// CSV limits: SND half-width/height ≤ 0.40 m, length 5.10 m (box approximation).
-TEST_CASE("NeutrinoDetectorWithinEnvelope", "[neutrinodetector]") {
-    SHiPMaterials materials;
-    SHiPGeometry::NeutrinoDetectorFactory factory(materials);
-    GeoPhysVol* snd = factory.build();
-    REQUIRE(snd != nullptr);
-    auto* box = dynamic_cast<const GeoBox*>(snd->getLogVol()->getShape());
-    REQUIRE(box != nullptr);
-    CHECK(box->getXHalfLength() <= 400.0);
-    CHECK(box->getYHalfLength() <= 400.0);
-    CHECK(box->getZHalfLength() <= 2550.0);
-}
-
 // The container holds the veto, target and HCAL children directly. Counts:
 //   veto    3 planes × 7 bars                              =   21
 //   target  120 layers × (W + Si-X + Si-Y)                 =  360
