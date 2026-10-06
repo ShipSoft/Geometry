@@ -30,12 +30,6 @@ class CavernFactory {
     static constexpr auto s_worldHalfY = 200.0 * units::m;
     static constexpr auto s_worldHalfZ = 200.0 * units::m;
 
-   private:
-    SHiPMaterials& m_materials;
-
-    GeoPhysVol* m_world{nullptr};
-    GeoPhysVol* m_cavern{nullptr};
-
     // Rock block dimensions (half-sizes)
     static constexpr auto s_rockHalfX = 20.0 * units::m;
     static constexpr auto s_rockHalfY = 20.0 * units::m;
@@ -83,6 +77,12 @@ class CavernFactory {
 
     // Cavern position in world
     static constexpr auto s_cavernPosZ = -3.336 * units::m;
+
+   private:
+    SHiPMaterials& m_materials;
+
+    GeoPhysVol* m_world{nullptr};
+    GeoPhysVol* m_cavern{nullptr};
 };
 
 }  // namespace SHiPGeometry
