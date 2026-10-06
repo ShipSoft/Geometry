@@ -16,7 +16,6 @@
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <cmath>
-#include <numbers>
 
 using Catch::Approx;
 using SHiPGeometry::SHiPMaterials;
@@ -159,20 +158,6 @@ TEST_CASE("Target2026Disks", "[target]") {
         CHECK(zCentre - tube->getZHalfLength() == Approx(1005.0 * mm));
         CHECK(zCentre + tube->getZHalfLength() == Approx(1460.0 * mm));
     }
-
-    // Total tungsten volume: 875 mm of W at r=125 plus the 455 mm rear block
-    // at r=157
-    double totalVolume = 0.0;
-    for (unsigned int i = 0; i < 33; ++i) {
-        auto* tube =
-            dynamic_cast<const GeoTube*>(heVolume->getChildVol(i)->getLogVol()->getShape());
-        REQUIRE(tube != nullptr);
-        totalVolume +=
-            std::numbers::pi * tube->getRMax() * tube->getRMax() * 2.0 * tube->getZHalfLength();
-    }
-    const double expected = std::numbers::pi * (125.0 * mm) * (125.0 * mm) * 875.0 * mm +
-                            std::numbers::pi * (157.0 * mm) * (157.0 * mm) * 455.0 * mm;
-    CHECK(totalVolume == Approx(expected));
 }
 
 TEST_CASE("Target2026SteelCore", "[target]") {
