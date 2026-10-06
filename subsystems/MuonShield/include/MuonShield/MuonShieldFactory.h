@@ -32,9 +32,6 @@ class MuonShieldFactory {
     static constexpr auto s_areaHalfY = 1700.0 * units::mm;
     static constexpr auto s_areaHalfZ = 14724.0 * units::mm;
 
-   private:
-    SHiPMaterials& m_materials;
-
     struct PieceData {
         units::LengthMm halfX, halfY, halfZ;  // bounding-box half-sizes
         units::LengthMm centX, centY;         // centre offset in station XY frame
@@ -50,8 +47,12 @@ class MuonShieldFactory {
         PieceData pieces[8];
     };
 
-    // GDML-derived station data for all 6 stations × 8 pieces
+    /// GDML-derived station data for all 6 stations × 8 pieces. Defined
+    /// constexpr in MuonShieldFactory.cpp, which checks it at compile time.
     static const StationData k_stations[6];
+
+   private:
+    SHiPMaterials& m_materials;
 
     GeoPhysVol* buildStation(const StationData& station);
 };

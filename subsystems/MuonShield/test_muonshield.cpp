@@ -3,24 +3,40 @@
 
 #include "MuonShield/MuonShieldFactory.h"
 #include "SHiPGeometry/SHiPMaterials.h"
+#include "SHiPGeometry/Units.h"
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoLogVol.h>
 #include <GeoModelKernel/GeoPhysVol.h>
 
 #include <catch2/catch_test_macros.hpp>
+#include <iterator>
+#include <string>
 
+using SHiPGeometry::MuonShieldFactory;
 using SHiPGeometry::SHiPMaterials;
+using SHiPGeometry::units::gm;
 
-// MuonShieldArea container halfX ≤ 2100 (CSV WARM max half-width),
-// halfY ≤ 2300 (CSV WARM max half-height)
-TEST_CASE("MuonShieldWithinEnvelope", "[muonshield]") {
+// The station table is checked against the container at compile time
+// (MuonShieldFactory.cpp); this checks the factory builds what it describes.
+TEST_CASE("MuonShieldStationsMatchTable", "[muonshield]") {
     SHiPMaterials materials;
-    SHiPGeometry::MuonShieldFactory factory(materials);
+    MuonShieldFactory factory(materials);
     GeoPhysVol* ms = factory.build();
     REQUIRE(ms != nullptr);
-    auto* box = dynamic_cast<const GeoBox*>(ms->getLogVol()->getShape());
-    REQUIRE(box != nullptr);
-    CHECK(box->getXHalfLength() <= 2100.0);
-    CHECK(box->getYHalfLength() <= 2300.0);
+    REQUIRE(ms->getNChildVols() == std::size(MuonShieldFactory::k_stations));
+
+    for (unsigned int i = 0; i < ms->getNChildVols(); ++i) {
+        const auto& station = MuonShieldFactory::k_stations[i];
+        INFO("station " << station.name);
+        const GeoVPhysVol* child = &*ms->getChildVol(i);
+        CHECK(child->getLogVol()->getName() == "/SHiP/muon_shield/" + std::string(station.name));
+        CHECK(ms->getXToChildVol(i).translation().z() == gm(station.stationZ));
+        auto* box = dynamic_cast<const GeoBox*>(child->getLogVol()->getShape());
+        REQUIRE(box != nullptr);
+        CHECK(box->getXHalfLength() == gm(station.containerHalfX));
+        CHECK(box->getYHalfLength() == gm(station.containerHalfY));
+        CHECK(box->getZHalfLength() == gm(station.containerHalfZ));
+        CHECK(child->getNChildVols() == std::size(station.pieces));
+    }
 }
