@@ -65,12 +65,15 @@ GeoPhysVol* SHiPGeometryBuilder::build() {
                GeoTrf::Translate3D(0.0, 0.0, 28.95 * m));
 
     // Build and place UpstreamTagger (sensitive scintillator slab)
-    // Z: 32.52 to 32.92 m → centre: 32.72 m
+    // Integration layout 2026-0.1 (EDMS 3287817 v1.1): 0.4 m slot from 32.67
+    // to 33.07 m at the entrance of the decay volume. The 160 mm tile plane is
+    // placed inside that slot with its rear face flush with the decay-volume
+    // container (32.92 m), so it cannot sit exactly on the slot mid-plane.
     SHiPUBTManager ubtManager;
     UpstreamTaggerFactory upstreamTaggerFactory(materials);
     GeoVPhysVol* upstreamTagger = upstreamTaggerFactory.build(&ubtManager);
     placeChild(world, upstreamTagger, "/SHiP/upstream_tagger", 3,
-               GeoTrf::Translate3D(0.0, 0.0, 32.72 * m));
+               GeoTrf::Translate3D(0.0, 0.0, 32.84 * m));
 
     // Build and place DecayVolume
     // Z: 32.92 to 83.32 m → centre: 58.12 m
@@ -81,25 +84,27 @@ GeoPhysVol* SHiPGeometryBuilder::build() {
 
     // Build and place Trackers (container with 4 stations).
     // The factory already handles internal positioning; place the container at
-    // its centre Z (average of station 1 and 4 centres).
+    // its centre Z (average of station 1 and 4 centres, integration layout
+    // 2026-0.1: station mid-planes at 84.22, 86.22, 93.22 and 95.22 m).
     TrackersFactory trackersFactory(materials);
     GeoPhysVol* trackers = trackersFactory.build();
-    constexpr double trackersCentreZ = (84.07 + 95.07) / 2.0 * m;
+    constexpr double trackersCentreZ = (84.22 + 95.22) / 2.0 * m;
     placeChild(world, trackers, "/SHiP/trackers", 5,
                GeoTrf::Translate3D(0.0, 0.0, trackersCentreZ));
 
     // Build and place Magnet
-    // Z: 87.07 to 92.07 m → centre: 89.57 m
+    // Integration layout 2026-0.1: 5 m slot with its mid-plane at 89.72 m.
     MagnetFactory magnetFactory(materials);
     GeoPhysVol* magnet = magnetFactory.build();
-    placeChild(world, magnet, "/SHiP/magnet", 6, GeoTrf::Translate3D(0.0, 0.0, 89.57 * m));
+    placeChild(world, magnet, "/SHiP/magnet", 6, GeoTrf::Translate3D(0.0, 0.0, 89.72 * m));
 
     // Build and place TimingDetector
-    // Z: 95.902 m (from GDML reference)
+    // Integration layout 2026-0.1: 0.46 m slot from 96.14 to 96.60 m, placed
+    // at the slot centre.
     TimingDetectorFactory timingDetectorFactory(materials);
     GeoPhysVol* timingDetector = timingDetectorFactory.build();
     placeChild(world, timingDetector, "/SHiP/timing_detector", 7,
-               GeoTrf::Translate3D(0.0, 0.0, 95.902 * m));
+               GeoTrf::Translate3D(0.0, 0.0, 96.37 * m));
 
     // Build and place Calorimeter (ECAL + HCAL).
     // The layer structure comes from CalorimeterConstants.h; the outer container

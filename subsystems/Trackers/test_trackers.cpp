@@ -95,10 +95,10 @@ TEST_CASE("TrackersHasTrackerMagnet", "[trackers]") {
     REQUIRE(tm != nullptr);
     auto* box = dynamic_cast<const GeoBox*>(tm->getLogVol()->getShape());
     REQUIRE(box != nullptr);
-    // Span must stay clear of station 2 (ends 86570 mm) and the Magnet yoke
-    // (starts 87070 mm): 86570 <= centre ± halfZ <= 87070.
+    // Span must stay clear of station 2 (ends 86720 mm) and the Magnet slot
+    // (starts 87220 mm): 86720 <= centre ± halfZ <= 87220.
     const double centre = TrackersFactory::s_trackerMagnetZ;
     const double halfZ = box->getZHalfLength();
-    CHECK(centre - halfZ >= 86570.0);
-    CHECK(centre + halfZ <= 87070.0);
+    CHECK(centre - halfZ >= 86720.0);
+    CHECK(centre + halfZ <= 87220.0);
 }
