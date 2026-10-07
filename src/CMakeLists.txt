@@ -4,13 +4,13 @@
 # Subsystem self-registration: each subsystem library's REGISTER_SUBSYSTEM
 # static initialiser is the only thing referencing it, so the toolchain's
 # default --as-needed drops the library from the DT_NEEDED of every executable
-# that links SHiPGeometry, and the registration never runs.
+# that links ship_geometry, and the registration never runs.
 #
 # For SHARED libraries the fix is --no-as-needed, and it has to reach this
 # library's own link line as well as every consumer's. Its own line matters:
-# nothing in SHiPGeometry.cpp names a subsystem symbol, so without the flag the
-# subsystems drop out of libSHiPGeometry's DT_NEEDED and any consumer that does
-# not inherit the CMake interface (dlopen, a hand-written -lSHiPGeometry,
+# nothing in DetectorBuilder.cpp names a subsystem symbol, so without the flag the
+# subsystems drop out of libship_geometry's DT_NEEDED and any consumer that does
+# not inherit the CMake interface (dlopen, a hand-written -lship_geometry,
 # pkg-config, a plugin) loads a library with an empty registry.
 #
 # The flag is therefore a PUBLIC link *item*, placed directly before the
@@ -40,20 +40,25 @@ if(UNIX AND NOT APPLE)
     set(SHIP_NO_AS_NEEDED "-Wl,--no-as-needed")
 endif()
 
-add_library(SHiPGeometry SHiPMaterials.cpp SHiPGeometry.cpp)
+# The detector-assembly library. Exported as SHiP::Geometry; the in-tree ALIAS
+# carries the same spelling so source and installed consumers write one name.
+add_library(ship_geometry Materials.cpp DetectorBuilder.cpp)
+set_target_properties(ship_geometry PROPERTIES EXPORT_NAME Geometry)
+add_library(SHiP::Geometry ALIAS ship_geometry)
+
 target_include_directories(
-    SHiPGeometry
+    ship_geometry
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
         $<INSTALL_INTERFACE:include>
 )
 target_link_libraries(
-    SHiPGeometry
+    ship_geometry
     PUBLIC
         GeoModelCore::GeoModelKernel
         GeoModelIO::GeoModelRead
         GeoModelIO::GeoModelWrite
         mp-units::mp-units
         ${SHIP_NO_AS_NEEDED}
-        ${SHIP_SUBSYSTEMS}
+        ${SHIP_SUBSYSTEM_TARGETS}
 )

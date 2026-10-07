@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
-#include "UpstreamTagger/UpstreamTaggerFactory.h"
+#include "SHiP/geometry/UpstreamTagger/UpstreamTaggerFactory.h"
 
-#include "SHiPGeometry/SHiPMaterials.h"
-#include "SHiPGeometry/StaticChecks.h"
-#include "SHiPGeometry/SubsystemRegistry.h"
-#include "UpstreamTagger/SHiPUBTManager.h"
+#include "SHiP/geometry/Materials.h"
+#include "SHiP/geometry/StaticChecks.h"
+#include "SHiP/geometry/SubsystemRegistry.h"
+#include "SHiP/geometry/UpstreamTagger/UpstreamTaggerManager.h"
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoDefinitions.h>
@@ -21,7 +21,7 @@
 #include <cstddef>
 #include <string>
 
-namespace SHiPGeometry {
+namespace SHiP::geometry {
 
 using units::gm;
 using units::mm;
@@ -204,16 +204,16 @@ void placeTileGrid(GeoVPhysVol* env, const GeoLogVol* tileLog, const Region& reg
 
 // ── constructor ──────────────────────────────────────────────────────────────
 
-UpstreamTaggerFactory::UpstreamTaggerFactory(SHiPMaterials& materials) : m_materials(materials) {}
+UpstreamTaggerFactory::UpstreamTaggerFactory(Materials& materials) : m_materials(materials) {}
 
 // ── build ────────────────────────────────────────────────────────────────────
 
-GeoVPhysVol* UpstreamTaggerFactory::build(SHiPUBTManager* manager) {
+GeoVPhysVol* UpstreamTaggerFactory::build(UpstreamTaggerManager* manager) {
     const GeoMaterial* air = m_materials.requireMaterial("Air");
     const GeoMaterial* polystyrene = m_materials.requireMaterial("Polystyrene");
 
     // Container: a GeoFullPhysVol so the tagger keeps a sensitive tree-top for
-    // SHiPUBTManager. Dimensions are unchanged from the previous slab.
+    // UpstreamTaggerManager. Dimensions are unchanged from the previous slab.
     auto const* containerBox = new GeoBox(gm(s_halfX), gm(s_halfY), gm(s_halfZ));
     auto const* containerLog = new GeoLogVol("/SHiP/upstream_tagger", containerBox, air);
     auto* containerPhys = new GeoFullPhysVol(containerLog);
@@ -254,4 +254,4 @@ GeoVPhysVol* UpstreamTaggerFactory::build(SHiPUBTManager* manager) {
 
 REGISTER_SUBSYSTEM(UpstreamTaggerFactory)
 
-}  // namespace SHiPGeometry
+}  // namespace SHiP::geometry

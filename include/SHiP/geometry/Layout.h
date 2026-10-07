@@ -3,22 +3,21 @@
 
 #pragma once
 
-#include "Calorimeter/CalorimeterConstants.h"
-#include "Calorimeter/CalorimeterFactory.h"
-#include "Cavern/CavernFactory.h"
-#include "DecayVolume/DecayVolumeFactory.h"
-#include "DecayVolume/SBTConstants.h"
-#include "Magnet/MagnetFactory.h"
-#include "MuonShield/MuonShieldFactory.h"
-#include "SHiPGeometry/Envelopes.h"
-#include "SHiPGeometry/StaticChecks.h"
-#include "SHiPGeometry/Units.h"
-#include "Target/TargetFactory.h"
-#include "TimingDetector/TimingDetectorFactory.h"
-#include "Trackers/TrackersFactory.h"
-#include "UpstreamTagger/UpstreamTaggerFactory.h"
-
-#include "NeutrinoDetector/NeutrinoDetectorFactory.h"
+#include "SHiP/geometry/Calorimeter/CalorimeterConstants.h"
+#include "SHiP/geometry/Calorimeter/CalorimeterFactory.h"
+#include "SHiP/geometry/Cavern/CavernFactory.h"
+#include "SHiP/geometry/DecayVolume/DecayVolumeFactory.h"
+#include "SHiP/geometry/DecayVolume/SBTConstants.h"
+#include "SHiP/geometry/Envelopes.h"
+#include "SHiP/geometry/Magnet/MagnetFactory.h"
+#include "SHiP/geometry/MuonShield/MuonShieldFactory.h"
+#include "SHiP/geometry/NeutrinoDetector/NeutrinoDetectorFactory.h"
+#include "SHiP/geometry/StaticChecks.h"
+#include "SHiP/geometry/Target/TargetFactory.h"
+#include "SHiP/geometry/TimingDetector/TimingDetectorFactory.h"
+#include "SHiP/geometry/Trackers/TrackersFactory.h"
+#include "SHiP/geometry/Units.h"
+#include "SHiP/geometry/UpstreamTagger/UpstreamTaggerFactory.h"
 
 #include <array>
 #include <string_view>
@@ -38,7 +37,7 @@
  * Coordinates are in the world frame, whose origin is the front face of the
  * first target disk.
  */
-namespace SHiPGeometry::Layout {
+namespace SHiP::geometry::Layout {
 
 using units::LengthMm;
 
@@ -387,4 +386,4 @@ static_assert(checks::contains({trackerStation(TrackersFactory::s_station2Z).hi,
                                             TrackersFactory::s_trackerMagnetHalfZ)),
               "the tracker-magnet marker must sit in the gap between station 2 and the magnet");
 
-}  // namespace SHiPGeometry::Layout
+}  // namespace SHiP::geometry::Layout

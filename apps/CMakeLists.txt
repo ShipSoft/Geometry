@@ -5,7 +5,7 @@ add_executable(build_geometry build_geometry.cpp)
 target_link_libraries(
     build_geometry
     PRIVATE
-        SHiPGeometry
+        ship_geometry
         GeoModelCore::GeoModelKernel
         GeoModelIO::GeoModelDBManager
         GeoModelIO::GeoModelWrite

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
-#include "SHiPGeometry/SHiPMaterials.h"
-#include "UpstreamTagger/UpstreamTaggerFactory.h"
+#include "SHiP/geometry/Materials.h"
+#include "SHiP/geometry/UpstreamTagger/UpstreamTaggerFactory.h"
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoLogVol.h>
@@ -11,12 +11,12 @@
 
 #include <catch2/catch_test_macros.hpp>
 
-using SHiPGeometry::SHiPMaterials;
+using SHiP::geometry::Materials;
 
 // UpstreamTagger container must be a GeoVFullPhysVol (sensitive tree-top)
 TEST_CASE("UBTHasSensitiveVolume", "[upstreamtagger]") {
-    SHiPMaterials materials;
-    SHiPGeometry::UpstreamTaggerFactory factory(materials);
+    Materials materials;
+    SHiP::geometry::UpstreamTaggerFactory factory(materials);
     GeoVPhysVol* ubt = factory.build();
     REQUIRE(ubt != nullptr);
     CHECK(dynamic_cast<const GeoVFullPhysVol*>(ubt) != nullptr);
@@ -24,8 +24,8 @@ TEST_CASE("UBTHasSensitiveVolume", "[upstreamtagger]") {
 
 // The tile plane is built from seven abutting tile regions.
 TEST_CASE("UBTHasSevenRegions", "[upstreamtagger]") {
-    SHiPMaterials materials;
-    SHiPGeometry::UpstreamTaggerFactory factory(materials);
+    Materials materials;
+    SHiP::geometry::UpstreamTaggerFactory factory(materials);
     GeoVPhysVol* ubt = factory.build();
     REQUIRE(ubt != nullptr);
     CHECK(ubt->getNChildVols() == 7u);  // NOLINT(readability/check)
@@ -39,8 +39,8 @@ TEST_CASE("UBTHasSevenRegions", "[upstreamtagger]") {
 //                                   ------
 //                                    47000 tiles
 TEST_CASE("UBTTileCount", "[upstreamtagger]") {
-    SHiPMaterials materials;
-    SHiPGeometry::UpstreamTaggerFactory factory(materials);
+    Materials materials;
+    SHiP::geometry::UpstreamTaggerFactory factory(materials);
     GeoVPhysVol* ubt = factory.build();
     REQUIRE(ubt != nullptr);
 

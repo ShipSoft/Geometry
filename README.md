@@ -26,7 +26,7 @@ Every dimensional constant (length, angle, density, molar mass) is a typed
 [mp-units](https://mpusz.github.io/mp-units/) quantity, declared in the unit
 its value is written in: `2160.0 * units::mm`, `80.0 * units::cm`,
 `2.3 * units::deg`. The shared vocabulary lives in
-`include/SHiPGeometry/Units.h` (`SHiPGeometry::units`).
+`include/SHiP/geometry/Units.h` (`SHiP::geometry::units`).
 
 GeoModel's API takes raw doubles in its native units (mm, radians).
 `units::gm()` is the single bridge: it multiplies a quantity's stored value
@@ -116,7 +116,7 @@ downstream projects can locate the package:
 
 ```cmake
 find_package(SHiPGeometry CONFIG REQUIRED)
-target_link_libraries(myapp PRIVATE SHiPGeometry::SHiPGeometry)
+target_link_libraries(myapp PRIVATE SHiP::Geometry)
 ```
 
 The package config calls `find_dependency` for GeoModelCore, GeoModelIO,
@@ -134,7 +134,7 @@ describes where it belongs, and registers itself:
 ```cpp
 class FooFactory {
 public:
-    explicit FooFactory(SHiPMaterials& materials);
+    explicit FooFactory(Materials& materials);
     GeoPhysVol* build();
 
     // Self-description consumed by the assembler:
@@ -143,36 +143,35 @@ public:
         return {"Foo", "/SHiP/foo", 42, 0.0, 0.0, 12345.0, /*isWorld=*/false};
     }
 private:
-    SHiPMaterials& m_materials;
+    Materials& m_materials;
 };
 ```
 
 with a single registration line in the factory's `.cpp` (inside
-`namespace SHiPGeometry`):
+`namespace SHiP::geometry`):
 
 ```cpp
 REGISTER_SUBSYSTEM(FooFactory)
 ```
 
-The assembler names no subsystem. `assembleGeometry()`, also reachable via the
-unchanged `SHiPGeometryBuilder::build()`, iterates the registry, builds the
-world (the subsystem whose descriptor sets `isWorld`, i.e. the Cavern), and
+The assembler names no subsystem. `assembleGeometry()`, also reachable via
+`DetectorBuilder::build()`, iterates the registry, builds the world (the subsystem whose descriptor sets `isWorld`, i.e. the Cavern), and
 places every other registered subsystem at its declared position, ordered by
 `(z, id)`. A single subsystem can be built on its own, in its local frame,
 with `buildSubsystem("Foo")`. The descriptor type lives in
-`include/SHiPGeometry/SubsystemDescriptor.h`, and the registry and macro in
-`include/SHiPGeometry/SubsystemRegistry.h`.
+`include/SHiP/geometry/SubsystemDescriptor.h`, and the registry and macro in
+`include/SHiP/geometry/SubsystemRegistry.h`.
 
 ### Materials
 
-All materials are managed centrally by `SHiPMaterials`. To use an existing
+All materials are managed centrally by `Materials`. To use an existing
 material in a factory:
 
 ```cpp
 const GeoMaterial* iron = m_materials.requireMaterial("Iron");
 ```
 
-To add a new material, edit `src/SHiPMaterials.cpp`:
+To add a new material, edit `src/Materials.cpp`:
 1. Add elements in `createElements()` if not already present
 2. Add the material in `createMaterials()` with composition and density
 3. Call `material->lock()` after defining the composition
@@ -187,14 +186,14 @@ To add a new material, edit `src/SHiPMaterials.cpp`:
    `build()` using GeoModel primitives (`GeoBox`, `GeoTubs`, `GeoLogVol`,
    `GeoPhysVol`, `GeoTransform`, etc.)
 3. **Registration**: add one line, `REGISTER_SUBSYSTEM(<Name>Factory)`, at
-   the end of the factory `.cpp`, inside `namespace SHiPGeometry`. The
-   subsystem registers itself; **do not** edit `src/SHiPGeometry.cpp`, which
+   the end of the factory `.cpp`, inside `namespace SHiP::geometry`. The
+   subsystem registers itself; **do not** edit `src/DetectorBuilder.cpp`, which
    names no subsystem.
 4. **CMake**: add sources/headers to `subsystems/<Name>/CMakeLists.txt`, and
    add `<Name>` to `SHIP_SUBSYSTEMS` in the top-level `CMakeLists.txt`. That
    list drives the subdirectory walk, the install rules, and the libraries
-   `SHiPGeometry` links, and `test_registry` requires every entry to have
-   registered itself under that name. `SHiPGeometry` puts `-Wl,--no-as-needed`
+   `ship_geometry` links, and `test_registry` requires every entry to have
+   registered itself under that name. `ship_geometry` puts `-Wl,--no-as-needed`
    among its PUBLIC link libraries, directly before the subsystems, so each
    one stays in `DT_NEEDED` and its `REGISTER_SUBSYSTEM` initializer is not
    dropped by the linker's default `--as-needed`. Only shared-library builds
@@ -206,7 +205,7 @@ To add a new material, edit `src/SHiPMaterials.cpp`:
 
 ```text
 geometry/
-├── include/SHiPGeometry/   # Public headers (SHiPGeometry, SHiPMaterials, SubsystemRegistry)
+├── include/SHiP/geometry/  # Public headers (DetectorBuilder, Materials, SubsystemRegistry)
 ├── src/                     # Core implementation
 ├── subsystems/              # Detector subsystem factories
 │   ├── Cavern/

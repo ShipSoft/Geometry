@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "SHiPGeometry/Units.h"
+#include "SHiP/geometry/Units.h"
 
 #include <array>
 #include <cstddef>
@@ -21,7 +21,7 @@
  * Only comparisons and +/- are used: no <cmath>, whose functions Clang does
  * not fold in constant expressions (clang-tidy parses the tree with Clang).
  */
-namespace SHiPGeometry::checks {
+namespace SHiP::geometry::checks {
 
 using units::LengthMm;
 
@@ -197,4 +197,4 @@ template <std::size_t N>
     return true;
 }
 
-}  // namespace SHiPGeometry::checks
+}  // namespace SHiP::geometry::checks

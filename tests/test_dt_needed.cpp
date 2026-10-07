@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 //
-// Check that loading libSHiPGeometry on its own pulls in every subsystem
-// library, i.e. that the subsystems are in libSHiPGeometry's own DT_NEEDED.
+// Check that loading libship_geometry on its own pulls in every subsystem
+// library, i.e. that the subsystems are in libship_geometry's own DT_NEEDED.
 //
-// Usage: test_dt_needed <path/to/libSHiPGeometry.so> <subsystem soname> ...
+// Usage: test_dt_needed <path/to/libship_geometry.so> <subsystem soname> ...
 //
-// This executable deliberately does not link SHiPGeometry: a CMake-linked
+// This executable deliberately does not link ship_geometry: a CMake-linked
 // consumer gets -Wl,--no-as-needed on its own link line and finds the
 // subsystems either way, which is why the registry tests cannot catch a
 // library whose own link line dropped them. Here the library is dlopen()ed, as
-// a plugin or a hand-written -lSHiPGeometry would see it, and each subsystem
+// a plugin or a hand-written -lship_geometry would see it, and each subsystem
 // must then already be resident (RTLD_NOLOAD loads nothing itself).
 
 #include <dlfcn.h>
@@ -21,7 +21,7 @@
 // NOLINTBEGIN(clang-analyzer-optin.taint.GenericTaint,concurrency-mt-unsafe)
 int main(int argc, char* argv[]) {
     if (argc < 3) {
-        std::cerr << "Usage: " << argv[0] << " <libSHiPGeometry> <subsystem soname> ...\n";
+        std::cerr << "Usage: " << argv[0] << " <libship_geometry> <subsystem soname> ...\n";
         return 2;
     }
 

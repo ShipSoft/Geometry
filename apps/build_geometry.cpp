@@ -17,8 +17,8 @@
 // the positions their descriptors declare, unless --standalone is given, which
 // builds exactly one subsystem on its own at the origin.
 
-#include "SHiPGeometry/SHiPGeometry.h"
-#include "SHiPGeometry/SubsystemRegistry.h"
+#include "SHiP/geometry/DetectorBuilder.h"
+#include "SHiP/geometry/SubsystemRegistry.h"
 
 #include <GeoModelDBManager/GMDBManager.h>
 #include <GeoModelKernel/GeoPhysVol.h>
@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
         const std::string arg = argv[i];
         if (arg == "--list") {
             // Program output, not a log line: plain stdout so it stays pipeable.
-            for (const auto& n : SHiPGeometry::subsystemNames())
+            for (const auto& n : SHiP::geometry::subsystemNames())
                 std::cout << n << "\n";
             return 0;
         }
@@ -144,7 +144,7 @@ int main(int argc, char* argv[]) {
     // Check the names here rather than leaving it to the builders, so that the
     // list of available subsystems is offered for a mis-spelled name and not
     // for, say, a configuration file that failed to parse.
-    const auto known = SHiPGeometry::subsystemNames();
+    const auto known = SHiP::geometry::subsystemNames();
     bool anyUnknown = false;
     for (const auto& name : names) {
         if (std::ranges::find(known, name) == known.end()) {
@@ -170,13 +170,13 @@ int main(int argc, char* argv[]) {
         if (standalone) {
             // One subsystem by itself: no world, so it sits at the origin
             // rather than at its position in the detector.
-            geometry = SHiPGeometry::buildSubsystem(names[0]);
+            geometry = SHiP::geometry::buildSubsystem(names[0]);
             label = names[0] + " (standalone)";
             if (outputFile.empty())
                 outputFile = names[0] + ".db";
         } else if (names.empty()) {
             // Default: the complete detector.
-            SHiPGeometry::SHiPGeometryBuilder builder;
+            SHiP::geometry::DetectorBuilder builder;
             geometry = builder.build();
             label = "full SHiP geometry";
             if (outputFile.empty())
@@ -184,7 +184,7 @@ int main(int argc, char* argv[]) {
         } else {
             // A selection, assembled into the world at the placements the
             // subsystems declare (the world/cavern is always included).
-            geometry = SHiPGeometry::assembleGeometry(names);
+            geometry = SHiP::geometry::assembleGeometry(names);
             label = names.size() == 1
                         ? names[0] + " (in the world)"
                         : "selection (" + std::to_string(names.size()) + " subsystems)";

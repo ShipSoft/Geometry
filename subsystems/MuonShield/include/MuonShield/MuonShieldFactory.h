@@ -1,73 +1,10 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
-
+//
+// Forwarding header for the pre-0.3.0 layout, removed in 0.4.0.
+// MuonShield/MuonShieldFactory.h is now SHiP/geometry/MuonShield/MuonShieldFactory.h.
 #pragma once
 
-#include "SHiPGeometry/SubsystemDescriptor.h"
-#include "SHiPGeometry/Units.h"
+#include "SHiP/geometry/MuonShield/MuonShieldFactory.h"
 
-class GeoPhysVol;
-
-namespace SHiPGeometry {
-
-class SHiPMaterials;
-
-/**
- * @brief Factory for the MuonShield (muon shield magnets) geometry
- *
- * Creates a MuonShieldArea (Air) container holding 6 magnet stations.
- * Each station contains 8 Iron pieces — bounding-box approximations of the
- * GDML arb8 shapes. Station z-positions (from GDML MuonShieldArea origin, cm):
- *   MagnAbsorb: 319.5, Magn1: 950, Magn2: 1735.48,
- *   Magn3: 2258.49, Magn4: 2586.02, Magn5: 2914.84
- */
-class MuonShieldFactory {
-   public:
-    explicit MuonShieldFactory(SHiPMaterials& materials);
-    ~MuonShieldFactory() = default;
-
-    [[nodiscard]] GeoPhysVol* build();
-
-    /**
-     * @brief This subsystem's self-description (name, node, id, placement).
-     *
-     * The GDML MuonShieldArea spans z = 204 to 3148.66 cm, so the container
-     * is centred at 1676.33 cm = 16763.3 mm from the world origin.
-     */
-    static constexpr SubsystemDescriptor descriptor() {
-        using units::gm;
-        using units::mm;
-        return {"MuonShield", "/SHiP/muon_shield", 2, 0.0, 0.0, gm(16763.3 * mm), false};
-    }
-
-    // MuonShieldArea container dimensions
-    static constexpr auto s_areaHalfX = 1810.0 * units::mm;
-    static constexpr auto s_areaHalfY = 1700.0 * units::mm;
-    static constexpr auto s_areaHalfZ = 14724.0 * units::mm;
-
-    struct PieceData {
-        units::LengthMm halfX, halfY, halfZ;  // bounding-box half-sizes
-        units::LengthMm centX, centY;         // centre offset in station XY frame
-        const char* name;                     // piece name suffix
-    };
-
-    struct StationData {
-        const char* name;          // station name
-        units::LengthMm stationZ;  // z in MuonShieldArea frame
-        units::LengthMm containerHalfX;
-        units::LengthMm containerHalfY;
-        units::LengthMm containerHalfZ;
-        PieceData pieces[8];
-    };
-
-    /// GDML-derived station data for all 6 stations × 8 pieces. Defined
-    /// constexpr in MuonShieldFactory.cpp, which checks it at compile time.
-    static const StationData k_stations[6];
-
-   private:
-    SHiPMaterials& m_materials;
-
-    GeoPhysVol* buildStation(const StationData& station);
-};
-
-}  // namespace SHiPGeometry
+namespace SHiPGeometry = SHiP::geometry;

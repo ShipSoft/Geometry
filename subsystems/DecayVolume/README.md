@@ -83,12 +83,12 @@ column front-flange edge for clash avoidance. Each piece is 7 aluminium walls +
 | PressurisedHe90 | 2.12 mg/cm³  | Central decay region           |
 
 `LAB` (linear alkylbenzene, C 87.41% / H 12.59% by mass) was added to the
-central `SHiPMaterials` catalogue for the SBT cells.
+central `Materials` catalogue for the SBT cells.
 
 ## Parameters
 
 The SBT geometry is defined by `SBTParams` in `SBTConstants.h` (namespace
-`SHiPGeometry::SBT`): the frustum envelope, sub-frustum count, H-beam
+`SHiP::geometry::SBT`): the frustum envelope, sub-frustum count, H-beam
 cross-section, sensor container/cell parameters, helium clearance and the SBT
 entrance Z. `kSBT` is the shipped instance, and every placement primitive —
 the ones both builders and the helium derivation share — takes an `SBTParams`

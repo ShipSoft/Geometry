@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
-#include "Calorimeter/CalorimeterFactory.h"
+#include "SHiP/geometry/Calorimeter/CalorimeterFactory.h"
 
-#include "Calorimeter/CaloBarLayer.h"
-#include "Calorimeter/CaloFibreHPLayer.h"
-#include "Calorimeter/CalorimeterConstants.h"
-#include "SHiPGeometry/SHiPMaterials.h"
-#include "SHiPGeometry/SubsystemRegistry.h"
+#include "SHiP/geometry/Calorimeter/CaloBarLayer.h"
+#include "SHiP/geometry/Calorimeter/CaloFibreHPLayer.h"
+#include "SHiP/geometry/Calorimeter/CalorimeterConstants.h"
+#include "SHiP/geometry/Materials.h"
+#include "SHiP/geometry/SubsystemRegistry.h"
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoDefinitions.h>
@@ -21,13 +21,13 @@
 #include <span>
 #include <string>
 
-namespace SHiPGeometry {
+namespace SHiP::geometry {
 
 using units::gm;
 
 // ── constructor ──────────────────────────────────────────────────────────────
 
-CalorimeterFactory::CalorimeterFactory(SHiPMaterials& materials) : m_materials(materials) {}
+CalorimeterFactory::CalorimeterFactory(Materials& materials) : m_materials(materials) {}
 
 // ── build ────────────────────────────────────────────────────────────────────
 
@@ -260,4 +260,4 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, int moduleX, int modu
 
 REGISTER_SUBSYSTEM(CalorimeterFactory)
 
-}  // namespace SHiPGeometry
+}  // namespace SHiP::geometry
