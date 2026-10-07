@@ -19,8 +19,8 @@ The spectrometer dipole between stations 2 and 3 is a separate subsystem
 ## Geometry tree
 
 ```
-/SHiP/trackers (Air, 3000 × 3430 × 6000 mm half-extents)
- ├─ /SHiP/trackers/station_<n> (Air, 3000 × 3430 × 500 mm)   n = 1..4
+/SHiP/trackers (Air, 2607 × 3601 × 6000 mm half-extents)
+ ├─ /SHiP/trackers/station_<n> (Air, 2607 × 3480.5 × 500 mm, centred 120.5 mm above the beam)   n = 1..4
  │    └─ /SHiP/trackers/station_<n>/view_<v>/envelope (Air)   v = 0..3
  │       (rotated about Z by the view stereo angle)
  │         ├─ .../frame_body      (Aluminium, hollow rectangle = outer − aperture)
