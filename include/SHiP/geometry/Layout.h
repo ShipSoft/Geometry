@@ -131,7 +131,7 @@ inline constexpr std::array kKnownOverlaps{
     // #118: the trackers container spans the whole magnet along the beam.
     KnownOverlap{.a = kTrackers.path,
                  .b = kMagnet.path,
-                 .region = checks::bounds(-3000, 3000, -3430, 3430, 87070, 92070)},
+                 .region = checks::bounds(-3000, 3000, -3430, 3430, 87220, 92220)},
 };
 
 // ── Layout predicates ───────────────────────────────────────────────────
@@ -337,7 +337,8 @@ static_assert(fitsEnvelopeXY(kCalorimeter, detail::kCalorimeterRegion),
 inline constexpr auto kMuonShieldEarlyStart = 101.0 * detail::mm;  // 100.7 mm
 inline constexpr auto kUpstreamTaggerExcessX = 1450.0 * detail::mm;
 inline constexpr auto kUpstreamTaggerExcessY = 1600.0 * detail::mm;
-inline constexpr auto kTimingDetectorEarlyStart = 168.0 * detail::mm;
+// The timing detector container is 0.5 m deep, its 2026-0.1 slot 0.46 m.
+inline constexpr auto kTimingDetectorOverhang = 20.0 * detail::mm;
 static_assert(!fitsEnvelopeZ(kMuonShield, detail::kMuonShieldRegion),
               "the muon shield container now fits the EDMS region: assert fitsEnvelopeZ instead");
 static_assert(fitsEnvelopeZ(kMuonShield, detail::kMuonShieldRegion, kMuonShieldEarlyStart),
@@ -351,9 +352,9 @@ static_assert(fitsEnvelopeXY(kUpstreamTagger, envelopes::kUpstreamTagger, kUpstr
               "kUpstreamTaggerExcessX/Y");
 static_assert(!fitsEnvelopeZ(kTimingDetector, envelopes::kTimingDetector),
               "the timing detector now fits the EDMS envelope: assert fitsEnvelopeZ instead");
-static_assert(fitsEnvelopeZ(kTimingDetector, envelopes::kTimingDetector, kTimingDetectorEarlyStart),
+static_assert(fitsEnvelopeZ(kTimingDetector, envelopes::kTimingDetector, kTimingDetectorOverhang),
               "the timing detector deviates from the EDMS envelope by more than "
-              "kTimingDetectorEarlyStart");
+              "kTimingDetectorOverhang");
 
 // ── Trackers against their neighbours ──────────────────────────────────
 
