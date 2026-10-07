@@ -72,7 +72,7 @@ GeoPhysVol* TrackersFactory::build() {
     const GeoMaterial* air = m_materials.requireMaterial("Air");
 
     // Container volume spanning all 4 stations.
-    auto* containerBox = new GeoBox(s_halfX, s_halfY, s_containerHalfZ);
+    auto* containerBox = new GeoBox(s_halfX, s_containerHalfY, s_containerHalfZ);
     auto* containerLog = new GeoLogVol("/SHiP/trackers", containerBox, air);
     auto* containerPhys = new GeoPhysVol(containerLog);
 
@@ -84,7 +84,8 @@ GeoPhysVol* TrackersFactory::build() {
 
         // Place the station relative to the container centre.
         const double relativeZ = stationZ[i] - s_containerCentreZ;
-        const GeoTrf::Transform3D stationTrf = GeoTrf::Translate3D(0.0, 0.0, relativeZ);
+        const GeoTrf::Transform3D stationTrf =
+            GeoTrf::Translate3D(0.0, s_stationYOffset, relativeZ);
 
         // Name kept as "/SHiP/trackers/station_<n>" for downstream lookups.
         const std::string stationName = "/SHiP/trackers/station_" + std::to_string(i + 1);
@@ -113,8 +114,8 @@ GeoPhysVol* TrackersFactory::build() {
 GeoPhysVol* TrackersFactory::buildStation(int stationIndex) {
     const GeoMaterial* air = m_materials.requireMaterial("Air");
 
-    // Station envelope: fixed GDML statbox size. Kept exactly so the geometry
-    // consistency test (station box <= 3000 x 3500 x 500 mm) still passes.
+    // Station envelope from the integration CAD model (see the header); the
+    // geometry consistency test requires it to stay within 3000 x 3500 x 500 mm.
     const std::string stationName = "/SHiP/trackers/station_" + std::to_string(stationIndex + 1);
     auto* stationBox = new GeoBox(s_halfX, s_halfY, s_halfZ);
     auto* stationLog = new GeoLogVol(stationName, stationBox, air);
@@ -130,8 +131,10 @@ GeoPhysVol* TrackersFactory::buildStation(int stationIndex) {
 
         const double zView = -0.5 * (s_nViews - 1) * viewPitch + v * viewPitch;
         const double angleRad = stereoSignedDeg(v) * deg;
+        // The station box is centred above the beam; undo that offset so the
+        // views (and their straws) stay centred on the beam axis.
         const GeoTrf::Transform3D viewTrf =
-            GeoTrf::Translate3D(0.0, 0.0, zView) * GeoTrf::RotateZ3D(angleRad);
+            GeoTrf::Translate3D(0.0, -s_stationYOffset, zView) * GeoTrf::RotateZ3D(angleRad);
 
         const std::string viewName = stationName + "/view_" + std::to_string(v);
         stationPhys->add(new GeoNameTag(viewName));
