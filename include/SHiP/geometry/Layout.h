@@ -344,7 +344,7 @@ static_assert(fitsEnvelopeXY(kCalorimeter, detail::kCalorimeterRegion),
 inline constexpr auto kMuonShieldEarlyStart = 101.0 * detail::mm;  // 100.7 mm
 inline constexpr auto kUpstreamTaggerExcessX = 1450.0 * detail::mm;
 inline constexpr auto kUpstreamTaggerExcessY = 1600.0 * detail::mm;
-inline constexpr auto kTimingDetectorEarlyStart = 168.0 * detail::mm;
+inline constexpr auto kTimingDetectorEarlyStart = 148.0 * detail::mm;
 static_assert(!fitsEnvelopeZ(kMuonShield, detail::kMuonShieldRegion),
               "the muon shield container now fits the EDMS region: assert fitsEnvelopeZ instead");
 static_assert(fitsEnvelopeZ(kMuonShield, detail::kMuonShieldRegion, kMuonShieldEarlyStart),
