@@ -4,24 +4,18 @@ Spectrometer dipole magnet.
 
 ## Description
 
-The Magnet subsystem implements the SHiP spectrometer magnet. It consists of an iron yoke (box with rectangular cutout) with 4 aluminium coils and 4 vertical aluminium connectors. The coils are currently simplified as boxes; the GDML reference uses half-tubes.
+The Magnet subsystem implements the SHiP spectrometer magnet as an iron yoke (box with a rectangular cutout) and two vertical aluminium coil packs. The envelopes follow the integration CAD model ST1967028_01 (layout 2026-0.1, EDMS 3287817 v1.1): the yoke is 8.0 m wide, 8.5 m high and 3.51 m long, the coil packs are the reference coil of field map V21 (130 mm thick, 6.75 m high, 4.69 m long at x = ±2221 mm). The yoke aperture is not resolved in the CAD model and is kept at 7.0 m high; it is 4.6 m wide so that the coil packs sit inside it. The coils are simplified as boxes.
 
-## Geometry Tree
+## Geometry tree
 
 ```
-SHiPMagnet (Air, 6500×8600×5000 mm)
- ├─ magyoke (Iron, outer 6000×8600×2800 minus inner 4400×7000×2820)
- ├─ MCoil1 (Aluminium, 1600×800×3320 mm)  at (+2200, +3250, 0)
- ├─ MCoil2 (Aluminium)                     at (-2200, +3250, 0)
- ├─ MCoil3 (Aluminium)                     at (+2200, -3250, 0)
- ├─ MCoil4 (Aluminium)                     at (-2200, -3250, 0)
- ├─ CV_1 (Aluminium, 800×6500×250 mm)      at (+2600, 0, -1525)
- ├─ CV_2 (Aluminium)                        at (-2600, 0, -1525)
- ├─ CV_3 (Aluminium)                        at (+2600, 0, +1525)
- └─ CV_4 (Aluminium)                        at (-2600, 0, +1525)
+/SHiP/magnet (Air, 8000×8500×5000 mm)
+ ├─ /SHiP/magnet/yoke   (Iron, 8000×8500×3511 mm outer, 4600×7000 mm cutout)
+ ├─ /SHiP/magnet/coil_1 (Aluminium, 130×6750×4687 mm)  at (+2221, 0, 0)
+ └─ /SHiP/magnet/coil_2 (Aluminium)                     at (-2221, 0, 0)
 ```
 
-Position in world: z = 89570 mm.
+Position in world: z = 89720 mm (mid-plane of the 87.22–92.22 m slot in integration layout 2026-0.1, EDMS 3287817 v1.1).
 
 ## Materials
 
@@ -29,15 +23,14 @@ Position in world: z = 89570 mm.
 |------------|------------|---------------------|
 | Air        | 1.29 mg/cm³ | Container volume    |
 | Iron       | 7.87 g/cm³  | Yoke                |
-| Aluminium  | 2.70 g/cm³  | Coils & connectors  |
+| Aluminium  | 2.70 g/cm³  | Coil packs          |
 
 ## Status
 
 - [x] C++ implementation (box approximation for coils)
-- [ ] Replace box coils with tube geometry
-- [ ] Verification against GDML
+- [x] Yoke and coil envelopes checked against the integration CAD model
+- [ ] Yoke aperture from the magnet design
 
 ## TODO
 
-- Replace box coils with GeoTubs half-tube geometry (GDML uses rmin=10 mm, rmax=800 mm)
-- Verify yoke dimensions and coil positions against GDML reference
+- Take the yoke aperture and the coil shape from the magnet design once available
