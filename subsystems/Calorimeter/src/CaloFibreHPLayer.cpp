@@ -21,11 +21,11 @@ namespace SHiP::geometry {
 
 using namespace GeoModelKernelUnits;
 
-void CaloFibreHP::buildLayer(GeoVPhysVol* mother, GeoMaterial* aluminiumMat, GeoMaterial* fibreMat,
-                             const std::string& layerTag, double zCenter_mm, int layerIndex,
-                             double casingXY_mm, double casingZ_mm, double fiberDiam_mm,
-                             double fiberCoreDiam_mm, bool fibresAlongY,
-                             const std::string& nameSuffix) {
+void calo_fibre_hp::buildLayer(GeoVPhysVol* mother, GeoMaterial* aluminiumMat,
+                               GeoMaterial* fibreMat, const std::string& layerTag,
+                               double zCenter_mm, int layerIndex, double casingXY_mm,
+                               double casingZ_mm, double fiberDiam_mm, double fiberCoreDiam_mm,
+                               bool fibresAlongY, const std::string& nameSuffix) {
     const double casingXY = casingXY_mm * mm;
     const double casingZ = casingZ_mm * mm;
 
@@ -44,7 +44,7 @@ void CaloFibreHP::buildLayer(GeoVPhysVol* mother, GeoMaterial* aluminiumMat, Geo
 
     if (rCore <= 0.0 || rCore > rOuter)
         throw std::runtime_error(
-            "CaloFibreHP::buildLayer: invalid core diameter "
+            "calo_fibre_hp::buildLayer: invalid core diameter "
             "(must be >0 and <= outer diameter)");
 
     // GeoTube axis is Z; rotate so fibres run along Y or X

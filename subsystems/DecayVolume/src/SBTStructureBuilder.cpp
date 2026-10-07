@@ -70,16 +70,16 @@ void placeBox(GeoVPhysVol* parent, const GeoMaterial* mat, const std::string& na
 // columns). Flanges face ±X (web in XZ plane); beam height runs along Z.
 void placeHBeamAlongY(GeoVPhysVol* parent, const GeoMaterial* mat, const std::string& name,
                       double xc, double yc, double zc, double halfLen,
-                      const SBT::SBTParams& params) {
+                      const sbt::SBTParams& params) {
     const double hBeamW = params.hbeamFlangeWidth;
     const double hBeamTf = params.hbeamFlangeThickness;
-    const double hBeamHw = SBT::webHeight(params);
+    const double hBeamHw = sbt::webHeight(params);
 
     const double hx_flange = 0.5 * hBeamW * mm;                 // flange width  -> X
     const double hz_flange = 0.5 * hBeamTf * mm;                // flange thick  -> Z
     const double hx_web = 0.5 * params.hbeamWebThickness * mm;  // web thickness -> X
     const double hz_web = 0.5 * hBeamHw * mm;                   // web height    -> Z
-    const double zOffset = SBT::hbeamFlangeOffset(params) * mm;
+    const double zOffset = sbt::hbeamFlangeOffset(params) * mm;
 
     placeBox(parent, mat, name + "_FF", hx_flange, halfLen, hz_flange,
              GeoTrf::Translate3D(xc, yc, zc + zOffset));
@@ -92,16 +92,16 @@ void placeHBeamAlongY(GeoVPhysVol* parent, const GeoMaterial* mat, const std::st
 // cross-beams). Flanges face ±Y (height along Y), web stands vertically.
 void placeHBeamAlongX(GeoVPhysVol* parent, const GeoMaterial* mat, const std::string& name,
                       double xc, double yc, double zc, double halfLen,
-                      const SBT::SBTParams& params) {
+                      const sbt::SBTParams& params) {
     const double hBeamW = params.hbeamFlangeWidth;
     const double hBeamTf = params.hbeamFlangeThickness;
-    const double hBeamHw = SBT::webHeight(params);
+    const double hBeamHw = sbt::webHeight(params);
 
     const double hy_flange = 0.5 * hBeamTf * mm;                // flange thickness -> Y
     const double hz_flange = 0.5 * hBeamW * mm;                 // flange width     -> Z
     const double hy_web = 0.5 * hBeamHw * mm;                   // web height       -> Y
     const double hz_web = 0.5 * params.hbeamWebThickness * mm;  // web thickness -> Z
-    const double yOffset = SBT::hbeamFlangeOffset(params) * mm;
+    const double yOffset = sbt::hbeamFlangeOffset(params) * mm;
 
     placeBox(parent, mat, name + "_TF", halfLen, hy_flange, hz_flange,
              GeoTrf::Translate3D(xc, yc + yOffset, zc));
@@ -116,11 +116,11 @@ void placeHBeamAlongX(GeoVPhysVol* parent, const GeoMaterial* mat, const std::st
 // and X), local X -> b, then places three boxes (flanges + web) rotated by R.
 void placeHBeamInclined(GeoVPhysVol* parent, const GeoMaterial* mat, const std::string& name,
                         double x0, double y0, double z0, double x1, double y1, double z1,
-                        const SBT::SBTParams& params) {
+                        const sbt::SBTParams& params) {
     const double hBeamW = params.hbeamFlangeWidth;
     const double hBeamTf = params.hbeamFlangeThickness;
     const double hBeamTw = params.hbeamWebThickness;
-    const double hBeamHw = SBT::webHeight(params);
+    const double hBeamHw = sbt::webHeight(params);
 
     const double dx = x1 - x0;
     const double dy = y1 - y0;
@@ -167,7 +167,7 @@ void placeHBeamInclined(GeoVPhysVol* parent, const GeoMaterial* mat, const std::
     const double hy_flange = 0.5 * hBeamTf * mm;
     const double hx_web = 0.5 * hBeamTw * mm;
     const double hy_web = 0.5 * hBeamHw * mm;
-    const double yOffset = SBT::hbeamFlangeOffset(params) * mm;
+    const double yOffset = sbt::hbeamFlangeOffset(params) * mm;
 
     GeoTrf::RotationMatrix3D rotMat;
     rotMat.col(0) = Eigen::Vector3d(bx, by, bz);  // local X -> b
@@ -196,14 +196,14 @@ void placeHBeamInclined(GeoVPhysVol* parent, const GeoMaterial* mat, const std::
 }  // namespace
 
 void SBTStructureBuilder::build(GeoVPhysVol* mother, const GeoMaterial* steel,
-                                const std::string& tag, const SBT::SBTParams& params) {
-    if (!SBT::isWellFormed(params)) {
+                                const std::string& tag, const sbt::SBTParams& params) {
+    if (!sbt::isWellFormed(params)) {
         throw std::invalid_argument("SBTStructureBuilder: malformed SBTParams");
     }
 
     // Bind constants to the names the ported body uses (magnitudes in mm).
     const int nSubFrustrum = params.nSubFrustum;
-    const double subLength = SBT::subLength(params);
+    const double subLength = sbt::subLength(params);
     const double yFloor = params.yFloor;
     const double hBeamH = params.hbeamHeight;
     const double hBeamW = params.hbeamFlangeWidth;
@@ -212,8 +212,8 @@ void SBTStructureBuilder::build(GeoVPhysVol* mother, const GeoMaterial* steel,
 
     // Frustum profile from SBTConstants.h — the same accessors SBTEnvelope
     // uses to size the helium, so the two can never disagree.
-    auto xHalfAtZ = [&params](double z_mm) { return SBT::xHalfAt(z_mm, params); };
-    auto yHalfAtZ = [&params](double z_mm) { return SBT::yHalfAt(z_mm, params); };
+    auto xHalfAtZ = [&params](double z_mm) { return sbt::xHalfAt(z_mm, params); };
+    auto yHalfAtZ = [&params](double z_mm) { return sbt::yHalfAt(z_mm, params); };
 
     //  (A)  VERTICAL COLUMNS — 11 rows x 2 sides, frustum top -> floor.
     for (int row = 0; row <= nSubFrustrum; ++row) {
@@ -287,11 +287,11 @@ void SBTStructureBuilder::build(GeoVPhysVol* mother, const GeoMaterial* steel,
         // is omitted (it would pass through the cells) and the INNER FLANGE
         // HANGS BELOW THE SCINTILLATOR, into the decay region. That inner
         // flange is the innermost material in ±Y and therefore what bounds the
-        // helium — see SBT::longBeamInnerY() and SBTEnvelope.
-        const double yTop_Lo = +SBT::longBeamCentreY(yHalfAtZ(zLo_mm), params);
-        const double yTop_Hi = +SBT::longBeamCentreY(yHalfAtZ(zHi_mm), params);
-        const double yBot_Lo = -SBT::longBeamCentreY(yHalfAtZ(zLo_mm), params);
-        const double yBot_Hi = -SBT::longBeamCentreY(yHalfAtZ(zHi_mm), params);
+        // helium — see sbt::longBeamInnerY() and SBTEnvelope.
+        const double yTop_Lo = +sbt::longBeamCentreY(yHalfAtZ(zLo_mm), params);
+        const double yTop_Hi = +sbt::longBeamCentreY(yHalfAtZ(zHi_mm), params);
+        const double yBot_Lo = -sbt::longBeamCentreY(yHalfAtZ(zLo_mm), params);
+        const double yBot_Hi = -sbt::longBeamCentreY(yHalfAtZ(zHi_mm), params);
 
         const std::string sTag = tag + "_SF" + std::to_string(s);
 
@@ -330,7 +330,7 @@ void SBTStructureBuilder::build(GeoVPhysVol* mother, const GeoMaterial* steel,
                 const double xcm = 0.5 * (x0 + x1), ycm = 0.5 * (y0 + y1), zcm = 0.5 * (z0 + z1);
 
                 const double hxF = 0.5 * hBeamW * mm, hyF = 0.5 * hBeamTf * mm;
-                const double yOff = SBT::hbeamFlangeOffset(params) * mm;
+                const double yOff = sbt::hbeamFlangeOffset(params) * mm;
 
                 auto makeTrf = [&](double localDY) {
                     const double px = xcm + nx * localDY, py = ycm + ny * localDY,
@@ -390,7 +390,7 @@ void SBTStructureBuilder::build(GeoVPhysVol* mother, const GeoMaterial* steel,
 
         const std::string rowTag = tag + "_XBeam_R" + std::to_string(row);
 
-        const double yGrowthPerZ = SBT::yGrowth(params);
+        const double yGrowthPerZ = sbt::yGrowth(params);
         const double xbShift = (0.5 * hBeamH + 0.5 * hBeamW * yGrowthPerZ + 5.0) * mm;
         const double xbHalfLen = (xEdge_mm - 0.5 * hBeamW) * mm;
 

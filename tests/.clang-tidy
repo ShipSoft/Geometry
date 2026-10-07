@@ -20,3 +20,9 @@ Checks: >
   -cert-err58-cpp,
   -cppcoreguidelines-avoid-do-while,
   -misc-use-anonymous-namespace,
+
+# Namespaces follow the same rule here as everywhere else; see
+# include/.clang-tidy for why this is repeated per directory.
+CheckOptions:
+  readability-identifier-naming.NamespaceCase: lower_case
+  readability-identifier-naming.NamespaceIgnoredRegexp: '^SHiP$'
