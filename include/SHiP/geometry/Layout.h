@@ -329,8 +329,6 @@ static_assert(fitsEnvelopeXY(kTrackers, detail::kTrackerRegion),
               "the trackers container is outside its EDMS envelope transversely");
 static_assert(fitsEnvelopeZ(kMagnet, envelopes::kMagnet),
               "the magnet container is outside its EDMS envelope along z");
-static_assert(fitsEnvelopeXY(kMagnet, envelopes::kMagnet),
-              "the magnet container is outside its EDMS envelope transversely");
 static_assert(fitsEnvelopeXY(kTimingDetector, envelopes::kTimingDetector),
               "the timing detector container is outside its EDMS envelope transversely");
 static_assert(fitsEnvelopeZ(kCalorimeter, detail::kCalorimeterRegion),
@@ -345,6 +343,9 @@ inline constexpr auto kMuonShieldEarlyStart = 101.0 * detail::mm;  // 100.7 mm
 inline constexpr auto kUpstreamTaggerExcessX = 1450.0 * detail::mm;
 inline constexpr auto kUpstreamTaggerExcessY = 1600.0 * detail::mm;
 inline constexpr auto kTimingDetectorEarlyStart = 168.0 * detail::mm;
+// The magnet yoke follows the integration CAD model (8.0 m wide), which is
+// wider than the 6.5 m of the EDMS envelope.
+inline constexpr auto kMagnetExcessX = 750.0 * detail::mm;
 static_assert(!fitsEnvelopeZ(kMuonShield, detail::kMuonShieldRegion),
               "the muon shield container now fits the EDMS region: assert fitsEnvelopeZ instead");
 static_assert(fitsEnvelopeZ(kMuonShield, detail::kMuonShieldRegion, kMuonShieldEarlyStart),
@@ -356,6 +357,10 @@ static_assert(fitsEnvelopeXY(kUpstreamTagger, envelopes::kUpstreamTagger, kUpstr
                              kUpstreamTaggerExcessY),
               "the UBT container exceeds the EDMS envelope by more than "
               "kUpstreamTaggerExcessX/Y");
+static_assert(!fitsEnvelopeXY(kMagnet, envelopes::kMagnet),
+              "the magnet container now fits the EDMS envelope: assert fitsEnvelopeXY instead");
+static_assert(fitsEnvelopeXY(kMagnet, envelopes::kMagnet, kMagnetExcessX),
+              "the magnet container exceeds the EDMS envelope by more than kMagnetExcessX");
 static_assert(!fitsEnvelopeZ(kTimingDetector, envelopes::kTimingDetector),
               "the timing detector now fits the EDMS envelope: assert fitsEnvelopeZ instead");
 static_assert(fitsEnvelopeZ(kTimingDetector, envelopes::kTimingDetector, kTimingDetectorEarlyStart),

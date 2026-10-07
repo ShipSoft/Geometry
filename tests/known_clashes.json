@@ -43,69 +43,6 @@
   },
   {
     "type": "sister",
-    "volume": "/SHiP/magnet/coil_1",
-    "other": "/SHiP/magnet/yoke",
-    "max_distance_mm": 383.1,
-    "issue": 119
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/magnet/coil_2",
-    "other": "/SHiP/magnet/yoke",
-    "max_distance_mm": 388.2,
-    "issue": 119
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/magnet/coil_3",
-    "other": "/SHiP/magnet/yoke",
-    "max_distance_mm": 385.3,
-    "issue": 119
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/magnet/coil_4",
-    "other": "/SHiP/magnet/yoke",
-    "max_distance_mm": 379.9,
-    "issue": 119
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/magnet/connector_1",
-    "other": "/SHiP/magnet/coil_1",
-    "max_distance_mm": 260.0,
-    "issue": 119
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/magnet/connector_2",
-    "other": "/SHiP/magnet/coil_2",
-    "max_distance_mm": 156.8,
-    "issue": 119
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/magnet/connector_3",
-    "other": "/SHiP/magnet/coil_1",
-    "max_distance_mm": 55.5,
-    "issue": 119
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/magnet/connector_4",
-    "other": "/SHiP/magnet/coil_2",
-    "max_distance_mm": 200.9,
-    "issue": 119
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/magnet/yoke",
-    "other": "/SHiP/magnet/coil_1",
-    "max_distance_mm": 260.0,
-    "issue": 119
-  },
-  {
-    "type": "sister",
     "volume": "/SHiP/muon_shield/magn_1/mag_bot_left",
     "other": "/SHiP/muon_shield/magn_1/middle_mag_l",
     "max_distance_mm": 387.1,
