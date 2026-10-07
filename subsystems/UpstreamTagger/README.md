@@ -41,7 +41,7 @@ Like the calorimeter bar layers, the individual tiles are `GeoPhysVol` with
 hierarchical `/SHiP/upstream_tagger/...` names; sensitive-detector assignment
 is done downstream by name pattern. The whole assembly is returned as a single
 `GeoFullPhysVol` container so the tagger keeps a sensitive tree-top, which is
-registered with `SHiPUBTManager`.
+registered with `UpstreamTaggerManager`.
 
 ## Geometry tree
 
@@ -68,7 +68,7 @@ Position in world: z = 32 720 mm (centre of the 32.52–32.92 m envelope).
 | Polystyrene | 1.05 g/cm³ | Scintillator tiles             |
 | Air         | 1.29 mg/cm³| Container and region envelopes |
 
-Both materials are already present in the central `SHiPMaterials` catalogue
+Both materials are already present in the central `Materials` catalogue
 (Polystyrene was added with the calorimeter, Air is a base material), so this
 subsystem adds none — consistent with the straw tracker, which likewise reuses
 the shared catalogue.
@@ -87,7 +87,7 @@ the shared catalogue.
 
 - [x] C++ implementation (tile-segmented plane)
 - [x] Fine / coarse dual-granularity tiling
-- [x] `GeoFullPhysVol` container registered with `SHiPUBTManager`
+- [x] `GeoFullPhysVol` container registered with `UpstreamTaggerManager`
 - [ ] Per-tile SiPM readout geometry
 - [ ] Register tiles as sensitive volumes in the simulation (currently by name)
 - [ ] Verification against GDML / TDR tile map

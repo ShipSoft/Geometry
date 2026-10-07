@@ -1,54 +1,15 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
-
+//
+// Forwarding header for the pre-0.3.0 layout, removed in 0.4.0.
+// SHiPGeometry/SHiPMaterials.h is now SHiP/geometry/Materials.h, and
+// SHiPGeometry::SHiPMaterials is now SHiP::geometry::Materials.
 #pragma once
 
-#include <functional>
-#include <map>
-#include <string>
-#include <string_view>
+#include "SHiP/geometry/Materials.h"
 
-class GeoMaterial;
-class GeoElement;
+namespace SHiPGeometry = SHiP::geometry;
 
-namespace SHiPGeometry {
-
-/**
- * @brief Central material manager for the SHiP detector
- *
- * This class provides access to all materials and elements used in the SHiP detector geometry.
- * Materials are created once and shared across all subsystem factories.
- */
-class SHiPMaterials {
-   public:
-    SHiPMaterials();
-    ~SHiPMaterials() = default;
-
-    // Prevent copying (materials should be shared)
-    SHiPMaterials(const SHiPMaterials&) = delete;
-    SHiPMaterials& operator=(const SHiPMaterials&) = delete;
-
-    /**
-     * @brief Get a material by name
-     * @param name Material name (e.g., "Air", "Concrete", "Tungsten")
-     * @return Pointer to GeoMaterial or nullptr if not found
-     */
-    [[nodiscard]] GeoMaterial* getMaterial(std::string_view name) const;
-
-    /**
-     * @brief Get a material by name, throwing if not found
-     * @param name Material name (e.g., "Air", "Concrete", "Tungsten")
-     * @return Pointer to GeoMaterial (never nullptr)
-     * @throws std::runtime_error if material not found
-     */
-    [[nodiscard]] GeoMaterial* requireMaterial(std::string_view name) const;
-
-   private:
-    void createElements();
-    void createMaterials();
-
-    std::map<std::string, GeoElement*> m_elements;
-    std::map<std::string, GeoMaterial*, std::less<>> m_materials;
-};
-
-}  // namespace SHiPGeometry
+namespace SHiP::geometry {
+using SHiPMaterials [[deprecated("use SHiP::geometry::Materials")]] = Materials;
+}

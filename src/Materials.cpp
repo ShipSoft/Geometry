@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
-#include "SHiPGeometry/SHiPMaterials.h"
+#include "SHiP/geometry/Materials.h"
 
 #include <GeoModelKernel/GeoElement.h>
 #include <GeoModelKernel/GeoMaterial.h>
@@ -10,19 +10,19 @@
 #include <stdexcept>
 #include <string>
 
-namespace SHiPGeometry {
+namespace SHiP::geometry {
 
-SHiPMaterials::SHiPMaterials() {
+Materials::Materials() {
     createElements();
     createMaterials();
 }
 
-GeoMaterial* SHiPMaterials::getMaterial(std::string_view name) const {
+GeoMaterial* Materials::getMaterial(std::string_view name) const {
     auto it = m_materials.find(name);
     return (it != m_materials.end()) ? it->second : nullptr;
 }
 
-GeoMaterial* SHiPMaterials::requireMaterial(std::string_view name) const {
+GeoMaterial* Materials::requireMaterial(std::string_view name) const {
     auto* mat = getMaterial(name);
     if (!mat) {
         throw std::runtime_error("Material not found: " + std::string(name));
@@ -30,7 +30,7 @@ GeoMaterial* SHiPMaterials::requireMaterial(std::string_view name) const {
     return mat;
 }
 
-void SHiPMaterials::createElements() {
+void Materials::createElements() {
     // Create all elements needed for SHiP
     m_elements["Hydrogen"] = new GeoElement(
         "Hydrogen", "H", 1, 1.008 * GeoModelKernelUnits::g / GeoModelKernelUnits::mole);
@@ -78,7 +78,7 @@ void SHiPMaterials::createElements() {
                                         207.2 * GeoModelKernelUnits::g / GeoModelKernelUnits::mole);
 }
 
-void SHiPMaterials::createMaterials() {
+void Materials::createMaterials() {
     // Air (density 1.29e-3 g/cm³): N 75.5%, O 23.1%, Ar 1.4%
     GeoMaterial* air =
         new GeoMaterial("Air", 1.29e-3 * GeoModelKernelUnits::g / GeoModelKernelUnits::cm3);
@@ -265,4 +265,4 @@ void SHiPMaterials::createMaterials() {
     }
 }
 
-}  // namespace SHiPGeometry
+}  // namespace SHiP::geometry

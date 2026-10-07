@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
-#include "DecayVolume/DecayVolumeFactory.h"
+#include "SHiP/geometry/DecayVolume/DecayVolumeFactory.h"
 
-#include "DecayVolume/SBTConstants.h"
-#include "DecayVolume/SBTEnvelope.h"
-#include "DecayVolume/SBTSensorBuilder.h"
-#include "DecayVolume/SBTStructureBuilder.h"
-#include "SHiPGeometry/SHiPMaterials.h"
+#include "SHiP/geometry/DecayVolume/SBTConstants.h"
+#include "SHiP/geometry/DecayVolume/SBTEnvelope.h"
+#include "SHiP/geometry/DecayVolume/SBTSensorBuilder.h"
+#include "SHiP/geometry/DecayVolume/SBTStructureBuilder.h"
+#include "SHiP/geometry/Materials.h"
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoLogVol.h>
@@ -15,25 +15,25 @@
 #include <GeoModelKernel/GeoPhysVol.h>
 #include <GeoModelKernel/Units.h>
 
-namespace SHiPGeometry {
+namespace SHiP::geometry {
 
 using namespace GeoModelKernelUnits;
 
-DecayVolumeFactory::DecayVolumeFactory(SHiPMaterials& materials) : m_materials(materials) {}
+DecayVolumeFactory::DecayVolumeFactory(Materials& materials) : m_materials(materials) {}
 
 GeoPhysVol* DecayVolumeFactory::build() {
-    const GeoMaterial* air = m_materials.requireMaterial(SBT::kAirMaterial);
-    const GeoMaterial* steel = m_materials.requireMaterial(SBT::kSteelMaterial);
-    const GeoMaterial* alMat = m_materials.requireMaterial(SBT::kWallMaterial);
-    const GeoMaterial* labMat = m_materials.requireMaterial(SBT::kScintillatorMaterial);
-    const GeoMaterial* helium = m_materials.requireMaterial(SBT::kHeliumMaterial);
+    const GeoMaterial* air = m_materials.requireMaterial(sbt::kAirMaterial);
+    const GeoMaterial* steel = m_materials.requireMaterial(sbt::kSteelMaterial);
+    const GeoMaterial* alMat = m_materials.requireMaterial(sbt::kWallMaterial);
+    const GeoMaterial* labMat = m_materials.requireMaterial(sbt::kScintillatorMaterial);
+    const GeoMaterial* helium = m_materials.requireMaterial(sbt::kHeliumMaterial);
 
     // ── Air container ────────────────────────────────────────────────────
     // The container is the experiment's fixed envelope allocation for the
     // decay region. Static_asserts in SBTConstants.h guarantee the SBT
     // structure cannot outgrow it.
     auto* containerBox =
-        new GeoBox(SBT::kEnvelopeHalfX * mm, SBT::kEnvelopeHalfY * mm, SBT::kEnvelopeHalfZ * mm);
+        new GeoBox(sbt::kEnvelopeHalfX * mm, sbt::kEnvelopeHalfY * mm, sbt::kEnvelopeHalfZ * mm);
     auto* containerLog = new GeoLogVol("/SHiP/decay_volume", containerBox, air);
     auto* container = new GeoPhysVol(containerLog);
 
@@ -54,9 +54,9 @@ GeoPhysVol* DecayVolumeFactory::build() {
     // first zSplitOffset() of every sub-frustum so as to clear the columns, so
     // the free region is a sawtooth. One GeoTrap per envelope segment tracks
     // it exactly; a single frustum could not.
-    SBT::buildHelium(container, helium);
+    sbt::buildHelium(container, helium);
 
     return container;
 }
 
-}  // namespace SHiPGeometry
+}  // namespace SHiP::geometry

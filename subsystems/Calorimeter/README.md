@@ -11,7 +11,7 @@ scintillator bars and HPL fibre layers.
 
 All parameters — layer sequences, thicknesses, module tiling — are
 `constexpr` constants in `CalorimeterConstants.h`
-(namespace `SHiPGeometry::Calo`).
+(namespace `SHiP::geometry::Calo`).
 
 ## Geometry tree
 
@@ -50,7 +50,7 @@ are arrays of the `LayerCode` enum:
 | Polystyrene| 1.05 g/cm³    | C₈H₈, mass-fraction-normalised  | HPL fibre core   |
 
 Lead, PVT and Polystyrene are added by this subsystem; Air and Iron
-were already present in the central `SHiPMaterials` catalog.
+were already present in the central `Materials` catalog.
 
 ## Validation
 

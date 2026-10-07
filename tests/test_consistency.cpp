@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
-#include "SHiPGeometry/SHiPGeometry.h"
+#include "SHiP/geometry/DetectorBuilder.h"
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoDefinitions.h>
@@ -15,7 +15,7 @@
 #include <string>
 #include <vector>
 
-using SHiPGeometry::SHiPGeometryBuilder;
+using SHiP::geometry::DetectorBuilder;
 
 namespace {
 
@@ -87,7 +87,7 @@ void checkRightHanded(const GeoVPhysVol* vol, const std::string& path = "") {
 }  // namespace
 
 TEST_CASE("ConsistencyTest.AllRotationsRightHanded", "[consistency]") {
-    SHiPGeometryBuilder builder;
+    DetectorBuilder builder;
     GeoPhysVol* world = builder.build();
     REQUIRE(world != nullptr);
 
@@ -95,7 +95,7 @@ TEST_CASE("ConsistencyTest.AllRotationsRightHanded", "[consistency]") {
 }
 
 TEST_CASE("ConsistencyTest.ExpectedSubsystemCount", "[consistency]") {
-    SHiPGeometryBuilder builder;
+    DetectorBuilder builder;
     GeoPhysVol* world = builder.build();
     REQUIRE(world != nullptr);
 
@@ -106,7 +106,7 @@ TEST_CASE("ConsistencyTest.ExpectedSubsystemCount", "[consistency]") {
 }
 
 TEST_CASE("ConsistencyTest.SubsystemsGenerallyInZOrder", "[consistency]") {
-    SHiPGeometryBuilder builder;
+    DetectorBuilder builder;
     GeoPhysVol* world = builder.build();
     REQUIRE(world != nullptr);
 
@@ -125,7 +125,7 @@ TEST_CASE("ConsistencyTest.SubsystemsGenerallyInZOrder", "[consistency]") {
 }
 
 TEST_CASE("ConsistencyTest.NoUnexpectedZOverlaps", "[consistency]") {
-    SHiPGeometryBuilder builder;
+    DetectorBuilder builder;
     GeoPhysVol* world = builder.build();
     REQUIRE(world != nullptr);
 
@@ -162,7 +162,7 @@ TEST_CASE("ConsistencyTest.NoUnexpectedZOverlaps", "[consistency]") {
 }
 
 TEST_CASE("ConsistencyTest.PositionsSanity", "[consistency]") {
-    SHiPGeometryBuilder builder;
+    DetectorBuilder builder;
     GeoPhysVol* world = builder.build();
     REQUIRE(world != nullptr);
 
@@ -177,7 +177,7 @@ TEST_CASE("ConsistencyTest.PositionsSanity", "[consistency]") {
         double tolerance;  // mm
     };
 
-    // Centres as placed in SHiPGeometryBuilder::build()
+    // Centres as placed in DetectorBuilder::build()
     std::vector<Expected> expected = {
         {"/SHiP/target", 432.5, 500.0},
         {"/SHiP/muon_shield", 16763.3, 500.0},

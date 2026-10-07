@@ -65,7 +65,7 @@ overlap.
 | PVT         | 1.032 g/cm3 | Veto bars                          |
 | Air         | 1.29 mg/cm3 | Container and fibre-plane envelopes|
 
-All are taken from the central `SHiPMaterials` catalogue. Only the pure Silicon
+All are taken from the central `Materials` catalogue. Only the pure Silicon
 material was new (added alongside this subsystem); the rest already existed.
 
 ## Tests

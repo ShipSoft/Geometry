@@ -66,6 +66,16 @@ set(SHIP_SUBSYSTEMS
     TimingDetector
 )
 
+# Target names for the same list. The libraries are ship_geometry_<name> rather
+# than <Name> so that a source build does not put a target called Target or
+# Magnet in the consumer's global namespace; see cmake/ShipAddSubsystem.cmake.
+set(SHIP_SUBSYSTEM_TARGETS "")
+foreach(subsys ${SHIP_SUBSYSTEMS})
+    string(TOLOWER ${subsys} _subsys_lower)
+    list(APPEND SHIP_SUBSYSTEM_TARGETS ship_geometry_${_subsys_lower})
+endforeach()
+unset(_subsys_lower)
+
 # ship_add_subsystem(): the shared recipe each subsystem CMakeLists calls.
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 include(ShipAddSubsystem)
@@ -86,7 +96,7 @@ include(CMakePackageConfigHelpers)
 
 # Export all targets (main library + subsystem libraries)
 install(
-    TARGETS SHiPGeometry ${SHIP_SUBSYSTEMS}
+    TARGETS ship_geometry ${SHIP_SUBSYSTEM_TARGETS}
     EXPORT SHiPGeometryTargets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -98,6 +108,11 @@ install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 # Install subsystem headers (needed for transitive include dirs in exported targets)
 foreach(subsys ${SHIP_SUBSYSTEMS})
     install(
+        DIRECTORY subsystems/${subsys}/include/SHiP
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    )
+    # The pre-0.3.0 bare-subsystem path, kept as forwarding headers until 0.4.0.
+    install(
         DIRECTORY subsystems/${subsys}/include/${subsys}
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
     )
@@ -107,7 +122,7 @@ endforeach()
 install(
     EXPORT SHiPGeometryTargets
     FILE SHiPGeometryTargets.cmake
-    NAMESPACE SHiPGeometry::
+    NAMESPACE SHiP::
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/SHiPGeometry
 )
 

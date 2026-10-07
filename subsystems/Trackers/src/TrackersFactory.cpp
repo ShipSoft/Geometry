@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
-#include "Trackers/TrackersFactory.h"
+#include "SHiP/geometry/Trackers/TrackersFactory.h"
 
-#include "SHiPGeometry/SHiPMaterials.h"
+#include "SHiP/geometry/Materials.h"
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoDefinitions.h>
@@ -24,7 +24,7 @@
 #include <cmath>
 #include <string>
 
-namespace SHiPGeometry {
+namespace SHiP::geometry {
 
 using namespace GeoModelKernelUnits;
 
@@ -64,7 +64,7 @@ double stereoSignedDeg(int viewIndex) {
 
 // ── constructor ──────────────────────────────────────────────────────────────
 
-TrackersFactory::TrackersFactory(SHiPMaterials& materials) : m_materials(materials) {}
+TrackersFactory::TrackersFactory(Materials& materials) : m_materials(materials) {}
 
 // ── build ────────────────────────────────────────────────────────────────────
 
@@ -314,4 +314,4 @@ GeoPhysVol* TrackersFactory::buildTrackerMagnet() {
     return phys;
 }
 
-}  // namespace SHiPGeometry
+}  // namespace SHiP::geometry

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
-#include "MuonShield/MuonShieldFactory.h"
+#include "SHiP/geometry/MuonShield/MuonShieldFactory.h"
 
-#include "SHiPGeometry/SHiPMaterials.h"
+#include "SHiP/geometry/Materials.h"
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoDefinitions.h>
@@ -15,7 +15,7 @@
 
 #include <string>
 
-namespace SHiPGeometry {
+namespace SHiP::geometry {
 
 // ---------------------------------------------------------------------------
 // GDML-derived station data (all dimensions in mm)
@@ -129,7 +129,7 @@ const MuonShieldFactory::StationData MuonShieldFactory::k_stations[6] = {
 
 // ---------------------------------------------------------------------------
 
-MuonShieldFactory::MuonShieldFactory(SHiPMaterials& materials) : m_materials(materials) {}
+MuonShieldFactory::MuonShieldFactory(Materials& materials) : m_materials(materials) {}
 
 GeoPhysVol* MuonShieldFactory::buildStation(const StationData& station) {
     const GeoMaterial* air = m_materials.requireMaterial("Air");
@@ -181,4 +181,4 @@ GeoPhysVol* MuonShieldFactory::build() {
     return areaPhys;
 }
 
-}  // namespace SHiPGeometry
+}  // namespace SHiP::geometry

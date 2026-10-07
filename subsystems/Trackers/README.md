@@ -79,7 +79,7 @@ physically-scaled magnet, if required, belongs in the `Magnet` subsystem.
 | ArCO2_70_30 | 1.56 mg/cm³ | 70/30 Ar/CO₂ by mass | straw gas fill |
 
 Mylar and ArCO2_70_30 are added by this subsystem to the central
-`SHiPMaterials` catalog; Air and Aluminium were already present. All
+`Materials` catalog; Air and Aluminium were already present. All
 elements required (C, H, O, Ar) were already in the element catalog.
 
 ## Tests

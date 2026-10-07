@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
-#include "NeutrinoDetector/NeutrinoDetectorFactory.h"
+#include "SHiP/geometry/NeutrinoDetector/NeutrinoDetectorFactory.h"
 
-#include "SHiPGeometry/SHiPMaterials.h"
+#include "SHiP/geometry/Materials.h"
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoDefinitions.h>
@@ -22,7 +22,7 @@
 #include <cmath>
 #include <string>
 
-namespace SHiPGeometry {
+namespace SHiP::geometry {
 
 using namespace GeoModelKernelUnits;
 
@@ -255,8 +255,7 @@ void buildHCal(GeoVPhysVol* mother, const GeoMaterial* air, const GeoMaterial* i
 }  // namespace
 
 /// Construct the factory against the shared materials catalogue.
-NeutrinoDetectorFactory::NeutrinoDetectorFactory(SHiPMaterials& materials)
-    : m_materials(materials) {}
+NeutrinoDetectorFactory::NeutrinoDetectorFactory(Materials& materials) : m_materials(materials) {}
 
 /// Resolve materials, create the air container, lay out the veto, target and
 /// HCAL in beam order (content centred in the container), and return it.
@@ -291,4 +290,4 @@ GeoPhysVol* NeutrinoDetectorFactory::build() {
     return containerPhys;
 }
 
-}  // namespace SHiPGeometry
+}  // namespace SHiP::geometry
