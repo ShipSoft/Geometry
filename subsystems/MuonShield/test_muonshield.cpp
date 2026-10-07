@@ -36,7 +36,7 @@ std::string writeTempToml(const std::string& name, const std::string& body) {
 }  // namespace
 
 // Default muon_shield.toml: the 7 FairShip TRY_2026 magnets (solid-block approximation)
-// inside an auto-sized envelope (z = 4540–32080 mm, 1760 × 1320 mm half-sizes).
+// inside an auto-sized envelope (z = 4540–32230 mm, 1760 × 1320 mm half-sizes).
 TEST_CASE("MuonShieldBuilds", "[muonshield]") {
     SHiPMaterials materials;
     MuonShieldFactory factory(materials);
@@ -47,10 +47,10 @@ TEST_CASE("MuonShieldBuilds", "[muonshield]") {
     REQUIRE(box != nullptr);
     CHECK_THAT(box->getXHalfLength(), Catch::Matchers::WithinAbs(1760.0, 1e-6));
     CHECK_THAT(box->getYHalfLength(), Catch::Matchers::WithinAbs(1320.0, 1e-6));
-    CHECK_THAT(box->getZHalfLength(), Catch::Matchers::WithinAbs(13770.0, 1e-6));
+    CHECK_THAT(box->getZHalfLength(), Catch::Matchers::WithinAbs(13845.0, 1e-6));
 
-    // Envelope centre = (4540 + 32080) / 2 = 18310 mm.
-    CHECK_THAT(factory.centreZ_mm(), Catch::Matchers::WithinAbs(18310.0, 1e-6));
+    // Envelope centre = (4540 + 32230) / 2 = 18385 mm.
+    CHECK_THAT(factory.centreZ_mm(), Catch::Matchers::WithinAbs(18385.0, 1e-6));
 }
 
 TEST_CASE("MuonShieldDefaultLayout", "[muonshield]") {
@@ -68,8 +68,8 @@ TEST_CASE("MuonShieldDefaultLayout", "[muonshield]") {
     CHECK_THAT(block0->getYHalfLength(), Catch::Matchers::WithinAbs(800.0, 1e-6));
     CHECK_THAT(block0->getZHalfLength(), Catch::Matchers::WithinAbs(1500.0, 1e-6));
 
-    // Anchor (upstream face) at world 4590 → local (4590-18310); centre + halfLen.
-    const double blockCentreLocalZ = (4590.0 - 18310.0) + 1500.0;  // = -12220
+    // Anchor (upstream face) at world 4590 → local (4590-18385); centre + halfLen.
+    const double blockCentreLocalZ = (4590.0 - 18385.0) + 1500.0;  // = -12295
     CHECK_THAT(ms->getXToChildVol(0).translation().z(),
                Catch::Matchers::WithinAbs(blockCentreLocalZ, 1e-3));
 
@@ -78,23 +78,24 @@ TEST_CASE("MuonShieldDefaultLayout", "[muonshield]") {
 }
 
 TEST_CASE("MuonShieldReservationCarvesIron", "[muonshield]") {
-    // A reserved box (the SND envelope: 800 × 800 × 5100 mm at z = 28950 mm) is
+    // A reserved box (the SND envelope: 602 × 602 × 5260 mm at z = 25330 mm) is
     // subtracted (A - B) from every magnet it intersects, leaving upstream
     // magnets untouched.
     SHiPMaterials materials;
     MuonShieldFactory factory(materials);
-    factory.reserveSpace({0.0, 0.0, 28950.0}, {800.0, 800.0, 5100.0});
+    factory.reserveSpace({0.0, 0.0, 25330.0}, {602.0, 602.0, 5260.0});
     GeoPhysVol* ms = factory.build();
     REQUIRE(ms != nullptr);
     REQUIRE(ms->getNChildVols() == 7u);
 
     // Magnet 1 (upstream, far from the SND) is untouched → still a plain box.
     CHECK(dynamic_cast<const GeoBox*>(ms->getChildVol(0)->getLogVol()->getShape()) != nullptr);
-    // Both magnets the SND box spans (6 and 7 → indices 5, 6) are carved.
+    // Both magnets the SND box spans (5 and 6 → indices 4, 5) are carved; magnet 7 is not.
+    CHECK(dynamic_cast<const GeoShapeSubtraction*>(ms->getChildVol(4)->getLogVol()->getShape()) !=
+          nullptr);
     CHECK(dynamic_cast<const GeoShapeSubtraction*>(ms->getChildVol(5)->getLogVol()->getShape()) !=
           nullptr);
-    CHECK(dynamic_cast<const GeoShapeSubtraction*>(ms->getChildVol(6)->getLogVol()->getShape()) !=
-          nullptr);
+    CHECK(dynamic_cast<const GeoBox*>(ms->getChildVol(6)->getLogVol()->getShape()) != nullptr);
 }
 
 TEST_CASE("MuonShieldRejectsRotatedBlockOutsideEnvelope", "[muonshield]") {
@@ -114,10 +115,10 @@ TEST_CASE("MuonShieldRotatedReservationCarves", "[muonshield]") {
     // A rotated reservation box still intersects and carves the target magnet.
     SHiPMaterials materials;
     MuonShieldFactory factory(materials);
-    factory.reserveSpace({0.0, 0.0, 28950.0}, {800.0, 800.0, 5100.0}, {0.0, 0.0, 45.0});
+    factory.reserveSpace({0.0, 0.0, 25330.0}, {602.0, 602.0, 5260.0}, {0.0, 0.0, 45.0});
     GeoPhysVol* ms = factory.build();
     REQUIRE(ms != nullptr);
-    CHECK(dynamic_cast<const GeoShapeSubtraction*>(ms->getChildVol(6)->getLogVol()->getShape()) !=
+    CHECK(dynamic_cast<const GeoShapeSubtraction*>(ms->getChildVol(5)->getLogVol()->getShape()) !=
           nullptr);
 }
 
@@ -185,7 +186,7 @@ TEST_CASE("MuonShieldEmbedsDaughter", "[muonshield]") {
 }
 
 // An embedded daughter must fit the envelope: centre, and the min and max of
-// its extent in x, y and z. Default envelope: z = 4540–32080 mm, half-sizes
+// its extent in x, y and z. Default envelope: z = 4540–32230 mm, half-sizes
 // 1760 × 1320 mm.
 TEST_CASE("MuonShieldRejectsDaughterOutsideEnvelope", "[muonshield]") {
     SHiPMaterials materials;

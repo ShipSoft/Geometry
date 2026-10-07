@@ -10,7 +10,12 @@
 # move into this file in a later, dedicated PR.
 #
 # Values are in world/beamline coordinates (target-front-face origin), mm.
+#
+# Integration layout 2026-0.1 (EDMS 3287817 v1.1) and CAD model ST1967028_01:
+# the scattering detector occupies the last 1.33 m of S5 and the whole of M6,
+# z = 22.70-27.96 m, in a 0.6 x 0.6 m box. The transverse size is 2 mm larger
+# than the CAD box so the 0.6 m HCAL section and its fibre planes fit.
 
-centre = [0.0, 0.0, 28950.0]     # world centre of the reservation box
-size   = [800.0, 800.0, 5100.0]  # full x, y, z
+centre = [0.0, 0.0, 25330.0]     # world centre of the reservation box
+size   = [602.0, 602.0, 5260.0]  # full x, y, z
 # rotation = [0.0, 0.0, 0.0]     # optional, degrees, extrinsic X -> Y -> Z about centre
