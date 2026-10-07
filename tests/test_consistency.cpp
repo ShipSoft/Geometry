@@ -177,7 +177,7 @@ TEST_CASE("ConsistencyTest.PositionsSanity", "[consistency]") {
     // Centres as placed in SHiPGeometryBuilder::build()
     std::vector<Expected> expected = {
         {"/SHiP/target", 432.5, 500.0},
-        {"/SHiP/muon_shield", 18385.0, 500.0},
+        {"/SHiP/muon_shield", 17185.0, 500.0},
         // The neutrino detector is nested inside the muon shield (see
         // MuonShieldFactory::embedDaughter), not a direct world child, so it is
         // not among collectSubsystems(world).
