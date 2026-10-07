@@ -101,7 +101,7 @@ inline constexpr Slot kDecayVolume =
 /// container goes there and the stations land on their absolute z. The
 /// container spans the magnet (stations 1-2 upstream, 3-4 downstream).
 inline constexpr Slot kTrackers = slotOf<TrackersFactory>(
-    TrackersFactory::s_halfX, TrackersFactory::s_halfY, TrackersFactory::s_containerHalfZ);
+    TrackersFactory::s_halfX, TrackersFactory::s_containerHalfY, TrackersFactory::s_containerHalfZ);
 
 inline constexpr Slot kMagnet =
     slotOf<MagnetFactory>(MagnetFactory::s_containerHalfX, MagnetFactory::s_containerHalfY,
@@ -137,7 +137,7 @@ inline constexpr std::array kKnownOverlaps{
     // #118: the trackers container spans the whole magnet along the beam.
     KnownOverlap{.a = kTrackers.path,
                  .b = kMagnet.path,
-                 .region = checks::bounds(-3000, 3000, -3430, 3430, 87070, 92070)},
+                 .region = checks::bounds(-2607, 2607, -3601, 3601, 87070, 92070)},
 };
 
 // ── Layout predicates ───────────────────────────────────────────────────
@@ -263,10 +263,11 @@ static_assert(checks::firstFailure(kSlots,
               "a subsystem container reaches into the cavern rock");
 // Known deviations (#120): the ECN3 floor is 3.364 m below the beam, and two
 // containers centred on the beam are taller than that allows outside the yoke
-// pit. The tracker container (half-height 3.43 m) reaches 66 mm into the
-// floor at stations 1 and 4; the calorimeter container (half-height 3.5 m, the
+// pit. The tracker container (half-height 3.601 m, symmetric about the beam
+// although the stations stand on the floor) reaches 237 mm into the floor at
+// stations 1 and 4; the calorimeter container (half-height 3.5 m, the
 // EDMS envelope) reaches 136 mm into it, although its modules fit.
-inline constexpr auto kTrackersIntoFloor = 66.0 * detail::mm;
+inline constexpr auto kTrackersIntoFloor = 237.0 * detail::mm;
 inline constexpr auto kCalorimeterIntoFloor = 136.0 * detail::mm;
 static_assert(!isInCavity(kTrackers),
               "the tracker container now fits the experiment hall: drop its exception above");
@@ -325,8 +326,6 @@ static_assert(fitsEnvelopeXY(kDecayVolume, detail::kDecayVolumeWithSBT),
               "the decay volume container is outside its EDMS envelope transversely");
 static_assert(fitsEnvelopeZ(kTrackers, detail::kTrackerRegion),
               "the trackers container is outside its EDMS envelope along z");
-static_assert(fitsEnvelopeXY(kTrackers, detail::kTrackerRegion),
-              "the trackers container is outside its EDMS envelope transversely");
 static_assert(fitsEnvelopeZ(kMagnet, envelopes::kMagnet),
               "the magnet container is outside its EDMS envelope along z");
 static_assert(fitsEnvelopeXY(kMagnet, envelopes::kMagnet),
@@ -345,6 +344,9 @@ inline constexpr auto kMuonShieldEarlyStart = 101.0 * detail::mm;  // 100.7 mm
 inline constexpr auto kUpstreamTaggerExcessX = 1450.0 * detail::mm;
 inline constexpr auto kUpstreamTaggerExcessY = 1600.0 * detail::mm;
 inline constexpr auto kTimingDetectorEarlyStart = 168.0 * detail::mm;
+// The tracker stations follow the integration CAD model, which reaches
+// 3.601 m above the beam, 101 mm higher than the EDMS envelope.
+inline constexpr auto kTrackersExcessY = 101.0 * detail::mm;
 static_assert(!fitsEnvelopeZ(kMuonShield, detail::kMuonShieldRegion),
               "the muon shield container now fits the EDMS region: assert fitsEnvelopeZ instead");
 static_assert(fitsEnvelopeZ(kMuonShield, detail::kMuonShieldRegion, kMuonShieldEarlyStart),
@@ -356,6 +358,10 @@ static_assert(fitsEnvelopeXY(kUpstreamTagger, envelopes::kUpstreamTagger, kUpstr
                              kUpstreamTaggerExcessY),
               "the UBT container exceeds the EDMS envelope by more than "
               "kUpstreamTaggerExcessX/Y");
+static_assert(!fitsEnvelopeXY(kTrackers, detail::kTrackerRegion),
+              "the trackers container now fits the EDMS envelope: assert fitsEnvelopeXY instead");
+static_assert(fitsEnvelopeXY(kTrackers, detail::kTrackerRegion, detail::zero, kTrackersExcessY),
+              "the trackers container exceeds the EDMS envelope by more than kTrackersExcessY");
 static_assert(!fitsEnvelopeZ(kTimingDetector, envelopes::kTimingDetector),
               "the timing detector now fits the EDMS envelope: assert fitsEnvelopeZ instead");
 static_assert(fitsEnvelopeZ(kTimingDetector, envelopes::kTimingDetector, kTimingDetectorEarlyStart),

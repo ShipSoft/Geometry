@@ -75,7 +75,9 @@ using TF = TrackersFactory;
 constexpr double kStereoBound = units::gm(TF::s_stereoAngleDeg);
 static_assert(kViewHalfX + kViewHalfY * kStereoBound <= TF::s_halfX,
               "a rotated view sticks out of the station in X");
-static_assert(kViewHalfY + kViewHalfX * kStereoBound <= TF::s_halfY,
+// The views sit s_stationYOffset below the station centre (on the beam axis),
+// so their lower edge is the one that can reach the station box.
+static_assert(kViewHalfY + kViewHalfX * kStereoBound + TF::s_stationYOffset <= TF::s_halfY,
               "a rotated view sticks out of the station in Y");
 static_assert((TF::s_nViews - 1) * 0.5 * kViewPitch + kViewHalfZ <= TF::s_halfZ,
               "the view stack is thicker than the station");
@@ -108,7 +110,7 @@ GeoPhysVol* TrackersFactory::build() {
     const GeoMaterial* air = m_materials.requireMaterial("Air");
 
     // Container volume spanning all 4 stations.
-    auto const* containerBox = new GeoBox(gm(s_halfX), gm(s_halfY), gm(s_containerHalfZ));
+    auto const* containerBox = new GeoBox(gm(s_halfX), gm(s_containerHalfY), gm(s_containerHalfZ));
     const auto* containerLog = new GeoLogVol("/SHiP/trackers", containerBox, air);
     auto* containerPhys = new GeoPhysVol(containerLog);
 
@@ -120,7 +122,8 @@ GeoPhysVol* TrackersFactory::build() {
 
         // Place the station relative to the container centre.
         const double relativeZ = gm(stationZ[i] - s_containerCentreZ);
-        const GeoTrf::Transform3D stationTrf = GeoTrf::Translate3D(0.0, 0.0, relativeZ);
+        const GeoTrf::Transform3D stationTrf =
+            GeoTrf::Translate3D(0.0, gm(s_stationYOffset), relativeZ);
 
         // Name kept as "/SHiP/trackers/station_<n>" for downstream lookups.
         const std::string stationName = "/SHiP/trackers/station_" + std::to_string(i + 1);
@@ -149,8 +152,8 @@ GeoPhysVol* TrackersFactory::build() {
 GeoPhysVol* TrackersFactory::buildStation(int stationIndex) {
     const GeoMaterial* air = m_materials.requireMaterial("Air");
 
-    // Station envelope: fixed GDML statbox size. Kept exactly so the geometry
-    // consistency test (station box <= 3000 x 3500 x 500 mm) still passes.
+    // Station envelope from the integration CAD model (see the header); Layout.h
+    // checks it against the EDMS envelope.
     const std::string stationName = "/SHiP/trackers/station_" + std::to_string(stationIndex + 1);
     auto const* stationBox = new GeoBox(gm(s_halfX), gm(s_halfY), gm(s_halfZ));
     const auto* stationLog = new GeoLogVol(stationName, stationBox, air);
@@ -163,8 +166,11 @@ GeoPhysVol* TrackersFactory::buildStation(int stationIndex) {
 
         const auto zView = -0.5 * (s_nViews - 1) * kViewPitch + v * kViewPitch;
         const double angleRad = gm(stereoSignedDeg(v));
+        // The station box is centred above the beam; undo that offset so the
+        // views (and their straws) stay centred on the beam axis.
         const GeoTrf::Transform3D viewTrf =
-            GeoTrf::Translate3D(0.0, 0.0, gm(zView)) * GeoTrf::RotateZ3D(angleRad);
+            GeoTrf::Translate3D(0.0, gm(-s_stationYOffset), gm(zView)) *
+            GeoTrf::RotateZ3D(angleRad);
 
         const std::string viewName = stationName + "/view_" + std::to_string(v);
         stationPhys->add(new GeoNameTag(viewName));

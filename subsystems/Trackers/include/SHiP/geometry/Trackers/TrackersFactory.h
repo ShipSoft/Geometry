@@ -104,10 +104,18 @@ class TrackersFactory {
     static constexpr auto s_trackerMagnetZ = 86820.0 * units::mm;    ///< centre
     static constexpr auto s_trackerMagnetHalfZ = 230.0 * units::mm;  ///< half-depth
 
-    // ── Station envelope from GDML statbox ──────────────────────────────
-    static constexpr auto s_halfX = 3000.0 * units::mm;  // 300 cm
-    static constexpr auto s_halfY = 3430.0 * units::mm;  // 343 cm (GDML y = 686 cm)
-    static constexpr auto s_halfZ = 500.0 * units::mm;   // 50 cm
+    // ── Station envelope from the integration CAD model ST1967028_01 ────
+    // Each station is 5.214 m wide and 1 m long; it stands on the ECN3
+    // floor (3.36 m below the beam) and reaches 3.601 m above it, so the
+    // box is centred s_stationYOffset above the beam axis. The views inside
+    // are shifted back by the same amount to stay centred on the beam.
+    static constexpr auto s_halfX = 2607.0 * units::mm;
+    static constexpr auto s_halfY = 3480.5 * units::mm;
+    static constexpr auto s_halfZ = 500.0 * units::mm;
+    static constexpr auto s_stationYOffset = 120.5 * units::mm;
+
+    // Container: symmetric about the beam axis, tall enough for the offset stations.
+    static constexpr auto s_containerHalfY = s_halfY + s_stationYOffset;
 
     // Station Z positions (centres, from origin).
     static constexpr auto s_station1Z = 84070.0 * units::mm;  // 84.07 m

@@ -61,6 +61,8 @@ TEST_CASE("TrackersStationsMatchConstants", "[trackers]") {
         CHECK(box->getXHalfLength() == gm(TrackersFactory::s_halfX));
         CHECK(box->getYHalfLength() == gm(TrackersFactory::s_halfY));
         CHECK(box->getZHalfLength() == gm(TrackersFactory::s_halfZ));
+        CHECK(tc->getXToChildVol(*index).translation().y() ==
+              gm(TrackersFactory::s_stationYOffset));
         CHECK(tc->getXToChildVol(*index).translation().z() ==
               gm(stationZ[s] - TrackersFactory::s_containerCentreZ));
     }
