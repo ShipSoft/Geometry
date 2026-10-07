@@ -87,7 +87,7 @@ downstream projects can locate the package:
 
 ```cmake
 find_package(SHiPGeometry CONFIG REQUIRED)
-target_link_libraries(myapp PRIVATE SHiPGeometry::SHiPGeometry)
+target_link_libraries(myapp PRIVATE SHiP::Geometry)
 ```
 
 The package config calls `find_dependency` for GeoModelCore, GeoModelIO, and
@@ -102,26 +102,26 @@ Each subsystem is implemented as a factory class:
 ```cpp
 class FooFactory {
 public:
-    explicit FooFactory(SHiPMaterials& materials);
+    explicit FooFactory(Materials& materials);
     GeoPhysVol* build();
 private:
-    SHiPMaterials& m_materials;
+    Materials& m_materials;
 };
 ```
 
-`SHiPGeometryBuilder::build()` orchestrates all factories, creating the world
+`DetectorBuilder::build()` orchestrates all factories, creating the world
 volume (Cavern) and placing each subsystem at its global z-position.
 
 ### Materials
 
-All materials are managed centrally by `SHiPMaterials`. To use an existing
+All materials are managed centrally by `Materials`. To use an existing
 material in a factory:
 
 ```cpp
 const GeoMaterial* iron = m_materials.requireMaterial("Iron");
 ```
 
-To add a new material, edit `src/SHiPMaterials.cpp`:
+To add a new material, edit `src/Materials.cpp`:
 1. Add elements in `createElements()` if not already present
 2. Add the material in `createMaterials()` with composition and density
 3. Call `material->lock()` after defining the composition
@@ -134,7 +134,7 @@ To add a new material, edit `src/SHiPMaterials.cpp`:
    `build()` using GeoModel primitives (`GeoBox`, `GeoTubs`, `GeoLogVol`,
    `GeoPhysVol`, `GeoTransform`, etc.)
 3. **Registration**: add a `build()` + placement call in
-   `src/SHiPGeometry.cpp` (`SHiPGeometryBuilder::build()`)
+   `src/DetectorBuilder.cpp` (`DetectorBuilder::build()`)
 4. **CMake**: add sources/headers to `subsystems/<Name>/CMakeLists.txt`
 5. **Docs**: update the subsystem `README.md` with geometry tree, materials,
    and status
@@ -143,7 +143,7 @@ To add a new material, edit `src/SHiPMaterials.cpp`:
 
 ```
 geometry/
-├── include/SHiPGeometry/   # Public headers (SHiPGeometry, SHiPMaterials)
+├── include/SHiP/geometry/  # Public headers (DetectorBuilder, Materials)
 ├── src/                     # Core implementation
 ├── subsystems/              # Detector subsystem factories
 │   ├── Cavern/

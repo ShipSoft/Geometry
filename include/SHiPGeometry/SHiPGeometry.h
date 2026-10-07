@@ -1,25 +1,15 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
-
+//
+// Forwarding header for the pre-0.3.0 layout, removed in 0.4.0.
+// SHiPGeometry/SHiPGeometry.h is now SHiP/geometry/DetectorBuilder.h, and
+// SHiPGeometry::SHiPGeometryBuilder is now SHiP::geometry::DetectorBuilder.
 #pragma once
 
-class GeoPhysVol;
+#include "SHiP/geometry/DetectorBuilder.h"
 
-namespace SHiPGeometry {
+namespace SHiPGeometry = SHiP::geometry;
 
-/**
- * @brief Main geometry builder for the SHiP detector
- */
-class SHiPGeometryBuilder {
-   public:
-    SHiPGeometryBuilder();
-    ~SHiPGeometryBuilder();
-
-    /**
-     * @brief Build the complete SHiP detector geometry
-     * @return Pointer to the world physical volume
-     */
-    [[nodiscard]] GeoPhysVol* build();
-};
-
-}  // namespace SHiPGeometry
+namespace SHiP::geometry {
+using SHiPGeometryBuilder [[deprecated("use SHiP::geometry::DetectorBuilder")]] = DetectorBuilder;
+}

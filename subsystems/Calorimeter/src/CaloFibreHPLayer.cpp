@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
-#include "Calorimeter/CaloFibreHPLayer.h"
+#include "SHiP/geometry/Calorimeter/CaloFibreHPLayer.h"
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoLogVol.h>
@@ -17,7 +17,7 @@
 #include <stdexcept>
 #include <string>
 
-namespace SHiPGeometry {
+namespace SHiP::geometry {
 
 using namespace GeoModelKernelUnits;
 
@@ -94,4 +94,4 @@ void CaloFibreHP::buildLayer(GeoVPhysVol* mother, GeoMaterial* aluminiumMat, Geo
     }
 }
 
-}  // namespace SHiPGeometry
+}  // namespace SHiP::geometry

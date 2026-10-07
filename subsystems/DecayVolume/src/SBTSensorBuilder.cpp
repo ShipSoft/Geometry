@@ -12,9 +12,9 @@
 // holds 7 aluminium walls and 6 LAB cells stacked along local Z. All logical
 // volumes get unique names to avoid Geo2G4 copy-number issues.
 
-#include "DecayVolume/SBTSensorBuilder.h"
+#include "SHiP/geometry/DecayVolume/SBTSensorBuilder.h"
 
-#include "DecayVolume/SBTConstants.h"
+#include "SHiP/geometry/DecayVolume/SBTConstants.h"
 
 #include <GeoModelKernel/GeoDefinitions.h>
 #include <GeoModelKernel/GeoFullPhysVol.h>
@@ -32,7 +32,7 @@
 #include <stdexcept>
 #include <string>
 
-namespace SHiPGeometry {
+namespace SHiP::geometry {
 
 using namespace GeoModelKernelUnits;
 
@@ -392,4 +392,4 @@ void SBTSensorBuilder::build(GeoVPhysVol* mother, const GeoMaterial* alMat,
     }
 }
 
-}  // namespace SHiPGeometry
+}  // namespace SHiP::geometry

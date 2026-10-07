@@ -4,20 +4,20 @@
 include(Catch)
 
 add_executable(test_builder test_builder.cpp)
-target_link_libraries(test_builder PRIVATE SHiPGeometry Catch2::Catch2WithMain)
+target_link_libraries(test_builder PRIVATE ship_geometry Catch2::Catch2WithMain)
 catch_discover_tests(test_builder)
 
 add_executable(test_materials test_materials.cpp)
 target_link_libraries(
     test_materials
-    PRIVATE SHiPGeometry Catch2::Catch2WithMain
+    PRIVATE ship_geometry Catch2::Catch2WithMain
 )
 catch_discover_tests(test_materials)
 
 add_executable(test_consistency test_consistency.cpp)
 target_link_libraries(
     test_consistency
-    PRIVATE SHiPGeometry Catch2::Catch2WithMain
+    PRIVATE ship_geometry Catch2::Catch2WithMain
 )
 catch_discover_tests(test_consistency)
 

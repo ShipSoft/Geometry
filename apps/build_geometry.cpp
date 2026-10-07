@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
-#include "SHiPGeometry/SHiPGeometry.h"
+#include "SHiP/geometry/DetectorBuilder.h"
 
 #include <GeoModelDBManager/GMDBManager.h>
 #include <GeoModelKernel/GeoPhysVol.h>
@@ -18,7 +18,7 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Building SHiP geometry..." << std::endl;
 
-    SHiPGeometry::SHiPGeometryBuilder builder;
+    SHiP::geometry::DetectorBuilder builder;
     GeoPhysVol* world = builder.build();
 
     if (!world) {

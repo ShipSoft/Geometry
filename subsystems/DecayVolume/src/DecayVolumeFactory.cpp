@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
-#include "DecayVolume/DecayVolumeFactory.h"
+#include "SHiP/geometry/DecayVolume/DecayVolumeFactory.h"
 
-#include "DecayVolume/SBTConstants.h"
-#include "DecayVolume/SBTEnvelope.h"
-#include "DecayVolume/SBTSensorBuilder.h"
-#include "DecayVolume/SBTStructureBuilder.h"
-#include "SHiPGeometry/SHiPMaterials.h"
+#include "SHiP/geometry/DecayVolume/SBTConstants.h"
+#include "SHiP/geometry/DecayVolume/SBTEnvelope.h"
+#include "SHiP/geometry/DecayVolume/SBTSensorBuilder.h"
+#include "SHiP/geometry/DecayVolume/SBTStructureBuilder.h"
+#include "SHiP/geometry/Materials.h"
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoLogVol.h>
@@ -15,11 +15,11 @@
 #include <GeoModelKernel/GeoPhysVol.h>
 #include <GeoModelKernel/Units.h>
 
-namespace SHiPGeometry {
+namespace SHiP::geometry {
 
 using namespace GeoModelKernelUnits;
 
-DecayVolumeFactory::DecayVolumeFactory(SHiPMaterials& materials) : m_materials(materials) {}
+DecayVolumeFactory::DecayVolumeFactory(Materials& materials) : m_materials(materials) {}
 
 GeoPhysVol* DecayVolumeFactory::build() {
     const GeoMaterial* air = m_materials.requireMaterial(SBT::kAirMaterial);
@@ -59,4 +59,4 @@ GeoPhysVol* DecayVolumeFactory::build() {
     return container;
 }
 
-}  // namespace SHiPGeometry
+}  // namespace SHiP::geometry

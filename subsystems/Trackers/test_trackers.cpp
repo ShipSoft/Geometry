@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
-#include "SHiPGeometry/SHiPMaterials.h"
-#include "Trackers/TrackersFactory.h"
+#include "SHiP/geometry/Materials.h"
+#include "SHiP/geometry/Trackers/TrackersFactory.h"
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoLogVol.h>
@@ -12,8 +12,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include <string>
 
-using SHiPGeometry::SHiPMaterials;
-using SHiPGeometry::TrackersFactory;
+using SHiP::geometry::Materials;
+using SHiP::geometry::TrackersFactory;
 
 static const GeoVPhysVol* findChild(const GeoVPhysVol* parent, const std::string& name) {
     for (unsigned int i = 0; i < parent->getNChildVols(); ++i) {
@@ -27,7 +27,7 @@ static const GeoVPhysVol* findChild(const GeoVPhysVol* parent, const std::string
 
 // CSV limits: Trackers per-station halfX ≤ 3000, halfY ≤ 3500, halfZ ≤ 500
 TEST_CASE("TrackersWithinEnvelope", "[trackers]") {
-    SHiPMaterials materials;
+    Materials materials;
     TrackersFactory factory(materials);
     GeoPhysVol* tc = factory.build();
     REQUIRE(tc != nullptr);
@@ -43,7 +43,7 @@ TEST_CASE("TrackersWithinEnvelope", "[trackers]") {
 
 // The container holds all 4 stations.
 TEST_CASE("TrackersHasFourStations", "[trackers]") {
-    SHiPMaterials materials;
+    Materials materials;
     TrackersFactory factory(materials);
     GeoPhysVol* tc = factory.build();
     REQUIRE(tc != nullptr);
@@ -56,7 +56,7 @@ TEST_CASE("TrackersHasFourStations", "[trackers]") {
 
 // Each station is now populated with 4 stereo views (no longer an empty box).
 TEST_CASE("TrackersStationHasViews", "[trackers]") {
-    SHiPMaterials materials;
+    Materials materials;
     TrackersFactory factory(materials);
     GeoPhysVol* tc = factory.build();
     REQUIRE(tc != nullptr);
@@ -67,7 +67,7 @@ TEST_CASE("TrackersStationHasViews", "[trackers]") {
 
 // A view contains a frame plus two straw sub-layers.
 TEST_CASE("TrackersViewHasFrameAndSubLayers", "[trackers]") {
-    SHiPMaterials materials;
+    Materials materials;
     TrackersFactory factory(materials);
     GeoPhysVol* tc = factory.build();
     REQUIRE(tc != nullptr);
@@ -86,7 +86,7 @@ TEST_CASE("TrackersViewHasFrameAndSubLayers", "[trackers]") {
 // The inert TrackerMagnet marker is present and fits in the gap before the
 // spectrometer-magnet yoke (i.e. it does not overlap station 2 or the yoke).
 TEST_CASE("TrackersHasTrackerMagnet", "[trackers]") {
-    SHiPMaterials materials;
+    Materials materials;
     TrackersFactory factory(materials);
     GeoPhysVol* tc = factory.build();
     REQUIRE(tc != nullptr);
