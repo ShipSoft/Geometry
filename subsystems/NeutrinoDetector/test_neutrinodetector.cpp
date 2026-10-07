@@ -17,7 +17,8 @@
 using Catch::Matchers::ContainsSubstring;
 using SHiPGeometry::SHiPMaterials;
 
-// CSV limits: SND half-width/height ≤ 400 mm, length 5100 mm (box approximation).
+// Integration layout 2026-0.1 slot: 0.6 x 0.6 m (plus 2 mm for the fibre
+// planes), z = 22.70-27.96 m, i.e. half-sizes <= 301 x 301 x 2630 mm.
 TEST_CASE("NeutrinoDetectorWithinEnvelope", "[neutrinodetector]") {
     SHiPMaterials materials;
     SHiPGeometry::NeutrinoDetectorFactory factory(materials);
@@ -25,9 +26,9 @@ TEST_CASE("NeutrinoDetectorWithinEnvelope", "[neutrinodetector]") {
     REQUIRE(snd != nullptr);
     auto* box = dynamic_cast<const GeoBox*>(snd->getLogVol()->getShape());
     REQUIRE(box != nullptr);
-    CHECK(box->getXHalfLength() <= 400.0);
-    CHECK(box->getYHalfLength() <= 400.0);
-    CHECK(box->getZHalfLength() <= 2550.0);
+    CHECK(box->getXHalfLength() <= 301.0);
+    CHECK(box->getYHalfLength() <= 301.0);
+    CHECK(box->getZHalfLength() <= 2630.0);
 }
 
 // The container is sized from the SD.toml envelope, the same box that is carved

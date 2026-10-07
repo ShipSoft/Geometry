@@ -48,7 +48,7 @@ bounded for navigation.
 Direct container children: 21 + 360 + 4438 = 4819. Total volumes including the
 individual fibres: 340819 (~336k fibres).
 
-Position: z = 28 950 mm (centre of the 26.40-31.50 m WARM SND slot). The SND is
+Position: z = 25 330 mm (centre of the 22.70-27.96 m slot of integration layout 2026-0.1, EDMS 3287817 v1.1, in the tail of S5 and in M6). The SND is
 part of the muon shield: in volume terms its container is a **daughter of the
 muon-shield container**, nested by `SHiPGeometryBuilder` via
 `MuonShieldFactory::embedDaughter`, which only places the pre-built daughter in
