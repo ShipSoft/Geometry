@@ -16,10 +16,13 @@ class SHiPMaterials;
 /**
  * @brief Factory for the Magnet (spectrometer magnet) geometry
  *
- * Based on GDML reference:
- * - magyoke (iron yoke): Outer 600×860×280 cm, inner cutout 440×700×282 cm
- * - MCoil1-4: Aluminium half-tubes, rmin=10mm, rmax=800mm, half-z=1660mm
- * - CV connectors: Aluminium boxes 80×650×25 cm at 4 positions
+ * Envelopes from the integration CAD model ST1967028_01 (layout 2026-0.1,
+ * EDMS 3287817 v1.1):
+ * - yoke: 8.0 m wide, 8.5 m high, 3.51 m long, centred on the 5 m slot
+ * - coils: two vertical packs (reference coil of field map V21), 130 mm
+ *   thick, 6.75 m high, 4.69 m long, at x = ±2221 mm
+ * The yoke aperture is not resolved in the CAD model; it is kept at 7.0 m
+ * high and widened to 4.6 m so that the coil packs sit inside it.
  */
 class MagnetFactory {
    public:
@@ -37,38 +40,30 @@ class MagnetFactory {
 
     GeoPhysVol* createYoke();
     GeoPhysVol* createCoil(const std::string& name);
-    GeoPhysVol* createVerticalConnector(const std::string& name);
 
     // Unit shorthand (GeoModel's native length unit is mm)
     static constexpr double mm = GeoModelKernelUnits::mm;
 
-    // Yoke dimensions from GDML (half-sizes)
-    // GDML: outer 600×860×280 cm, inner 440×700×282 cm
-    static constexpr double s_yokeOuterHalfX = 3000.0 * mm;
-    static constexpr double s_yokeOuterHalfY = 4300.0 * mm;
-    static constexpr double s_yokeOuterHalfZ = 1400.0 * mm;
-    static constexpr double s_yokeInnerHalfX = 2200.0 * mm;
+    // Yoke dimensions (half-sizes): outer envelope from the CAD model, the
+    // inner cutout is 10 mm longer than the yoke so the subtraction leaves
+    // no coincident faces.
+    static constexpr double s_yokeOuterHalfX = 4000.0 * mm;
+    static constexpr double s_yokeOuterHalfY = 4250.0 * mm;
+    static constexpr double s_yokeOuterHalfZ = 1755.5 * mm;
+    static constexpr double s_yokeInnerHalfX = 2300.0 * mm;
     static constexpr double s_yokeInnerHalfY = 3500.0 * mm;
-    static constexpr double s_yokeInnerHalfZ = 1410.0 * mm;
+    static constexpr double s_yokeInnerHalfZ = 1765.5 * mm;
 
-    // Coil dimensions (simplified as boxes)
-    static constexpr double s_coilHalfX = 800.0 * mm;
-    static constexpr double s_coilHalfY = 400.0 * mm;
-    static constexpr double s_coilHalfZ = 1660.0 * mm;
-    static constexpr double s_coilXOffset = 2200.0 * mm;
-    static constexpr double s_coilYOffset = 3250.0 * mm;
+    // Coil packs (simplified as boxes): CAD reference coil of field map V21
+    static constexpr double s_coilHalfX = 65.0 * mm;
+    static constexpr double s_coilHalfY = 3375.0 * mm;
+    static constexpr double s_coilHalfZ = 2343.5 * mm;
+    static constexpr double s_coilXOffset = 2221.0 * mm;
 
-    // Vertical connector dimensions from GDML: 80×650×25 cm
-    static constexpr double s_connectorHalfX = 400.0 * mm;
-    static constexpr double s_connectorHalfY = 3250.0 * mm;
-    static constexpr double s_connectorHalfZ = 125.0 * mm;
-    static constexpr double s_connectorXOffset = 2600.0 * mm;
-    static constexpr double s_connectorZOffset = 1525.0 * mm;  // From GDML positions
-
-    // Container sized to enclose the yoke, coils, and connectors: HalfX and
-    // HalfZ exceed the yoke outer dimensions, while HalfY matches it.
-    static constexpr double s_containerHalfX = 3250.0 * mm;
-    static constexpr double s_containerHalfY = 4300.0 * mm;
+    // Container: the 5 m slot of the integration layout, as wide and high
+    // as the yoke.
+    static constexpr double s_containerHalfX = 4000.0 * mm;
+    static constexpr double s_containerHalfY = 4250.0 * mm;
     static constexpr double s_containerHalfZ = 2500.0 * mm;
 };
 
