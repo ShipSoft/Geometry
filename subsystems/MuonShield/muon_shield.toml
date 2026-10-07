@@ -19,8 +19,8 @@
 block_material = "Iron"
 
 envelope_half_x_mm = 1760.0
-envelope_half_y_mm = 1320.0
-envelope_z_start_mm = 4540.0
+envelope_half_y_mm = 1930.0
+envelope_z_start_mm = 2140.0
 envelope_z_end_mm   = 32230.0
 
 # magnet 1
@@ -58,3 +58,10 @@ size  = [3000.0, 1260.0, 3360.0]
 [[block]]
 start = [0.0, 0.0, 28180.0]
 size  = [3420.0, 2540.0, 4000.0]
+
+# magnetised hadron stopper (CAD ST1967028_01, block ST2533758): 3.26 m wide,
+# 2.96 m high and 2.30 m long, reaching 1.03 m below and 1.93 m above the
+# beam line; its front face is 2.14 m downstream of the target front face.
+[[block]]
+start = [0.0, 447.5, 2140.0]
+size  = [3260.0, 2961.0, 2300.0]
