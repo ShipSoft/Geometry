@@ -21,7 +21,7 @@
  * transcribed; the HYBRID rows are omitted. Empty CSV cells (the hadron
  * stopper's transverse size) are 0 here and must not be used.
  */
-namespace SHiP::geometry::Envelopes {
+namespace SHiP::geometry::envelopes {
 
 using units::LengthMm;
 
@@ -105,4 +105,4 @@ template <std::size_t N>
     return out;
 }
 
-}  // namespace SHiP::geometry::Envelopes
+}  // namespace SHiP::geometry::envelopes

@@ -16,7 +16,7 @@
  * All lengths are mp-units quantities in mm. The invariants of these
  * constants are static_asserts at the bottom of this header.
  */
-namespace SHiP::geometry::SBT {
+namespace SHiP::geometry::sbt {
 
 using units::LengthMm;
 using units::mm;
@@ -326,4 +326,4 @@ static_assert(std::max(kSBT.zEntrance < 0.0 * mm ? -kSBT.zEntrance : kSBT.zEntra
                   kEnvelopeHalfZ,
               "SBT structure pierces the decay-volume envelope in Z");
 
-}  // namespace SHiP::geometry::SBT
+}  // namespace SHiP::geometry::sbt

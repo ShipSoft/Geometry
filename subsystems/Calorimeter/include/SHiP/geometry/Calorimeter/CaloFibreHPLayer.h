@@ -19,13 +19,13 @@ namespace SHiP::geometry {
  * cylindrical fibres (cladding + core). Fibres run along Y when
  * @p fibresAlongY is true, along X otherwise.
  */
-namespace CaloFibreHP {
+namespace calo_fibre_hp {
 
 void buildLayer(GeoVPhysVol* mother, GeoMaterial* aluminiumMat, GeoMaterial* fibreMat,
                 const std::string& layerTag, units::LengthMm zCenter, int layerIndex,
                 units::LengthMm casingXY, units::LengthMm casingZ, units::LengthMm fiberDiam,
                 units::LengthMm fiberCoreDiam, bool fibresAlongY, const std::string& nameSuffix);
 
-}  // namespace CaloFibreHP
+}  // namespace calo_fibre_hp
 
 }  // namespace SHiP::geometry

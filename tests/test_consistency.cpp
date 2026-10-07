@@ -22,7 +22,7 @@
 #include <vector>
 
 using SHiP::geometry::DetectorBuilder;
-namespace Layout = SHiP::geometry::Layout;
+namespace layout = SHiP::geometry::layout;
 namespace units = SHiP::geometry::units;
 using units::gm;
 
@@ -87,7 +87,7 @@ TEST_CASE("ConsistencyTest.ExpectedSubsystemCount", "[consistency]") {
     REQUIRE(world != nullptr);
 
     auto subsystems = collectSubsystems(world);
-    CHECK(subsystems.size() == Layout::kSlots.size());  // NOLINT(readability/check)
+    CHECK(subsystems.size() == layout::kSlots.size());  // NOLINT(readability/check)
 }
 
 // Ordering, overlaps and envelope fits are static_asserts in Layout.h; this
@@ -98,7 +98,7 @@ TEST_CASE("ConsistencyTest.SubsystemsPlacedAsInLayout", "[consistency]") {
     GeoPhysVol* world = builder.build();
     REQUIRE(world != nullptr);
 
-    for (const auto& slot : Layout::kSlots) {
+    for (const auto& slot : layout::kSlots) {
         INFO("Subsystem " << slot.path);
         const auto child = findChild(world, slot.path);
         REQUIRE(child.has_value());
@@ -118,35 +118,35 @@ TEST_CASE("ConsistencyTest.SubsystemsPlacedAsInLayout", "[consistency]") {
 // Negative controls for the Layout.h predicates: each must reject a layout
 // that is broken in the way it is meant to catch.
 namespace {
-using Layout::Slot;
+using layout::Slot;
 constexpr auto kSwapped = [] {
-    auto slots = Layout::kSlots;
+    auto slots = layout::kSlots;
     std::swap(slots[3], slots[4]);
     return slots;
 }();
 constexpr auto kMagnetOnTiming = [] {
-    auto slots = Layout::kSlots;
-    slots[6].z = Layout::kTimingDetector.z;
+    auto slots = layout::kSlots;
+    slots[6].z = layout::kTimingDetector.z;
     return slots;
 }();
 // The SND moved 1 m upstream, deeper into the muon shield.
 constexpr auto kSndUpstream = [] {
-    auto slots = Layout::kSlots;
+    auto slots = layout::kSlots;
     slots[2].z = slots[2].z - 1000.0 * units::mm;
     return slots;
 }();
-constexpr std::array<Layout::KnownOverlap, 0> kNoKnownOverlaps{};
+constexpr std::array<layout::KnownOverlap, 0> kNoKnownOverlaps{};
 }  // namespace
 
-static_assert(Layout::firstOutOfOrder(kSwapped) == 3);
-static_assert(Layout::firstUnexpectedOverlap(kMagnetOnTiming) != SHiP::geometry::checks::npos);
-static_assert(Layout::firstUnexpectedOverlap(Layout::kSlots, kNoKnownOverlaps) == 1,
+static_assert(layout::firstOutOfOrder(kSwapped) == 3);
+static_assert(layout::firstUnexpectedOverlap(kMagnetOnTiming) != SHiP::geometry::checks::npos);
+static_assert(layout::firstUnexpectedOverlap(layout::kSlots, kNoKnownOverlaps) == 1,
               "muon shield / SND is the first known overlap");
-static_assert(Layout::firstUnexpectedOverlap(kSndUpstream) == 1,
+static_assert(layout::firstUnexpectedOverlap(kSndUpstream) == 1,
               "a known overlap that grows is no longer accepted");
-static_assert(!Layout::fitsEnvelopeZ(Slot{.z = Layout::kDecayVolume.z + 1.0 * units::mm,
-                                          .halfZ = Layout::kDecayVolume.halfZ},
-                                     SHiP::geometry::Envelopes::kDecayVolume));
+static_assert(!layout::fitsEnvelopeZ(Slot{.z = layout::kDecayVolume.z + 1.0 * units::mm,
+                                          .halfZ = layout::kDecayVolume.halfZ},
+                                     SHiP::geometry::envelopes::kDecayVolume));
 static_assert(!SHiP::geometry::checks::overlaps(
                   SHiP::geometry::checks::Span{0.0 * units::mm, 1.0 * units::mm},
                   SHiP::geometry::checks::Span{1.0 * units::mm, 2.0 * units::mm}),
@@ -165,7 +165,7 @@ static_assert(!SHiP::geometry::checks::coveredBy(bounds(0, 2, 0, 2, 0, 1), kL),
 static_assert(!SHiP::geometry::checks::coveredBy(bounds(0, 1, 0, 1, 0, 2), kL),
               "a box poking out along z is not covered");
 // The calorimeter used to end 442 mm past the experiment hall.
-static_assert(Layout::kCalorimeter.box().z.hi <= Layout::kCavities[1].z.hi,
+static_assert(layout::kCalorimeter.box().z.hi <= layout::kCavities[1].z.hi,
               "the calorimeter ends inside the experiment hall");
 
 namespace {

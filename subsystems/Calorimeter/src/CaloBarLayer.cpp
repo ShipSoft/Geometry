@@ -15,9 +15,9 @@ namespace SHiP::geometry {
 
 using units::gm;
 
-void CaloBar::placeLayer(GeoVPhysVol* mother, GeoLogVol const* barLog, units::LengthMm pitch,
-                         int nBars, units::LengthMm zCenter, std::string_view tagPrefix,
-                         int layerIndex, BarAxis axis, const std::string& nameSuffix) {
+void calo_bar::placeLayer(GeoVPhysVol* mother, GeoLogVol const* barLog, units::LengthMm pitch,
+                          int nBars, units::LengthMm zCenter, std::string_view tagPrefix,
+                          int layerIndex, BarAxis axis, const std::string& nameSuffix) {
     const double step = gm(pitch);
     const double firstBarCenter = -0.5 * (nBars - 1) * step;
 

@@ -14,7 +14,7 @@
  * All lengths are mp-units quantities in mm. The invariants of these
  * constants are static_asserts at the bottom of this header.
  */
-namespace SHiP::geometry::Calo {
+namespace SHiP::geometry::calo {
 
 /// Layer types used in the ECAL/HCAL layer sequences.
 enum class LayerCode {
@@ -56,7 +56,7 @@ inline constexpr auto kModulePitchY = kPlateXY;
 //
 //  The `using enum` is confined to each initialiser: at namespace scope in a
 //  public header it would make Absorber, AirGap, WidePVT_H ... visible
-//  unqualified throughout SHiP::geometry::Calo for every includer, which is most
+//  unqualified throughout SHiP::geometry::calo for every includer, which is most
 //  of what enum class is for.
 
 /// ECAL layer sequence.
@@ -173,4 +173,4 @@ static_assert(0.5 * kPlateXY + 0.5 * (kModuleNX - 1) * kModulePitchX <= kContain
 static_assert(0.5 * kPlateXY + 0.5 * (kModuleNY - 1) * kModulePitchY <= kContainerHalfY,
               "module array exceeds the container in Y");
 
-}  // namespace SHiP::geometry::Calo
+}  // namespace SHiP::geometry::calo
