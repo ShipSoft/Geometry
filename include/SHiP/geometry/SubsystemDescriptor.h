@@ -3,7 +3,7 @@
 
 #pragma once
 
-namespace SHiPGeometry {
+namespace SHiP::geometry {
 
 /**
  * @brief A subsystem's self-description: everything the assembler needs.
@@ -27,4 +27,4 @@ struct SubsystemDescriptor {
     bool isWorld = false;  ///< true for the mother/world volume (the cavern)
 };
 
-}  // namespace SHiPGeometry
+}  // namespace SHiP::geometry

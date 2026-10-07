@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
-#include "MuonShield/MuonShieldFactory.h"
+#include "SHiP/geometry/MuonShield/MuonShieldFactory.h"
 
-#include "SHiPGeometry/SHiPMaterials.h"
-#include "SHiPGeometry/StaticChecks.h"
-#include "SHiPGeometry/SubsystemRegistry.h"
+#include "SHiP/geometry/Materials.h"
+#include "SHiP/geometry/StaticChecks.h"
+#include "SHiP/geometry/SubsystemRegistry.h"
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoDefinitions.h>
@@ -18,7 +18,7 @@
 #include <string>
 #include <string_view>
 
-namespace SHiPGeometry {
+namespace SHiP::geometry {
 
 using units::gm;
 using units::mm;
@@ -196,7 +196,7 @@ static_assert(checks::firstPairFailure(MSF::k_stations,
 
 // ---------------------------------------------------------------------------
 
-MuonShieldFactory::MuonShieldFactory(SHiPMaterials& materials) : m_materials(materials) {}
+MuonShieldFactory::MuonShieldFactory(Materials& materials) : m_materials(materials) {}
 
 GeoPhysVol* MuonShieldFactory::buildStation(const StationData& station) {
     const GeoMaterial* air = m_materials.requireMaterial("Air");
@@ -250,4 +250,4 @@ GeoPhysVol* MuonShieldFactory::build() {
 
 REGISTER_SUBSYSTEM(MuonShieldFactory)
 
-}  // namespace SHiPGeometry
+}  // namespace SHiP::geometry

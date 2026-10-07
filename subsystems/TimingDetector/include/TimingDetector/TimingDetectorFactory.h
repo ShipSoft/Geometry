@@ -1,93 +1,11 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
-
+//
+// Forwarding header for the pre-0.3.0 layout, removed in 0.4.0.
+// TimingDetector/TimingDetectorFactory.h is now
+// SHiP/geometry/TimingDetector/TimingDetectorFactory.h.
 #pragma once
 
-#include "SHiPGeometry/StaticChecks.h"
-#include "SHiPGeometry/SubsystemDescriptor.h"
-#include "SHiPGeometry/Units.h"
+#include "SHiP/geometry/TimingDetector/TimingDetectorFactory.h"
 
-class GeoPhysVol;
-
-namespace SHiPGeometry {
-
-class SHiPMaterials;
-
-/**
- * @brief Factory for the TimingDetector (TimeDet) geometry.
- *
- * Builds an air container populated with 330 scintillator bars arranged in a
- * regular 3-column × 110-row grid (bar positions are fully analytic). The bars
- * share a single GeoLogVol and are placed as GeoPhysVol with hierarchical
- * "/SHiP/timing_detector/bar_<col>_<row>" names; sensitive-detector assignment
- * is performed downstream by name pattern.
- *
- * Container half-sizes (mm): 2750 × 3250 × 250.
- * Bar half-sizes (mm):        700 × 30 × 5.
- * Z stagger (mm):             z = (row%2)·12 + (col%2)·90 → levels 0/12/90/102.
- */
-class TimingDetectorFactory {
-   public:
-    explicit TimingDetectorFactory(SHiPMaterials& materials);
-    ~TimingDetectorFactory() = default;
-
-    /**
-     * @brief This subsystem's self-description (name, node, id, placement).
-     *
-     * Placed at z = 95.902 m, from the GDML reference.
-     */
-    static constexpr SubsystemDescriptor descriptor() {
-        using units::gm;
-        using units::m;
-        return {"TimingDetector", "/SHiP/timing_detector", 7, 0.0, 0.0, gm(95.902 * m), false};
-    }
-
-    /** Build the TimingDetector geometry and return the container volume. */
-    [[nodiscard]] GeoPhysVol* build();
-
-    /** Number of bars placed during the last build() call. */
-    int barCount() const { return m_barCount; }
-
-    // Container dimensions
-    static constexpr auto s_containerHalfX = 2750.0 * units::mm;
-    static constexpr auto s_containerHalfY = 3250.0 * units::mm;
-    static constexpr auto s_containerHalfZ = 250.0 * units::mm;
-
-    // Bar dimensions
-    static constexpr auto s_barHalfX = 700.0 * units::mm;  // 140 cm full length
-    static constexpr auto s_barHalfY = 30.0 * units::mm;   //   6 cm full width
-    static constexpr auto s_barHalfZ = 5.0 * units::mm;    //   1 cm full thickness
-
-    // Bar grid layout
-    static constexpr int s_nColumns = 3;
-    static constexpr int s_nRows = 110;
-    static constexpr auto s_columnPitchX = 1300.0 * units::mm;      // column spacing in X
-    static constexpr auto s_rowY0 = -3220.0 * units::mm;            // first-row Y
-    static constexpr auto s_rowStepY = 6440.0 / 109.0 * units::mm;  // row pitch ≈ 59.083 mm
-    static constexpr auto s_zStaggerRow = 12.0 * units::mm;         // odd-row Z offset
-    static constexpr auto s_zStaggerCol = 90.0 * units::mm;         // odd-column Z offset
-
-    struct BarCentre {
-        units::LengthMm x, y, z;
-    };
-
-    /// Centre of the bar in column @p ic, row @p ir:
-    ///   x = (ic - 1) * pitch          → -1300, 0, +1300 mm
-    ///   y = y0 + ir * step            → -3220 … +3220 mm (step 6440/109)
-    ///   z = (ir%2)*12 + (ic%2)*90     → 4 stagger levels: 0, 12, 90, 102 mm
-    static constexpr BarCentre barCentre(int ic, int ir) {
-        return {(ic - 1) * s_columnPitchX, s_rowY0 + ir * s_rowStepY,
-                (ir % 2) * s_zStaggerRow + (ic % 2) * s_zStaggerCol};
-    }
-
-    static constexpr checks::Box barBox(int ic, int ir) {
-        const auto c = barCentre(ic, ir);
-        return checks::box(c.x, c.y, c.z, s_barHalfX, s_barHalfY, s_barHalfZ);
-    }
-
-   private:
-    SHiPMaterials& m_materials;
-    int m_barCount{0};
-};
-
-}  // namespace SHiPGeometry
+namespace SHiPGeometry = SHiP::geometry;

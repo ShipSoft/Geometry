@@ -1,34 +1,10 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
-
+//
+// Forwarding header for the pre-0.3.0 layout, removed in 0.4.0.
+// Calorimeter/CaloBarLayer.h is now SHiP/geometry/Calorimeter/CaloBarLayer.h.
 #pragma once
 
-#include "SHiPGeometry/Units.h"
+#include "SHiP/geometry/Calorimeter/CaloBarLayer.h"
 
-#include <string>
-#include <string_view>
-
-class GeoVPhysVol;
-class GeoLogVol;
-
-namespace SHiPGeometry {
-
-/// Which transverse axis the bars are replicated along.
-enum class BarAxis { AlongX, AlongY };
-
-/**
- * @brief Places an array of identical scintillator bars into a mother volume.
- *
- * Bars share a single GeoLogVol (reuse). They are spaced at @p pitch
- * centre-to-centre, centred on the mother origin in the transverse plane,
- * and all placed at @p zCenter along Z (local coordinates).
- */
-namespace CaloBar {
-
-void placeLayer(GeoVPhysVol* mother, GeoLogVol const* barLog, units::LengthMm pitch, int nBars,
-                units::LengthMm zCenter, std::string_view tagPrefix, int layerIndex, BarAxis axis,
-                const std::string& nameSuffix = "");
-
-}  // namespace CaloBar
-
-}  // namespace SHiPGeometry
+namespace SHiPGeometry = SHiP::geometry;

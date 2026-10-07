@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
-#include "SHiPGeometry/Layout.h"
-#include "SHiPGeometry/SHiPGeometry.h"
-#include "SHiPGeometry/StaticChecks.h"
-#include "SHiPGeometry/Units.h"
+#include "SHiP/geometry/DetectorBuilder.h"
+#include "SHiP/geometry/Layout.h"
+#include "SHiP/geometry/StaticChecks.h"
+#include "SHiP/geometry/Units.h"
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoDefinitions.h>
@@ -21,9 +21,9 @@
 #include <utility>
 #include <vector>
 
-using SHiPGeometry::SHiPGeometryBuilder;
-namespace Layout = SHiPGeometry::Layout;
-namespace units = SHiPGeometry::units;
+using SHiP::geometry::DetectorBuilder;
+namespace Layout = SHiP::geometry::Layout;
+namespace units = SHiP::geometry::units;
 using units::gm;
 
 namespace {
@@ -74,7 +74,7 @@ void checkRightHanded(const GeoVPhysVol* vol, const std::string& path = "") {
 }  // namespace
 
 TEST_CASE("ConsistencyTest.AllRotationsRightHanded", "[consistency]") {
-    SHiPGeometryBuilder builder;
+    DetectorBuilder builder;
     GeoPhysVol* world = builder.build();
     REQUIRE(world != nullptr);
 
@@ -82,7 +82,7 @@ TEST_CASE("ConsistencyTest.AllRotationsRightHanded", "[consistency]") {
 }
 
 TEST_CASE("ConsistencyTest.ExpectedSubsystemCount", "[consistency]") {
-    SHiPGeometryBuilder builder;
+    DetectorBuilder builder;
     GeoPhysVol* world = builder.build();
     REQUIRE(world != nullptr);
 
@@ -94,7 +94,7 @@ TEST_CASE("ConsistencyTest.ExpectedSubsystemCount", "[consistency]") {
 // checks that the builder actually places each container at its slot with the
 // extents the layout assumed.
 TEST_CASE("ConsistencyTest.SubsystemsPlacedAsInLayout", "[consistency]") {
-    SHiPGeometryBuilder builder;
+    DetectorBuilder builder;
     GeoPhysVol* world = builder.build();
     REQUIRE(world != nullptr);
 
@@ -139,30 +139,30 @@ constexpr std::array<Layout::KnownOverlap, 0> kNoKnownOverlaps{};
 }  // namespace
 
 static_assert(Layout::firstOutOfOrder(kSwapped) == 3);
-static_assert(Layout::firstUnexpectedOverlap(kMagnetOnTiming) != SHiPGeometry::checks::npos);
+static_assert(Layout::firstUnexpectedOverlap(kMagnetOnTiming) != SHiP::geometry::checks::npos);
 static_assert(Layout::firstUnexpectedOverlap(Layout::kSlots, kNoKnownOverlaps) == 1,
               "muon shield / SND is the first known overlap");
 static_assert(Layout::firstUnexpectedOverlap(kSndUpstream) == 1,
               "a known overlap that grows is no longer accepted");
 static_assert(!Layout::fitsEnvelopeZ(Slot{.z = Layout::kDecayVolume.z + 1.0 * units::mm,
                                           .halfZ = Layout::kDecayVolume.halfZ},
-                                     SHiPGeometry::Envelopes::kDecayVolume));
-static_assert(
-    !SHiPGeometry::checks::overlaps(SHiPGeometry::checks::Span{0.0 * units::mm, 1.0 * units::mm},
-                                    SHiPGeometry::checks::Span{1.0 * units::mm, 2.0 * units::mm}),
-    "touching spans do not overlap");
+                                     SHiP::geometry::Envelopes::kDecayVolume));
+static_assert(!SHiP::geometry::checks::overlaps(
+                  SHiP::geometry::checks::Span{0.0 * units::mm, 1.0 * units::mm},
+                  SHiP::geometry::checks::Span{1.0 * units::mm, 2.0 * units::mm}),
+              "touching spans do not overlap");
 
 namespace {
-using SHiPGeometry::checks::bounds;
+using SHiP::geometry::checks::bounds;
 // An L in x-y: the corner x > 1, y > 1 is rock.
 constexpr std::array kL{bounds(0, 2, 0, 1, 0, 1), bounds(0, 1, 1, 2, 0, 1)};
 }  // namespace
 
-static_assert(SHiPGeometry::checks::coveredBy(bounds(0, 1, 0, 2, 0, 1), kL),
+static_assert(SHiP::geometry::checks::coveredBy(bounds(0, 1, 0, 2, 0, 1), kL),
               "a box spanning two halls is covered");
-static_assert(!SHiPGeometry::checks::coveredBy(bounds(0, 2, 0, 2, 0, 1), kL),
+static_assert(!SHiP::geometry::checks::coveredBy(bounds(0, 2, 0, 2, 0, 1), kL),
               "the missing corner of the L is found");
-static_assert(!SHiPGeometry::checks::coveredBy(bounds(0, 1, 0, 1, 0, 2), kL),
+static_assert(!SHiP::geometry::checks::coveredBy(bounds(0, 1, 0, 1, 0, 2), kL),
               "a box poking out along z is not covered");
 // The calorimeter used to end 442 mm past the experiment hall.
 static_assert(Layout::kCalorimeter.box().z.hi <= Layout::kCavities[1].z.hi,
@@ -172,20 +172,20 @@ namespace {
 constexpr auto kUnit = bounds(0, 1, 0, 1, 0, 1);
 }  // namespace
 
-static_assert(SHiPGeometry::checks::overlapsWithin(kUnit, bounds(0.5, 2, 0, 1, 0, 1),
-                                                   bounds(0.5, 1, 0, 1, 0, 1)),
+static_assert(SHiP::geometry::checks::overlapsWithin(kUnit, bounds(0.5, 2, 0, 1, 0, 1),
+                                                     bounds(0.5, 1, 0, 1, 0, 1)),
               "an overlap inside its region is accepted");
-static_assert(!SHiPGeometry::checks::overlapsWithin(kUnit, bounds(0.4, 2, 0, 1, 0, 1),
-                                                    bounds(0.5, 1, 0, 1, 0, 1)),
+static_assert(!SHiP::geometry::checks::overlapsWithin(kUnit, bounds(0.4, 2, 0, 1, 0, 1),
+                                                      bounds(0.5, 1, 0, 1, 0, 1)),
               "an overlap that grows past its region is rejected");
-static_assert(!SHiPGeometry::checks::overlapsWithin(kUnit, bounds(1, 2, 0, 1, 0, 1),
-                                                    bounds(0.5, 1, 0, 1, 0, 1)),
+static_assert(!SHiP::geometry::checks::overlapsWithin(kUnit, bounds(1, 2, 0, 1, 0, 1),
+                                                      bounds(0.5, 1, 0, 1, 0, 1)),
               "boxes that only touch are not a known overlap");
-static_assert(SHiPGeometry::checks::coveredBy(
-                  SHiPGeometry::checks::shrunk(bounds(0, 4, 0, 4, -1, 4), 1.0 * units::mm),
+static_assert(SHiP::geometry::checks::coveredBy(
+                  SHiP::geometry::checks::shrunk(bounds(0, 4, 0, 4, -1, 4), 1.0 * units::mm),
                   std::array{bounds(0, 4, 0, 4, 0, 4)}),
               "a box sticking out by 1 is within 1 of the region");
-static_assert(!SHiPGeometry::checks::coveredBy(
-                  SHiPGeometry::checks::shrunk(bounds(0, 4, 0, 4, -1.5, 4), 1.0 * units::mm),
+static_assert(!SHiP::geometry::checks::coveredBy(
+                  SHiP::geometry::checks::shrunk(bounds(0, 4, 0, 4, -1.5, 4), 1.0 * units::mm),
                   std::array{bounds(0, 4, 0, 4, 0, 4)}),
               "a box sticking out by 1.5 is not");

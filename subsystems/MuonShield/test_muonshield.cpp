@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
-#include "MuonShield/MuonShieldFactory.h"
-#include "SHiPGeometry/SHiPMaterials.h"
-#include "SHiPGeometry/Units.h"
+#include "SHiP/geometry/Materials.h"
+#include "SHiP/geometry/MuonShield/MuonShieldFactory.h"
+#include "SHiP/geometry/Units.h"
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoLogVol.h>
@@ -13,14 +13,14 @@
 #include <iterator>
 #include <string>
 
-using SHiPGeometry::MuonShieldFactory;
-using SHiPGeometry::SHiPMaterials;
-using SHiPGeometry::units::gm;
+using SHiP::geometry::Materials;
+using SHiP::geometry::MuonShieldFactory;
+using SHiP::geometry::units::gm;
 
 // The station table is checked against the container at compile time
 // (MuonShieldFactory.cpp); this checks the factory builds what it describes.
 TEST_CASE("MuonShieldStationsMatchTable", "[muonshield]") {
-    SHiPMaterials materials;
+    Materials materials;
     MuonShieldFactory factory(materials);
     GeoPhysVol* ms = factory.build();
     REQUIRE(ms != nullptr);

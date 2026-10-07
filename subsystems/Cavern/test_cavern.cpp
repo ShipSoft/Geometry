@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
-#include "Cavern/CavernFactory.h"
-#include "SHiPGeometry/SHiPMaterials.h"
+#include "SHiP/geometry/Cavern/CavernFactory.h"
+#include "SHiP/geometry/Materials.h"
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoDefinitions.h>
@@ -13,11 +13,11 @@
 #include <catch2/catch_test_macros.hpp>
 #include <string>
 
-using SHiPGeometry::SHiPMaterials;
+using SHiP::geometry::Materials;
 
 TEST_CASE("CavernWorldVolume", "[cavern]") {
-    SHiPMaterials materials;
-    SHiPGeometry::CavernFactory factory(materials);
+    Materials materials;
+    SHiP::geometry::CavernFactory factory(materials);
     GeoPhysVol* world = factory.build();
     REQUIRE(world != nullptr);
     auto* box = dynamic_cast<const GeoBox*>(world->getLogVol()->getShape());
@@ -33,8 +33,8 @@ TEST_CASE("CavernWorldVolume", "[cavern]") {
 // ST1967028_01, not the factory's
 // constants, so the test compares the code with the drawing.
 TEST_CASE("CavernCavities", "[cavern]") {
-    SHiPMaterials materials;
-    SHiPGeometry::CavernFactory factory(materials);
+    Materials materials;
+    SHiP::geometry::CavernFactory factory(materials);
     GeoPhysVol* world = factory.build();
     REQUIRE(world->getNChildVols() == 1);
     const GeoVPhysVol* rock = &*world->getChildVol(0);

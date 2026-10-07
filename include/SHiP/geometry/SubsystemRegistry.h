@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "SHiPGeometry/SubsystemDescriptor.h"
+#include "SHiP/geometry/SubsystemDescriptor.h"
 
 #include <GeoModelKernel/GeoPhysVol.h>  // complete GeoPhysVol/GeoVPhysVol for the macro's upcast
 
@@ -15,9 +15,9 @@
 #include <utility>
 #include <vector>
 
-namespace SHiPGeometry {
+namespace SHiP::geometry {
 
-class SHiPMaterials;
+class Materials;
 
 /**
  * @brief A registered subsystem: its descriptor plus how to build it.
@@ -27,8 +27,8 @@ class SHiPMaterials;
  * in the world.
  */
 struct SubsystemInfo {
-    SubsystemDescriptor desc;                           ///< name, tree node, id and placement
-    std::function<GeoVPhysVol*(SHiPMaterials&)> build;  ///< builds it in its local frame
+    SubsystemDescriptor desc;                       ///< name, tree node, id and placement
+    std::function<GeoVPhysVol*(Materials&)> build;  ///< builds it in its local frame
 };
 
 /**
@@ -59,11 +59,11 @@ inline std::map<std::string, SubsystemInfo>& registry() {
  * @return Always true, so the call is usable as a static initialiser.
  */
 inline bool registerSubsystem(const SubsystemDescriptor& desc,
-                              std::function<GeoVPhysVol*(SHiPMaterials&)> build) {
+                              std::function<GeoVPhysVol*(Materials&)> build) {
     const auto result = registry().emplace(desc.name, SubsystemInfo{desc, std::move(build)});
     if (!result.second) {
         std::fprintf(stderr,
-                     "SHiPGeometry: duplicate subsystem name '%s' registered; "
+                     "SHiP::geometry: duplicate subsystem name '%s' registered; "
                      "each subsystem's descriptor() must return a unique name.\n",
                      desc.name);
         std::abort();
@@ -110,27 +110,27 @@ GeoVPhysVol* buildSubsystem(const std::string& name);
  */
 std::vector<std::string> subsystemNames();
 
-}  // namespace SHiPGeometry
+}  // namespace SHiP::geometry
 
 /**
  * @brief Register a subsystem factory with the global registry.
  *
- * Placed once in each subsystem's own .cpp (inside namespace SHiPGeometry).
+ * Placed once in each subsystem's own .cpp (inside namespace SHiP::geometry).
  * The factory must expose `static SubsystemDescriptor descriptor()` and be
- * constructible from `SHiPMaterials&` with a `build()` returning a volume.
+ * constructible from `Materials&` with a `build()` returning a volume.
  *
  * NOTE: nothing references this registration, so the subsystem library would
  * otherwise be dropped from the DT_NEEDED of whatever links it by the
  * toolchain's default --as-needed, and the initialiser would never run.
- * src/CMakeLists.txt puts -Wl,--no-as-needed among SHiPGeometry's PUBLIC link
+ * src/CMakeLists.txt puts -Wl,--no-as-needed among ship_geometry's PUBLIC link
  * libraries, directly before the subsystems, so the flag lands on
- * libSHiPGeometry's own link line as well as on every consumer's, after any
+ * libship_geometry's own link line as well as on every consumer's, after any
  * --as-needed from LDFLAGS. Do not remove it or turn it into a link option.
  */
-#define REGISTER_SUBSYSTEM(FACTORY)                                                             \
-    namespace {                                                                                 \
-    [[maybe_unused]] const bool FACTORY##_registered = ::SHiPGeometry::registerSubsystem(       \
-        FACTORY::descriptor(), [](::SHiPGeometry::SHiPMaterials& materials) -> ::GeoVPhysVol* { \
-            return FACTORY(materials).build();                                                  \
-        });                                                                                     \
+#define REGISTER_SUBSYSTEM(FACTORY)                                                           \
+    namespace {                                                                               \
+    [[maybe_unused]] const bool FACTORY##_registered = ::SHiP::geometry::registerSubsystem(   \
+        FACTORY::descriptor(), [](::SHiP::geometry::Materials& materials) -> ::GeoVPhysVol* { \
+            return FACTORY(materials).build();                                                \
+        });                                                                                   \
     }

@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include "SHiPGeometry/StaticChecks.h"
-#include "SHiPGeometry/Units.h"
+#include "SHiP/geometry/StaticChecks.h"
+#include "SHiP/geometry/Units.h"
 
 #include <array>
 #include <string_view>
@@ -21,7 +21,7 @@
  * transcribed; the HYBRID rows are omitted. Empty CSV cells (the hadron
  * stopper's transverse size) are 0 here and must not be used.
  */
-namespace SHiPGeometry::Envelopes {
+namespace SHiP::geometry::Envelopes {
 
 using units::LengthMm;
 
@@ -105,4 +105,4 @@ template <std::size_t N>
     return out;
 }
 
-}  // namespace SHiPGeometry::Envelopes
+}  // namespace SHiP::geometry::Envelopes

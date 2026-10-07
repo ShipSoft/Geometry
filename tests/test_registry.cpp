@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
-#include "SHiPGeometry/SubsystemRegistry.h"
+#include "SHiP/geometry/SubsystemRegistry.h"
 
 #include <GeoModelKernel/GeoDefinitions.h>
 #include <GeoModelKernel/GeoLogVol.h>
@@ -16,10 +16,10 @@
 #include <string>
 #include <vector>
 
-using SHiPGeometry::assembleGeometry;
-using SHiPGeometry::buildSubsystem;
-using SHiPGeometry::registry;
-using SHiPGeometry::subsystemNames;
+using SHiP::geometry::assembleGeometry;
+using SHiP::geometry::buildSubsystem;
+using SHiP::geometry::registry;
+using SHiP::geometry::subsystemNames;
 
 #ifndef SHIP_EXPECTED_SUBSYSTEMS
 #error "SHIP_EXPECTED_SUBSYSTEMS must be defined by tests/CMakeLists.txt"

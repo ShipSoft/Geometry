@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
-#include "SHiPGeometry/SHiPMaterials.h"
-#include "Target/TargetFactory.h"
+#include "SHiP/geometry/Materials.h"
+#include "SHiP/geometry/Target/TargetFactory.h"
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoLogVol.h>
@@ -18,7 +18,7 @@
 #include <cmath>
 
 using Catch::Approx;
-using SHiPGeometry::SHiPMaterials;
+using SHiP::geometry::Materials;
 
 namespace {
 constexpr double mm = GeoModelKernelUnits::mm;
@@ -28,8 +28,8 @@ constexpr double heCentreZ = 0.5 * (-37.8 * mm + 1509.7 * mm);
 }  // namespace
 
 TEST_CASE("TargetBuilds", "[target]") {
-    SHiPMaterials materials;
-    SHiPGeometry::TargetFactory factory(materials);
+    Materials materials;
+    SHiP::geometry::TargetFactory factory(materials);
     GeoPhysVol* target = factory.build();
     REQUIRE(target != nullptr);
     auto* box = dynamic_cast<const GeoBox*>(target->getLogVol()->getShape());
@@ -41,8 +41,8 @@ TEST_CASE("TargetBuilds", "[target]") {
 }
 
 TEST_CASE("Target2026HeVolume", "[target]") {
-    SHiPMaterials materials;
-    SHiPGeometry::TargetFactory factory(materials);
+    Materials materials;
+    SHiP::geometry::TargetFactory factory(materials);
     GeoPhysVol* target = factory.build();
     REQUIRE(target != nullptr);
 
@@ -88,8 +88,8 @@ TEST_CASE("Target2026HeVolume", "[target]") {
 }
 
 TEST_CASE("Target2026UpstreamClosure", "[target]") {
-    SHiPMaterials materials;
-    SHiPGeometry::TargetFactory factory(materials);
+    Materials materials;
+    SHiP::geometry::TargetFactory factory(materials);
     GeoPhysVol* target = factory.build();
     PVConstLink heVolume = target->getChildVol(4);
 
@@ -132,8 +132,8 @@ TEST_CASE("Target2026UpstreamClosure", "[target]") {
 }
 
 TEST_CASE("Target2026Disks", "[target]") {
-    SHiPMaterials materials;
-    SHiPGeometry::TargetFactory factory(materials);
+    Materials materials;
+    SHiP::geometry::TargetFactory factory(materials);
     GeoPhysVol* target = factory.build();
     PVConstLink heVolume = target->getChildVol(4);
 
@@ -161,8 +161,8 @@ TEST_CASE("Target2026Disks", "[target]") {
 }
 
 TEST_CASE("Target2026SteelCore", "[target]") {
-    SHiPMaterials materials;
-    SHiPGeometry::TargetFactory factory(materials);
+    Materials materials;
+    SHiP::geometry::TargetFactory factory(materials);
     GeoPhysVol* target = factory.build();
     PVConstLink heVolume = target->getChildVol(4);
 

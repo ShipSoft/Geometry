@@ -4,14 +4,14 @@
 // The assembler. It contains NO subsystem names: every subsystem registers
 // itself (see REGISTER_SUBSYSTEM in each subsystem's .cpp) and this file only
 // iterates whatever registered.
-#include "SHiPGeometry/SHiPGeometry.h"
+#include "SHiP/geometry/DetectorBuilder.h"
 
 // Not used here: included so the library build runs the layout static_asserts
 // against the descriptors the registry places from.
-#include "SHiPGeometry/Layout.h"
-#include "SHiPGeometry/Placement.h"
-#include "SHiPGeometry/SHiPMaterials.h"
-#include "SHiPGeometry/SubsystemRegistry.h"
+#include "SHiP/geometry/Layout.h"
+#include "SHiP/geometry/Materials.h"
+#include "SHiP/geometry/Placement.h"
+#include "SHiP/geometry/SubsystemRegistry.h"
 
 #include <GeoModelKernel/GeoDefinitions.h>
 #include <GeoModelKernel/GeoPhysVol.h>
@@ -20,9 +20,9 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
-namespace SHiPGeometry {
+namespace SHiP::geometry {
 GeoPhysVol* assembleGeometry(const std::vector<std::string>& only) {
-    SHiPMaterials materials;
+    Materials materials;
     auto& reg = registry();
     // Validate any requested names up front, so a typo fails clearly rather
     // than silently producing a partial geometry.
@@ -89,7 +89,7 @@ GeoVPhysVol* buildSubsystem(const std::string& name) {
     if (it == reg.end()) {
         throw std::runtime_error("Unknown subsystem: '" + name + "'");
     }
-    SHiPMaterials materials;
+    Materials materials;
     return it->second.build(materials);
 }
 std::vector<std::string> subsystemNames() {
@@ -99,9 +99,9 @@ std::vector<std::string> subsystemNames() {
     return names;
 }
 // ── Backwards-compatible builder: unchanged interface, delegates to registry ──
-SHiPGeometryBuilder::SHiPGeometryBuilder() = default;
-SHiPGeometryBuilder::~SHiPGeometryBuilder() = default;
-GeoPhysVol* SHiPGeometryBuilder::build() {
+DetectorBuilder::DetectorBuilder() = default;
+DetectorBuilder::~DetectorBuilder() = default;
+GeoPhysVol* DetectorBuilder::build() {
     return assembleGeometry();
 }
-}  // namespace SHiPGeometry
+}  // namespace SHiP::geometry

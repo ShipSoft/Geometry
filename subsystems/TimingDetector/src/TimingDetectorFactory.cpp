@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
-#include "TimingDetector/TimingDetectorFactory.h"
+#include "SHiP/geometry/TimingDetector/TimingDetectorFactory.h"
 
-#include "SHiPGeometry/SHiPMaterials.h"
-#include "SHiPGeometry/SubsystemRegistry.h"
+#include "SHiP/geometry/Materials.h"
+#include "SHiP/geometry/SubsystemRegistry.h"
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoDefinitions.h>
@@ -17,7 +17,7 @@
 #include <array>
 #include <string>
 
-namespace SHiPGeometry {
+namespace SHiP::geometry {
 
 using units::gm;
 
@@ -79,7 +79,7 @@ static_assert(
     }(),
     "two timing-detector bars overlap");
 
-TimingDetectorFactory::TimingDetectorFactory(SHiPMaterials& materials) : m_materials(materials) {}
+TimingDetectorFactory::TimingDetectorFactory(Materials& materials) : m_materials(materials) {}
 
 GeoPhysVol* TimingDetectorFactory::build() {
     const GeoMaterial* air = m_materials.requireMaterial("Air");
@@ -116,4 +116,4 @@ GeoPhysVol* TimingDetectorFactory::build() {
 
 REGISTER_SUBSYSTEM(TimingDetectorFactory)
 
-}  // namespace SHiPGeometry
+}  // namespace SHiP::geometry

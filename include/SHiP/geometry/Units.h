@@ -20,7 +20,7 @@
  * former `value * GeoModelKernelUnits::<unit>` annotation performed — so
  * retyping leaves the built geometry bit-for-bit unchanged.
  */
-namespace SHiPGeometry::units {
+namespace SHiP::geometry::units {
 
 // Curated symbol set. Deliberately NOT `using namespace si::unit_symbols;`,
 // which would inject ~100 one/two-letter names (T, K, h, min, N, ...).
@@ -83,4 +83,4 @@ template <auto U, typename Rep>
     return q.numerical_value_in(one);
 }
 
-}  // namespace SHiPGeometry::units
+}  // namespace SHiP::geometry::units

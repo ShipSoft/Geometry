@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
-#include "SHiPGeometry/SHiPMaterials.h"
-#include "SHiPGeometry/Units.h"
-#include "Trackers/TrackersFactory.h"
+#include "SHiP/geometry/Materials.h"
+#include "SHiP/geometry/Trackers/TrackersFactory.h"
+#include "SHiP/geometry/Units.h"
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoLogVol.h>
@@ -16,9 +16,9 @@
 #include <optional>
 #include <string>
 
-using SHiPGeometry::SHiPMaterials;
-using SHiPGeometry::TrackersFactory;
-using SHiPGeometry::units::gm;
+using SHiP::geometry::Materials;
+using SHiP::geometry::TrackersFactory;
+using SHiP::geometry::units::gm;
 
 static const GeoVPhysVol* findChild(const GeoVPhysVol* parent, const std::string& name) {
     for (unsigned int i = 0; i < parent->getNChildVols(); ++i) {
@@ -44,7 +44,7 @@ static std::optional<unsigned int> findChildIndex(const GeoVPhysVol* parent,
 // compile time (Layout.h); this checks the factory builds what those
 // constants describe.
 TEST_CASE("TrackersStationsMatchConstants", "[trackers]") {
-    SHiPMaterials materials;
+    Materials materials;
     TrackersFactory factory(materials);
     GeoPhysVol* tc = factory.build();
     REQUIRE(tc != nullptr);
@@ -68,7 +68,7 @@ TEST_CASE("TrackersStationsMatchConstants", "[trackers]") {
 
 // The container holds all 4 stations.
 TEST_CASE("TrackersHasFourStations", "[trackers]") {
-    SHiPMaterials materials;
+    Materials materials;
     TrackersFactory factory(materials);
     GeoPhysVol* tc = factory.build();
     REQUIRE(tc != nullptr);
@@ -81,7 +81,7 @@ TEST_CASE("TrackersHasFourStations", "[trackers]") {
 
 // Each station is now populated with 4 stereo views (no longer an empty box).
 TEST_CASE("TrackersStationHasViews", "[trackers]") {
-    SHiPMaterials materials;
+    Materials materials;
     TrackersFactory factory(materials);
     GeoPhysVol* tc = factory.build();
     REQUIRE(tc != nullptr);
@@ -92,7 +92,7 @@ TEST_CASE("TrackersStationHasViews", "[trackers]") {
 
 // A view contains a frame plus two straw sub-layers.
 TEST_CASE("TrackersViewHasFrameAndSubLayers", "[trackers]") {
-    SHiPMaterials materials;
+    Materials materials;
     TrackersFactory factory(materials);
     GeoPhysVol* tc = factory.build();
     REQUIRE(tc != nullptr);
@@ -112,7 +112,7 @@ TEST_CASE("TrackersViewHasFrameAndSubLayers", "[trackers]") {
 // Layout.h checks at compile time that this is in the gap between station 2
 // and the spectrometer-magnet yoke.
 TEST_CASE("TrackersHasTrackerMagnet", "[trackers]") {
-    SHiPMaterials materials;
+    Materials materials;
     TrackersFactory factory(materials);
     GeoPhysVol* tc = factory.build();
     REQUIRE(tc != nullptr);
