@@ -21,7 +21,7 @@ SHiPMagnet (Air, 6500×8600×5000 mm)
  └─ CV_4 (Aluminium)                        at (-2600, 0, +1525)
 ```
 
-Position in world: z = 89570 mm.
+Position in world: z = 89720 mm (mid-plane of the 87.22–92.22 m slot in integration layout 2026-0.1, EDMS 3287817 v1.1).
 
 ## Materials
 

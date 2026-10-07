@@ -19,10 +19,11 @@ class SHiPMaterials;
  *
  * Builds 4 straw tracking stations for the SHiP spectrometer. Station
  * envelopes and z-positions follow the GDML reference / subsystem_envelopes.csv:
- * - Station 1: Z 83.57-84.57 m → centre 84.07 m
- * - Station 2: Z 85.57-86.57 m → centre 86.07 m
- * - Station 3: Z 92.57-93.57 m → centre 93.07 m
- * - Station 4: Z 94.57-95.57 m → centre 95.07 m
+ * - Station 1: Z 83.72-84.72 m → centre 84.22 m
+ * - Station 2: Z 85.72-86.72 m → centre 86.22 m
+ * - Station 3: Z 92.72-93.72 m → centre 93.22 m
+ * - Station 4: Z 94.72-95.72 m → centre 95.22 m
+ *   (integration layout 2026-0.1, EDMS 3287817 v1.1)
  * Station envelope (GDML statbox): half 3000 × 3430 × 500 mm.
  *
  * Each station envelope is filled with 4 stereo views. A view is a material
@@ -78,12 +79,12 @@ class TrackersFactory {
     //
     // NOTE: this is NOT a physically-scaled dipole. The spectrometer dipole
     // proper is the separate Magnet subsystem (iron yoke + coils) occupying
-    // z = 87.07-92.07 m. The only free space inside the trackers container
+    // z = 87.22-92.22 m. The only free space inside the trackers container
     // and clear of that yoke is a ~0.5 m gap, so this marker is sized to fit
     // there. It exists so the tracker magnet has a named placeholder in the
     // geometry; simulation/field code can locate it by the name
     // "/SHiP/trackers/tracker_magnet".
-    static constexpr double s_trackerMagnetZ = 86820.0 * mm;    ///< centre
+    static constexpr double s_trackerMagnetZ = 86970.0 * mm;    ///< centre
     static constexpr double s_trackerMagnetHalfZ = 230.0 * mm;  ///< half-depth
 
    private:
@@ -98,10 +99,10 @@ class TrackersFactory {
     static constexpr double s_halfZ = 500.0 * mm;   // 50 cm
 
     // Station Z positions (centres, from origin).
-    static constexpr double s_station1Z = 84070.0 * mm;  // 84.07 m
-    static constexpr double s_station2Z = 86070.0 * mm;  // 86.07 m
-    static constexpr double s_station3Z = 93070.0 * mm;  // 93.07 m
-    static constexpr double s_station4Z = 95070.0 * mm;  // 95.07 m
+    static constexpr double s_station1Z = 84220.0 * mm;  // 84.22 m
+    static constexpr double s_station2Z = 86220.0 * mm;  // 86.22 m
+    static constexpr double s_station3Z = 93220.0 * mm;  // 93.22 m
+    static constexpr double s_station4Z = 95220.0 * mm;  // 95.22 m
 
     // Container dimensions (spans all stations).
     static constexpr double s_containerHalfZ = (s_station4Z - s_station1Z) / 2.0 + s_halfZ;
