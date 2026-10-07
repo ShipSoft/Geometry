@@ -13,7 +13,7 @@
 class GeoMaterial;
 class GeoPhysVol;
 
-namespace SHiP::geometry::SBT {
+namespace SHiP::geometry::sbt {
 
 /**
  * @brief The innermost free region of the SBT, and the helium that fills it.
@@ -33,7 +33,7 @@ namespace SHiP::geometry::SBT {
  * Two properties of the SBT make this non-trivial, and both are handled here:
  *
  *  - **The X envelope is not linear in Z.** Side containers are split at the
- *    column front-flange edge (SBT::zSplitOffset()) and the upstream piece
+ *    column front-flange edge (sbt::zSplitOffset()) and the upstream piece
  *    has a *flat* outer face frozen at the sub-frustum's entrance
  *    half-width, so it does not clash with the column. The inner surface is
  *    therefore a sawtooth, dipping inward by up to xGrowth()*zSplitOffset()
@@ -306,4 +306,4 @@ constexpr HeliumSlabs heliumSlabs(const SBTParams& params = kSBT) {
 void buildHelium(GeoPhysVol* container, const GeoMaterial* helium,
                  std::span<const HeliumPiece> pieces = kHeliumPieces);
 
-}  // namespace SHiP::geometry::SBT
+}  // namespace SHiP::geometry::sbt

@@ -21,12 +21,12 @@ enum class BarAxis { AlongX, AlongY };
  * centre-to-centre, centred on the mother origin in the transverse plane,
  * and all placed at @p zCenter_mm along Z (local coordinates).
  */
-namespace CaloBar {
+namespace calo_bar {
 
 void placeLayer(GeoVPhysVol* mother, GeoLogVol* barLog, double pitch_mm, int nBars,
                 double zCenter_mm, std::string_view tagPrefix, int layerIndex, BarAxis axis,
                 const std::string& nameSuffix = "");
 
-}  // namespace CaloBar
+}  // namespace calo_bar
 
 }  // namespace SHiP::geometry

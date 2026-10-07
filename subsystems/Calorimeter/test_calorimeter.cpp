@@ -35,9 +35,9 @@ TEST_CASE("CalorimeterHasChildren", "[calorimeter]") {
     REQUIRE(calo != nullptr);
     // One volume per module per non-air-gap layer, so the sequencer cannot
     // silently drop or duplicate a placement.
-    constexpr unsigned kExpectedChildren = SHiP::geometry::Calo::kModuleNX *
-                                           SHiP::geometry::Calo::kModuleNY *
-                                           SHiP::geometry::Calo::kVolsPerModule;
+    constexpr unsigned kExpectedChildren = SHiP::geometry::calo::kModuleNX *
+                                           SHiP::geometry::calo::kModuleNY *
+                                           SHiP::geometry::calo::kVolsPerModule;
     CHECK(calo->getNChildVols() == kExpectedChildren);  // NOLINT(readability/check)
 }
 
@@ -45,5 +45,5 @@ TEST_CASE("TotalStackZMatchesReference", "[calorimeter]") {
     // Pinned reference: 40 lead + 40 scint + 8 HPL + 1 air gap in the ECAL
     // (1600 mm), 100 mm gap, 5 iron + 5 scint in the HCAL (900 mm).
     // Guards the layer-sequence transcription against accidental edits.
-    CHECK_THAT(SHiP::geometry::Calo::kTotalStackZ, Catch::Matchers::WithinAbs(2600.0, 1e-9));
+    CHECK_THAT(SHiP::geometry::calo::kTotalStackZ, Catch::Matchers::WithinAbs(2600.0, 1e-9));
 }

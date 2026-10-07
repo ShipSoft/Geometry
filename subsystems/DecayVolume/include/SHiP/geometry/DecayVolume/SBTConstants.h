@@ -15,7 +15,7 @@
  * invariants of these constants are static_asserts at the bottom of this
  * header.
  */
-namespace SHiP::geometry::SBT {
+namespace SHiP::geometry::sbt {
 
 /**
  * @brief Every dimension the SBT geometry is parameterised by (mm).
@@ -318,4 +318,4 @@ static_assert(std::max(kSBT.zEntrance < 0.0 ? -kSBT.zEntrance : kSBT.zEntrance,
                   kEnvelopeHalfZ,
               "SBT structure pierces the decay-volume envelope in Z");
 
-}  // namespace SHiP::geometry::SBT
+}  // namespace SHiP::geometry::sbt

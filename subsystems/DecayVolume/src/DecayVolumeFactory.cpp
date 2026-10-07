@@ -22,18 +22,18 @@ using namespace GeoModelKernelUnits;
 DecayVolumeFactory::DecayVolumeFactory(Materials& materials) : m_materials(materials) {}
 
 GeoPhysVol* DecayVolumeFactory::build() {
-    const GeoMaterial* air = m_materials.requireMaterial(SBT::kAirMaterial);
-    const GeoMaterial* steel = m_materials.requireMaterial(SBT::kSteelMaterial);
-    const GeoMaterial* alMat = m_materials.requireMaterial(SBT::kWallMaterial);
-    const GeoMaterial* labMat = m_materials.requireMaterial(SBT::kScintillatorMaterial);
-    const GeoMaterial* helium = m_materials.requireMaterial(SBT::kHeliumMaterial);
+    const GeoMaterial* air = m_materials.requireMaterial(sbt::kAirMaterial);
+    const GeoMaterial* steel = m_materials.requireMaterial(sbt::kSteelMaterial);
+    const GeoMaterial* alMat = m_materials.requireMaterial(sbt::kWallMaterial);
+    const GeoMaterial* labMat = m_materials.requireMaterial(sbt::kScintillatorMaterial);
+    const GeoMaterial* helium = m_materials.requireMaterial(sbt::kHeliumMaterial);
 
     // ── Air container ────────────────────────────────────────────────────
     // The container is the experiment's fixed envelope allocation for the
     // decay region. Static_asserts in SBTConstants.h guarantee the SBT
     // structure cannot outgrow it.
     auto* containerBox =
-        new GeoBox(SBT::kEnvelopeHalfX * mm, SBT::kEnvelopeHalfY * mm, SBT::kEnvelopeHalfZ * mm);
+        new GeoBox(sbt::kEnvelopeHalfX * mm, sbt::kEnvelopeHalfY * mm, sbt::kEnvelopeHalfZ * mm);
     auto* containerLog = new GeoLogVol("/SHiP/decay_volume", containerBox, air);
     auto* container = new GeoPhysVol(containerLog);
 
@@ -54,7 +54,7 @@ GeoPhysVol* DecayVolumeFactory::build() {
     // first zSplitOffset() of every sub-frustum so as to clear the columns, so
     // the free region is a sawtooth. One GeoTrap per envelope segment tracks
     // it exactly; a single frustum could not.
-    SBT::buildHelium(container, helium);
+    sbt::buildHelium(container, helium);
 
     return container;
 }

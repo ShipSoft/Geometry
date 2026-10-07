@@ -16,9 +16,9 @@ namespace SHiP::geometry {
 
 using namespace GeoModelKernelUnits;
 
-void CaloBar::placeLayer(GeoVPhysVol* mother, GeoLogVol* barLog, double pitch_mm, int nBars,
-                         double zCenter_mm, std::string_view tagPrefix, int layerIndex,
-                         BarAxis axis, const std::string& nameSuffix) {
+void calo_bar::placeLayer(GeoVPhysVol* mother, GeoLogVol* barLog, double pitch_mm, int nBars,
+                          double zCenter_mm, std::string_view tagPrefix, int layerIndex,
+                          BarAxis axis, const std::string& nameSuffix) {
     const double pitch = pitch_mm * mm;
     const double firstBarCenter = -0.5 * (nBars - 1) * pitch;
 

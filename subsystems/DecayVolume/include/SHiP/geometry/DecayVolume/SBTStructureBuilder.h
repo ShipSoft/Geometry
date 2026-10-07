@@ -26,10 +26,10 @@ class SBTStructureBuilder {
     /// Build the structure. @p steel is the absorber material; the frustum
     /// and H-beam parameters come from SBTConstants.h; @p tag is the
     /// volume-name prefix.
-    /// @throws std::invalid_argument if !SBT::isWellFormed(params).
+    /// @throws std::invalid_argument if !sbt::isWellFormed(params).
     static void build(GeoVPhysVol* mother, const GeoMaterial* steel,
                       const std::string& tag = "/SHiP/decay_volume/sbt/structure",
-                      const SBT::SBTParams& params = SBT::kSBT);
+                      const sbt::SBTParams& params = sbt::kSBT);
 };
 
 }  // namespace SHiP::geometry

@@ -26,11 +26,11 @@ class SBTSensorBuilder {
     /// Build the sensors. @p alMat is the aluminium wall material, @p labMat
     /// the LAB cell material; the frustum/sensor parameters come from
     /// SBTConstants.h.
-    /// @throws std::invalid_argument if !SBT::isWellFormed(params), or if the
+    /// @throws std::invalid_argument if !sbt::isWellFormed(params), or if the
     /// cell-wall stack is not shorter than either Z-split container piece.
     static void build(GeoVPhysVol* mother, const GeoMaterial* alMat, const GeoMaterial* labMat,
                       const std::string& tag = "/SHiP/decay_volume/sbt/sensors",
-                      const SBT::SBTParams& params = SBT::kSBT);
+                      const sbt::SBTParams& params = sbt::kSBT);
 };
 
 }  // namespace SHiP::geometry

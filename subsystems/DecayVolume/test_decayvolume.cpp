@@ -27,7 +27,7 @@
 #include <vector>
 
 using SHiP::geometry::Materials;
-namespace SBT = SHiP::geometry::SBT;
+namespace sbt = SHiP::geometry::sbt;
 
 namespace {
 // The SBT is placed flat (every child of the container is a leaf), so the
@@ -306,8 +306,8 @@ Built buildDecayVolume() {
 
 // Build a perturbed copy of kSBT. The result is still a constant expression,
 // which is what keeps the sweep's parameters compile-time values.
-constexpr SBT::SBTParams vary(void (*apply)(SBT::SBTParams&)) {
-    SBT::SBTParams p = SBT::kSBT;
+constexpr sbt::SBTParams vary(void (*apply)(sbt::SBTParams&)) {
+    sbt::SBTParams p = sbt::kSBT;
     apply(p);
     return p;
 }
@@ -316,13 +316,13 @@ constexpr SBT::SBTParams vary(void (*apply)(SBT::SBTParams&)) {
 // container, bypassing DecayVolumeFactory. This is what lets us sweep: the
 // real envelope allocation would reject half the variations below, which vary
 // the frustum well past it on purpose.
-Built buildFromParams(const SBT::SBTParams& params, const std::string& tag) {
+Built buildFromParams(const sbt::SBTParams& params, const std::string& tag) {
     static Materials materials;
-    const GeoMaterial* air = materials.requireMaterial(SBT::kAirMaterial);
-    const GeoMaterial* steel = materials.requireMaterial(SBT::kSteelMaterial);
-    const GeoMaterial* alMat = materials.requireMaterial(SBT::kWallMaterial);
-    const GeoMaterial* labMat = materials.requireMaterial(SBT::kScintillatorMaterial);
-    const GeoMaterial* helium = materials.requireMaterial(SBT::kHeliumMaterial);
+    const GeoMaterial* air = materials.requireMaterial(sbt::kAirMaterial);
+    const GeoMaterial* steel = materials.requireMaterial(sbt::kSteelMaterial);
+    const GeoMaterial* alMat = materials.requireMaterial(sbt::kWallMaterial);
+    const GeoMaterial* labMat = materials.requireMaterial(sbt::kScintillatorMaterial);
+    const GeoMaterial* helium = materials.requireMaterial(sbt::kHeliumMaterial);
 
     // Generous container: this test cares about helium-vs-SBT, not the envelope.
     auto* boxShape = new GeoBox(10000.0, 10000.0, 40000.0);
@@ -333,9 +333,9 @@ Built buildFromParams(const SBT::SBTParams& params, const std::string& tag) {
 
     // Derived here rather than read from kHeliumPieces, since the whole point
     // is a configuration the shipped array does not describe.
-    const SBT::HeliumSlabs slabs = SBT::heliumSlabs(params);
+    const sbt::HeliumSlabs slabs = sbt::heliumSlabs(params);
     REQUIRE(slabs.count == 2u * static_cast<std::size_t>(params.nSubFrustum));
-    SBT::buildHelium(container, helium, slabs.view());
+    sbt::buildHelium(container, helium, slabs.view());
 
     Built b;
     b.dv = container;
@@ -355,8 +355,8 @@ constexpr double kTol = 1e-6;
 // tracking-piece inner face does), and its normal then makes an angle
 // atan(sqrt(gx^2 + gy^2)) with the axis, not atan(max(gx, gy)). The two-axis
 // combination is the rigorous lower bound; max() alone overestimates the gap.
-double minExpectedSeparation(const SBT::SBTParams& params = SBT::kSBT) {
-    const double gx = SBT::xGrowth(params), gy = SBT::yGrowth(params);
+double minExpectedSeparation(const sbt::SBTParams& params = sbt::kSBT) {
+    const double gx = sbt::xGrowth(params), gy = sbt::yGrowth(params);
     return params.heliumClearance / std::sqrt(1.0 + gx * gx + gy * gy);
 }
 
@@ -416,18 +416,18 @@ TEST_CASE("HeliumIsFlushWithTheSBT", "[decayvolume][envelope]") {
     const double worst = closestApproach(b);
 
     INFO("closest approach: " << worst << " mm; want [" << minExpectedSeparation() << ", "
-                              << SBT::kSBT.heliumClearance << "]");
+                              << sbt::kSBT.heliumClearance << "]");
     CHECK(worst >= minExpectedSeparation() - kTol);    // NOLINT(readability/check) no gouging
-    CHECK(worst <= SBT::kSBT.heliumClearance + kTol);  // NOLINT(readability/check) no margin
+    CHECK(worst <= sbt::kSBT.heliumClearance + kTol);  // NOLINT(readability/check) no margin
 }
 
 // The helium fills the analytic envelope exactly, sampled densely rather than
 // only at the slab boundaries — this catches an envelope whose knots are in the
 // wrong places (e.g. if zSplitOffset() changed but detail::knotAt did not).
 TEST_CASE("HeliumMatchesAnalyticEnvelope", "[decayvolume][envelope]") {
-    static_assert(SBT::kHeliumPieces.size() == 2u * SBT::kSBT.nSubFrustum);
+    static_assert(sbt::kHeliumPieces.size() == 2u * sbt::kSBT.nSubFrustum);
 
-    for (const auto& p : SBT::kHeliumPieces) {
+    for (const auto& p : sbt::kHeliumPieces) {
         for (int k = 0; k <= 32; ++k) {
             const double t = static_cast<double>(k) / 32.0;
             const double z = p.z_lo_mm + t * (p.z_hi_mm - p.z_lo_mm);
@@ -437,12 +437,12 @@ TEST_CASE("HeliumMatchesAnalyticEnvelope", "[decayvolume][envelope]") {
             // Sample strictly inside the slab so the flat/tracking branch of
             // the X envelope is evaluated on the right side of a knot.
             const double zs = std::min(std::max(z, p.z_lo_mm + 1e-6), p.z_hi_mm - 1e-6);
-            const double freeX = SBT::innerFreeHalfX(zs);
-            const double freeY = SBT::innerFreeHalfY(zs);
+            const double freeX = sbt::innerFreeHalfX(zs);
+            const double freeY = sbt::innerFreeHalfY(zs);
 
             // Upper bound: the helium never protrudes past the analytic envelope.
-            CHECK(dx <= freeX - SBT::kSBT.heliumClearance + kTol);  // NOLINT(readability/check)
-            CHECK(dy <= freeY - SBT::kSBT.heliumClearance + kTol);  // NOLINT(readability/check)
+            CHECK(dx <= freeX - sbt::kSBT.heliumClearance + kTol);  // NOLINT(readability/check)
+            CHECK(dy <= freeY - sbt::kSBT.heliumClearance + kTol);  // NOLINT(readability/check)
 
             // Lower bound: the helium is flush, not merely inside. In Y the
             // envelope is continuous across a slab, so the interpolated edge
@@ -451,10 +451,10 @@ TEST_CASE("HeliumMatchesAnalyticEnvelope", "[decayvolume][envelope]") {
             // while freeX just inside the tracking piece is up to
             // xGrowth * zSplitOffset higher — so allow exactly that documented
             // sawtooth slack there, and no more.
-            const double xSlack = std::abs(SBT::xGrowth()) * SBT::zSplitOffset();
+            const double xSlack = std::abs(sbt::xGrowth()) * sbt::zSplitOffset();
             CHECK(dx >=
-                  freeX - SBT::kSBT.heliumClearance - xSlack - kTol);  // NOLINT(readability/check)
-            CHECK(dy >= freeY - SBT::kSBT.heliumClearance - kTol);     // NOLINT(readability/check)
+                  freeX - sbt::kSBT.heliumClearance - xSlack - kTol);  // NOLINT(readability/check)
+            CHECK(dy >= freeY - sbt::kSBT.heliumClearance - kTol);     // NOLINT(readability/check)
         }
     }
 }
@@ -465,7 +465,7 @@ TEST_CASE("HeliumMatchesAnalyticEnvelope", "[decayvolume][envelope]") {
 // value: on a mismatch Catch2 prints the new one in hex.
 TEST_CASE("HeliumSlabsAreUnchanged", "[decayvolume][envelope]") {
     std::uint64_t h = 0xcbf29ce484222325ULL;  // FNV-1a over the raw bit patterns
-    for (const auto& p : SBT::kHeliumPieces) {
+    for (const auto& p : sbt::kHeliumPieces) {
         for (const double d :
              {p.z_lo_mm, p.z_hi_mm, p.dx_lo_mm, p.dx_hi_mm, p.dy_lo_mm, p.dy_hi_mm}) {
             h = (h ^ std::bit_cast<std::uint64_t>(d)) * 0x100000001b3ULL;
@@ -479,9 +479,9 @@ TEST_CASE("HeliumSlabsAreUnchanged", "[decayvolume][envelope]") {
 // the longitudinal beams and the helium above them move. The argument is a
 // constant so that the comparison cannot be skewed by FMA contraction.
 TEST_CASE("LongBeamTaperMatchesStdSqrt", "[decayvolume][envelope]") {
-    constexpr double g = SBT::yGrowth();
+    constexpr double g = sbt::yGrowth();
     constexpr double arg = 1.0 + g * g;
-    CHECK(SBT::detail::longBeamTaper() == std::sqrt(arg));  // NOLINT(readability/check)
+    CHECK(sbt::detail::longBeamTaper() == std::sqrt(arg));  // NOLINT(readability/check)
 }
 
 // THE test for "does this survive changes to the SBT?". A single configuration
@@ -497,28 +497,28 @@ TEST_CASE("LongBeamTaperMatchesStdSqrt", "[decayvolume][envelope]") {
 namespace {
 struct Variation {
     const char* what;
-    SBT::SBTParams params;
+    sbt::SBTParams params;
 };
 
 // NOLINTBEGIN(readability/braces)
 constexpr std::array<Variation, 14> kVariations{{
-    {"baseline", SBT::kSBT},
-    {"steeper X taper", vary([](SBT::SBTParams& p) { p.xHalfExit = 3000.0; })},
-    {"steeper Y taper", vary([](SBT::SBTParams& p) { p.yHalfExit = 4500.0; })},
-    {"no taper at all", vary([](SBT::SBTParams& p) {
+    {"baseline", sbt::kSBT},
+    {"steeper X taper", vary([](sbt::SBTParams& p) { p.xHalfExit = 3000.0; })},
+    {"steeper Y taper", vary([](sbt::SBTParams& p) { p.yHalfExit = 4500.0; })},
+    {"no taper at all", vary([](sbt::SBTParams& p) {
          p.xHalfExit = p.xHalfEntrance;
          p.yHalfExit = p.yHalfEntrance;
      })},
-    {"wider flange", vary([](SBT::SBTParams& p) { p.hbeamFlangeWidth = 400.0; })},
-    {"taller beam", vary([](SBT::SBTParams& p) { p.hbeamHeight = 400.0; })},
-    {"thicker flange", vary([](SBT::SBTParams& p) { p.hbeamFlangeThickness = 30.0; })},
-    {"thinner containers", vary([](SBT::SBTParams& p) { p.containerThickness = 120.0; })},
-    {"thicker containers", vary([](SBT::SBTParams& p) { p.containerThickness = 300.0; })},
-    {"more sub-frusta", vary([](SBT::SBTParams& p) { p.nSubFrustum = 20; })},
-    {"fewer sub-frusta", vary([](SBT::SBTParams& p) { p.nSubFrustum = 5; })},
-    {"bigger sensor clearance", vary([](SBT::SBTParams& p) { p.sensorClearance = 5.0; })},
-    {"non-zero helium clearance", vary([](SBT::SBTParams& p) { p.heliumClearance = 10.0; })},
-    {"shorter SBT", vary([](SBT::SBTParams& p) { p.totalLength = 20000.0; })},
+    {"wider flange", vary([](sbt::SBTParams& p) { p.hbeamFlangeWidth = 400.0; })},
+    {"taller beam", vary([](sbt::SBTParams& p) { p.hbeamHeight = 400.0; })},
+    {"thicker flange", vary([](sbt::SBTParams& p) { p.hbeamFlangeThickness = 30.0; })},
+    {"thinner containers", vary([](sbt::SBTParams& p) { p.containerThickness = 120.0; })},
+    {"thicker containers", vary([](sbt::SBTParams& p) { p.containerThickness = 300.0; })},
+    {"more sub-frusta", vary([](sbt::SBTParams& p) { p.nSubFrustum = 20; })},
+    {"fewer sub-frusta", vary([](sbt::SBTParams& p) { p.nSubFrustum = 5; })},
+    {"bigger sensor clearance", vary([](sbt::SBTParams& p) { p.sensorClearance = 5.0; })},
+    {"non-zero helium clearance", vary([](sbt::SBTParams& p) { p.heliumClearance = 10.0; })},
+    {"shorter SBT", vary([](sbt::SBTParams& p) { p.totalLength = 20000.0; })},
 }};
 // NOLINTEND(readability/braces)
 }  // namespace
@@ -527,7 +527,7 @@ TEST_CASE("HeliumIsFlushAcrossTheParameterSpace", "[decayvolume][envelope][sweep
     for (std::size_t vi = 0; vi < kVariations.size(); ++vi) {
         const Variation& v = kVariations[vi];
         INFO("variation: " << v.what);
-        REQUIRE(SBT::leavesDecayRegion(v.params));
+        REQUIRE(sbt::leavesDecayRegion(v.params));
 
         // Tag by index, not by name: collect() classifies a volume as helium by
         // looking for "helium" in it, and one variation is called "non-zero
@@ -550,28 +550,28 @@ TEST_CASE("HeliumIsFlushAcrossTheParameterSpace", "[decayvolume][envelope][sweep
 // SBTEnvelope.h static_asserts it for the shipped parameters, so none of
 // these configurations can become the shipped geometry.
 namespace {
-constexpr SBT::SBTParams kContainersTooThick =
-    vary([](SBT::SBTParams& p) { p.containerThickness = 5000.0; });
+constexpr sbt::SBTParams kContainersTooThick =
+    vary([](sbt::SBTParams& p) { p.containerThickness = 5000.0; });
 // subLength 100 mm < zSplitOffset 131.25 mm, so two knots cross.
-constexpr SBT::SBTParams kSubFrustaTooShort = vary([](SBT::SBTParams& p) { p.nSubFrustum = 500; });
-constexpr SBT::SBTParams kNegativeClearance =
-    vary([](SBT::SBTParams& p) { p.heliumClearance = -5.0; });
+constexpr sbt::SBTParams kSubFrustaTooShort = vary([](sbt::SBTParams& p) { p.nSubFrustum = 500; });
+constexpr sbt::SBTParams kNegativeClearance =
+    vary([](sbt::SBTParams& p) { p.heliumClearance = -5.0; });
 // Malformed before any slab is derived: a sensor clearance past half the
 // container thickness turns the top/bottom containers inside out ...
-constexpr SBT::SBTParams kInsideOutContainers =
-    vary([](SBT::SBTParams& p) { p.sensorClearance = 200.0; });
+constexpr sbt::SBTParams kInsideOutContainers =
+    vary([](sbt::SBTParams& p) { p.sensorClearance = 200.0; });
 // ... and two flanges thicker than the beam is high leave a negative web.
-constexpr SBT::SBTParams kNegativeWeb =
-    vary([](SBT::SBTParams& p) { p.hbeamFlangeThickness = 130.0; });
+constexpr sbt::SBTParams kNegativeWeb =
+    vary([](sbt::SBTParams& p) { p.hbeamFlangeThickness = 130.0; });
 
 // The assertions proper. A positive control keeps the predicate from passing
 // vacuously.
-static_assert(SBT::leavesDecayRegion(SBT::kSBT));
-static_assert(!SBT::leavesDecayRegion(kContainersTooThick));
-static_assert(!SBT::leavesDecayRegion(kSubFrustaTooShort));
-static_assert(!SBT::leavesDecayRegion(kNegativeClearance));
-static_assert(!SBT::leavesDecayRegion(kInsideOutContainers));
-static_assert(!SBT::leavesDecayRegion(kNegativeWeb));
+static_assert(sbt::leavesDecayRegion(sbt::kSBT));
+static_assert(!sbt::leavesDecayRegion(kContainersTooThick));
+static_assert(!sbt::leavesDecayRegion(kSubFrustaTooShort));
+static_assert(!sbt::leavesDecayRegion(kNegativeClearance));
+static_assert(!sbt::leavesDecayRegion(kInsideOutContainers));
+static_assert(!sbt::leavesDecayRegion(kNegativeWeb));
 }  // namespace
 
 // The static_asserts above are the test; this reports them per case so a
@@ -585,19 +585,19 @@ static_assert(!SBT::leavesDecayRegion(kNegativeWeb));
 // of this very predicate.
 TEST_CASE("HeliumRejectsAnImpossibleSBT", "[decayvolume][envelope]") {
     SECTION("containers larger than the frustum") {
-        CHECK(!SBT::leavesDecayRegion(kContainersTooThick));  // NOLINT(readability/check)
+        CHECK(!sbt::leavesDecayRegion(kContainersTooThick));  // NOLINT(readability/check)
     }
     SECTION("sub-frustum shorter than the sensor flat piece") {
-        CHECK(!SBT::leavesDecayRegion(kSubFrustaTooShort));  // NOLINT(readability/check)
+        CHECK(!sbt::leavesDecayRegion(kSubFrustaTooShort));  // NOLINT(readability/check)
     }
     SECTION("negative clearance would overlap by construction") {
-        CHECK(!SBT::leavesDecayRegion(kNegativeClearance));  // NOLINT(readability/check)
+        CHECK(!sbt::leavesDecayRegion(kNegativeClearance));  // NOLINT(readability/check)
     }
     SECTION("sensor clearance turns the top/bottom containers inside out") {
-        CHECK(!SBT::leavesDecayRegion(kInsideOutContainers));  // NOLINT(readability/check)
+        CHECK(!sbt::leavesDecayRegion(kInsideOutContainers));  // NOLINT(readability/check)
     }
     SECTION("flanges thicker than the beam leave a negative web") {
-        CHECK(!SBT::leavesDecayRegion(kNegativeWeb));  // NOLINT(readability/check)
+        CHECK(!sbt::leavesDecayRegion(kNegativeWeb));  // NOLINT(readability/check)
     }
 }
 
@@ -605,31 +605,31 @@ TEST_CASE("HeliumRejectsAnImpossibleSBT", "[decayvolume][envelope]") {
 // parameters must throw rather than produce negative-size shapes.
 TEST_CASE("SBTBuildersRejectMalformedParameters", "[decayvolume][envelope]") {
     static Materials materials;
-    const GeoMaterial* air = materials.requireMaterial(SBT::kAirMaterial);
+    const GeoMaterial* air = materials.requireMaterial(sbt::kAirMaterial);
     auto* container = new GeoPhysVol(
         new GeoLogVol("/SHiP/test_container", new GeoBox(10000.0, 10000.0, 40000.0), air));
 
-    for (const SBT::SBTParams& params : {kInsideOutContainers, kNegativeWeb}) {
+    for (const sbt::SBTParams& params : {kInsideOutContainers, kNegativeWeb}) {
         CHECK_THROWS_AS(
             SHiP::geometry::SBTStructureBuilder::build(
-                container, materials.requireMaterial(SBT::kSteelMaterial), "/SHiP/bad", params),
+                container, materials.requireMaterial(sbt::kSteelMaterial), "/SHiP/bad", params),
             std::invalid_argument);
         CHECK_THROWS_AS(
             SHiP::geometry::SBTSensorBuilder::build(
-                container, materials.requireMaterial(SBT::kWallMaterial),
-                materials.requireMaterial(SBT::kScintillatorMaterial), "/SHiP/bad", params),
+                container, materials.requireMaterial(sbt::kWallMaterial),
+                materials.requireMaterial(sbt::kScintillatorMaterial), "/SHiP/bad", params),
             std::invalid_argument);
     }
     // Sensor-only: the wall stack must fit both Z-split container pieces.
     // 7 walls x 20 mm = 140 mm overfills the 131.25 mm near piece; with
     // kSubFrustaTooShort the far piece is negative.
-    constexpr SBT::SBTParams kWallsOverfillNearPiece =
-        vary([](SBT::SBTParams& p) { p.cellWallThickness = 20.0; });
-    for (const SBT::SBTParams& params : {kWallsOverfillNearPiece, kSubFrustaTooShort}) {
+    constexpr sbt::SBTParams kWallsOverfillNearPiece =
+        vary([](sbt::SBTParams& p) { p.cellWallThickness = 20.0; });
+    for (const sbt::SBTParams& params : {kWallsOverfillNearPiece, kSubFrustaTooShort}) {
         CHECK_THROWS_AS(
             SHiP::geometry::SBTSensorBuilder::build(
-                container, materials.requireMaterial(SBT::kWallMaterial),
-                materials.requireMaterial(SBT::kScintillatorMaterial), "/SHiP/bad", params),
+                container, materials.requireMaterial(sbt::kWallMaterial),
+                materials.requireMaterial(sbt::kScintillatorMaterial), "/SHiP/bad", params),
             std::invalid_argument);
     }
     CHECK(container->getNChildVols() == 0u);  // NOLINT(readability/check)
