@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
-#include "Target/TargetFactory.h"
+#include "SHiP/geometry/Target/TargetFactory.h"
 
-#include "SHiPGeometry/SHiPMaterials.h"
+#include "SHiP/geometry/Materials.h"
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoDefinitions.h>
@@ -20,9 +20,9 @@
 
 #include <string>
 
-namespace SHiPGeometry {
+namespace SHiP::geometry {
 
-TargetFactory::TargetFactory(SHiPMaterials& materials) : m_materials(materials) {}
+TargetFactory::TargetFactory(Materials& materials) : m_materials(materials) {}
 
 GeoPhysVol* TargetFactory::build() {
     // Get materials with null checking
@@ -275,4 +275,4 @@ GeoPhysVol* TargetFactory::createHeVolume() {
     return heVolumePhys;
 }
 
-}  // namespace SHiPGeometry
+}  // namespace SHiP::geometry

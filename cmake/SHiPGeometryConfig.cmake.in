@@ -11,4 +11,41 @@ find_dependency(GeoModelTools CONFIG REQUIRED)
 
 include("${CMAKE_CURRENT_LIST_DIR}/SHiPGeometryTargets.cmake")
 
+# Transitional names for the pre-0.3.0 spellings, scheduled for removal in
+# 0.4.0. They are plain INTERFACE IMPORTED targets rather than ALIAS, because
+# install(EXPORT) does not mark its imported targets GLOBAL and ALIAS refuses a
+# non-global one.
+if(NOT TARGET SHiPGeometry::SHiPGeometry)
+    add_library(SHiPGeometry::SHiPGeometry INTERFACE IMPORTED)
+    set_target_properties(
+        SHiPGeometry::SHiPGeometry
+        PROPERTIES INTERFACE_LINK_LIBRARIES SHiP::Geometry
+    )
+endif()
+
+# The subsystems were exported under their bare names (SHiPGeometry::Cavern).
+foreach(
+    _ship_subsys IN
+    ITEMS
+        Cavern
+        Target
+        MuonShield
+        NeutrinoDetector
+        Magnet
+        DecayVolume
+        Trackers
+        Calorimeter
+        UpstreamTagger
+        TimingDetector
+)
+    if(NOT TARGET SHiPGeometry::${_ship_subsys})
+        add_library(SHiPGeometry::${_ship_subsys} INTERFACE IMPORTED)
+        set_target_properties(
+            SHiPGeometry::${_ship_subsys}
+            PROPERTIES INTERFACE_LINK_LIBRARIES SHiP::Geometry${_ship_subsys}
+        )
+    endif()
+endforeach()
+unset(_ship_subsys)
+
 check_required_components(SHiPGeometry)

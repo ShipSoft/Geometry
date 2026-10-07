@@ -98,9 +98,9 @@ The target_vacuum_box is placed in the cave at position:
 
 ```cpp
 #include "Target/TargetFactory.h"
-#include "SHiPGeometry/SHiPMaterials.h"
+#include "SHiP/geometry/Materials.h"
 
-SHiPMaterials materials;
+Materials materials;
 TargetFactory factory(materials);
 GeoPhysVol* target = factory.build();
 ```

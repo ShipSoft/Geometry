@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
-#include "DecayVolume/SBTEnvelope.h"
+#include "SHiP/geometry/DecayVolume/SBTEnvelope.h"
 
 #include <GeoModelKernel/GeoDefinitions.h>
 #include <GeoModelKernel/GeoLogVol.h>
@@ -14,7 +14,7 @@
 #include <span>
 #include <string>
 
-namespace SHiPGeometry::SBT {
+namespace SHiP::geometry::SBT {
 
 void buildHelium(GeoPhysVol* container, const GeoMaterial* helium,
                  std::span<const HeliumPiece> pieces) {
@@ -39,4 +39,4 @@ void buildHelium(GeoPhysVol* container, const GeoMaterial* helium,
     }
 }
 
-}  // namespace SHiPGeometry::SBT
+}  // namespace SHiP::geometry::SBT

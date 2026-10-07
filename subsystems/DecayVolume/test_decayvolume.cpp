@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
-#include "DecayVolume/DecayVolumeFactory.h"
-#include "DecayVolume/SBTConstants.h"
-#include "DecayVolume/SBTEnvelope.h"
-#include "DecayVolume/SBTSensorBuilder.h"
-#include "DecayVolume/SBTStructureBuilder.h"
-#include "SHiPGeometry/SHiPMaterials.h"
+#include "SHiP/geometry/DecayVolume/DecayVolumeFactory.h"
+#include "SHiP/geometry/DecayVolume/SBTConstants.h"
+#include "SHiP/geometry/DecayVolume/SBTEnvelope.h"
+#include "SHiP/geometry/DecayVolume/SBTSensorBuilder.h"
+#include "SHiP/geometry/DecayVolume/SBTStructureBuilder.h"
+#include "SHiP/geometry/Materials.h"
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoDefinitions.h>
@@ -26,8 +26,8 @@
 #include <string>
 #include <vector>
 
-using SHiPGeometry::SHiPMaterials;
-namespace SBT = SHiPGeometry::SBT;
+using SHiP::geometry::Materials;
+namespace SBT = SHiP::geometry::SBT;
 
 namespace {
 // The SBT is placed flat (every child of the container is a leaf), so the
@@ -62,8 +62,8 @@ ChildShapeCounts countByShape(const GeoVPhysVol* vol) {
 // central helium frustum.
 // CSV limits: DecayVolume halfX <= 2200, halfY <= 3300, halfZ <= 25200
 TEST_CASE("DecayVolumeWithinEnvelope", "[decayvolume]") {
-    SHiPMaterials materials;
-    SHiPGeometry::DecayVolumeFactory factory(materials);
+    Materials materials;
+    SHiP::geometry::DecayVolumeFactory factory(materials);
     GeoPhysVol* dv = factory.build();
     REQUIRE(dv != nullptr);
     auto* box = dynamic_cast<const GeoBox*>(dv->getLogVol()->getShape());
@@ -76,8 +76,8 @@ TEST_CASE("DecayVolumeWithinEnvelope", "[decayvolume]") {
 // Steel H-beam structure: 66 column + 120 corner-beam + 60 longitudinal +
 // 66 cross-beam GeoBox pieces = 312, all direct children of the container.
 TEST_CASE("DecayVolumeStructureBoxCount", "[decayvolume]") {
-    SHiPMaterials materials;
-    SHiPGeometry::DecayVolumeFactory factory(materials);
+    Materials materials;
+    SHiP::geometry::DecayVolumeFactory factory(materials);
     GeoPhysVol* dv = factory.build();
     REQUIRE(dv != nullptr);
     const ChildShapeCounts c = countByShape(dv);
@@ -89,8 +89,8 @@ TEST_CASE("DecayVolumeStructureBoxCount", "[decayvolume]") {
 // which is 2 slabs per sub-frustum (20) rather than a single frustum, because
 // the free region it fills is not linear in Z. 3380 + 20 = 3400 GeoTraps.
 TEST_CASE("DecayVolumeSensorTrapCount", "[decayvolume]") {
-    SHiPMaterials materials;
-    SHiPGeometry::DecayVolumeFactory factory(materials);
+    Materials materials;
+    SHiP::geometry::DecayVolumeFactory factory(materials);
     GeoPhysVol* dv = factory.build();
     REQUIRE(dv != nullptr);
     const ChildShapeCounts c = countByShape(dv);
@@ -101,8 +101,8 @@ TEST_CASE("DecayVolumeSensorTrapCount", "[decayvolume]") {
 // Flat architecture: total direct children = 312 structure + 3380 sensors +
 // 20 helium slabs = 3712, with no grandchildren.
 TEST_CASE("DecayVolumeChildCount", "[decayvolume]") {
-    SHiPMaterials materials;
-    SHiPGeometry::DecayVolumeFactory factory(materials);
+    Materials materials;
+    SHiP::geometry::DecayVolumeFactory factory(materials);
     GeoPhysVol* dv = factory.build();
     REQUIRE(dv != nullptr);
     CHECK(dv->getNChildVols() == 3712u);  // NOLINT(readability/check)
@@ -111,8 +111,8 @@ TEST_CASE("DecayVolumeChildCount", "[decayvolume]") {
 // The central decay region is built from helium GeoTraps, derived from the
 // innermost SBT surfaces so that they cannot overlap the structure or sensors.
 TEST_CASE("DecayVolumeHasHeliumFrustum", "[decayvolume]") {
-    SHiPMaterials materials;
-    SHiPGeometry::DecayVolumeFactory factory(materials);
+    Materials materials;
+    SHiP::geometry::DecayVolumeFactory factory(materials);
     GeoPhysVol* dv = factory.build();
     REQUIRE(dv != nullptr);
     const GeoVPhysVol* he = nullptr;
@@ -295,8 +295,8 @@ struct Built {
 
 // Build via the factory, from the constants in SBTConstants.h.
 Built buildDecayVolume() {
-    static SHiPMaterials materials;
-    SHiPGeometry::DecayVolumeFactory factory(materials);
+    static Materials materials;
+    SHiP::geometry::DecayVolumeFactory factory(materials);
     Built b;
     b.dv = factory.build();
     REQUIRE(b.dv != nullptr);
@@ -317,7 +317,7 @@ constexpr SBT::SBTParams vary(void (*apply)(SBT::SBTParams&)) {
 // real envelope allocation would reject half the variations below, which vary
 // the frustum well past it on purpose.
 Built buildFromParams(const SBT::SBTParams& params, const std::string& tag) {
-    static SHiPMaterials materials;
+    static Materials materials;
     const GeoMaterial* air = materials.requireMaterial(SBT::kAirMaterial);
     const GeoMaterial* steel = materials.requireMaterial(SBT::kSteelMaterial);
     const GeoMaterial* alMat = materials.requireMaterial(SBT::kWallMaterial);
@@ -328,8 +328,8 @@ Built buildFromParams(const SBT::SBTParams& params, const std::string& tag) {
     auto* boxShape = new GeoBox(10000.0, 10000.0, 40000.0);
     auto* container = new GeoPhysVol(new GeoLogVol("/SHiP/test_container", boxShape, air));
 
-    SHiPGeometry::SBTStructureBuilder::build(container, steel, tag + "/structure", params);
-    SHiPGeometry::SBTSensorBuilder::build(container, alMat, labMat, tag + "/sensors", params);
+    SHiP::geometry::SBTStructureBuilder::build(container, steel, tag + "/structure", params);
+    SHiP::geometry::SBTSensorBuilder::build(container, alMat, labMat, tag + "/sensors", params);
 
     // Derived here rather than read from kHeliumPieces, since the whole point
     // is a configuration the shipped array does not describe.
@@ -604,18 +604,18 @@ TEST_CASE("HeliumRejectsAnImpossibleSBT", "[decayvolume][envelope]") {
 // The builders take arbitrary SBTParams, so they check them too: malformed
 // parameters must throw rather than produce negative-size shapes.
 TEST_CASE("SBTBuildersRejectMalformedParameters", "[decayvolume][envelope]") {
-    static SHiPMaterials materials;
+    static Materials materials;
     const GeoMaterial* air = materials.requireMaterial(SBT::kAirMaterial);
     auto* container = new GeoPhysVol(
         new GeoLogVol("/SHiP/test_container", new GeoBox(10000.0, 10000.0, 40000.0), air));
 
     for (const SBT::SBTParams& params : {kInsideOutContainers, kNegativeWeb}) {
         CHECK_THROWS_AS(
-            SHiPGeometry::SBTStructureBuilder::build(
+            SHiP::geometry::SBTStructureBuilder::build(
                 container, materials.requireMaterial(SBT::kSteelMaterial), "/SHiP/bad", params),
             std::invalid_argument);
         CHECK_THROWS_AS(
-            SHiPGeometry::SBTSensorBuilder::build(
+            SHiP::geometry::SBTSensorBuilder::build(
                 container, materials.requireMaterial(SBT::kWallMaterial),
                 materials.requireMaterial(SBT::kScintillatorMaterial), "/SHiP/bad", params),
             std::invalid_argument);
@@ -627,7 +627,7 @@ TEST_CASE("SBTBuildersRejectMalformedParameters", "[decayvolume][envelope]") {
         vary([](SBT::SBTParams& p) { p.cellWallThickness = 20.0; });
     for (const SBT::SBTParams& params : {kWallsOverfillNearPiece, kSubFrustaTooShort}) {
         CHECK_THROWS_AS(
-            SHiPGeometry::SBTSensorBuilder::build(
+            SHiP::geometry::SBTSensorBuilder::build(
                 container, materials.requireMaterial(SBT::kWallMaterial),
                 materials.requireMaterial(SBT::kScintillatorMaterial), "/SHiP/bad", params),
             std::invalid_argument);

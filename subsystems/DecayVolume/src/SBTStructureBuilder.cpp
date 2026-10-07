@@ -24,9 +24,9 @@
 // 3-D direction, then the cross-section orientation is preserved by the same
 // rotation.
 
-#include "DecayVolume/SBTStructureBuilder.h"
+#include "SHiP/geometry/DecayVolume/SBTStructureBuilder.h"
 
-#include "DecayVolume/SBTConstants.h"
+#include "SHiP/geometry/DecayVolume/SBTConstants.h"
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoDefinitions.h>
@@ -44,7 +44,7 @@
 #include <string>
 #include <utility>
 
-namespace SHiPGeometry {
+namespace SHiP::geometry {
 
 using namespace GeoModelKernelUnits;
 
@@ -401,4 +401,4 @@ void SBTStructureBuilder::build(GeoVPhysVol* mother, const GeoMaterial* steel,
     }
 }
 
-}  // namespace SHiPGeometry
+}  // namespace SHiP::geometry
