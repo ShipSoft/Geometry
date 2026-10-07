@@ -78,7 +78,7 @@ A violation fails the build with a descriptive message.
 - `CalorimeterHasChildren` — the container holds exactly
   `kModuleNX × kModuleNY × kVolsPerModule` children (588), so a dropped or
   duplicated layer placement cannot pass unnoticed.
-- `TotalStackZMatchesReference` — `Calo::kTotalStackZ` matches the
+- `TotalStackZMatchesReference` — `calo::kTotalStackZ` matches the
   hand-computed reference, guarding the layer-sequence transcription.
 
 ## Status

@@ -37,7 +37,7 @@
  * Coordinates are in the world frame, whose origin is the front face of the
  * first target disk.
  */
-namespace SHiP::geometry::Layout {
+namespace SHiP::geometry::layout {
 
 using units::LengthMm;
 
@@ -89,7 +89,7 @@ inline constexpr Slot kUpstreamTagger = slotOf<UpstreamTaggerFactory>(
     UpstreamTaggerFactory::s_halfX, UpstreamTaggerFactory::s_halfY, UpstreamTaggerFactory::s_halfZ);
 
 inline constexpr Slot kDecayVolume =
-    slotOf<DecayVolumeFactory>(SBT::kEnvelopeHalfX, SBT::kEnvelopeHalfY, SBT::kEnvelopeHalfZ);
+    slotOf<DecayVolumeFactory>(sbt::kEnvelopeHalfX, sbt::kEnvelopeHalfY, sbt::kEnvelopeHalfZ);
 
 /// The factory positions its stations relative to s_containerCentreZ, so the
 /// container goes there and the stations land on their absolute z. The
@@ -106,7 +106,7 @@ inline constexpr Slot kTimingDetector = slotOf<TimingDetectorFactory>(
     TimingDetectorFactory::s_containerHalfZ);
 
 inline constexpr Slot kCalorimeter =
-    slotOf<CalorimeterFactory>(Calo::kContainerHalfX, Calo::kContainerHalfY, Calo::kContainerHalfZ);
+    slotOf<CalorimeterFactory>(calo::kContainerHalfX, calo::kContainerHalfY, calo::kContainerHalfZ);
 
 /// All subsystems, in placement order (upstream to downstream).
 inline constexpr std::array kSlots{kTarget,         kMuonShield,     kNeutrinoDetector,
@@ -176,14 +176,14 @@ inline constexpr checks::Box kWorld = checks::box(
 
 /// Container lies inside the envelope along the beam (with @p tol of slack,
 /// for values that are equal on paper but rounded differently).
-[[nodiscard]] constexpr bool fitsEnvelopeZ(const Slot& slot, const Envelopes::Envelope& env,
+[[nodiscard]] constexpr bool fitsEnvelopeZ(const Slot& slot, const envelopes::Envelope& env,
                                            LengthMm tol = 1e-6 * detail::mm) {
     return checks::contains(env.z(), slot.zSpan(), tol);
 }
 
 /// Container stays inside the envelope's largest transverse size (with
 /// @p tolX and @p tolY of slack).
-[[nodiscard]] constexpr bool fitsEnvelopeXY(const Slot& slot, const Envelopes::Envelope& env,
+[[nodiscard]] constexpr bool fitsEnvelopeXY(const Slot& slot, const envelopes::Envelope& env,
                                             LengthMm tolX = detail::zero,
                                             LengthMm tolY = detail::zero) {
     const auto xReach = (slot.x < detail::zero ? -slot.x : slot.x) + slot.halfX;
@@ -278,41 +278,41 @@ namespace detail {
 /// Muon shield region: the hadron stopper start to the end of the last
 /// magnet. The hadron stopper has no transverse size in the CSV, so the
 /// transverse limits come from the magnets alone.
-inline constexpr Envelopes::Envelope kMuonShieldRegion = [] {
-    auto env = Envelopes::hull("Muon shield region", Envelopes::kMuonShield);
-    env.zStart = Envelopes::kHadronStopper.zStart;
+inline constexpr envelopes::Envelope kMuonShieldRegion = [] {
+    auto env = envelopes::hull("Muon shield region", envelopes::kMuonShield);
+    env.zStart = envelopes::kHadronStopper.zStart;
     return env;
 }();
 
 /// Decay volume plus the SBT shell wrapped around it.
-inline constexpr Envelopes::Envelope kDecayVolumeWithSBT = [] {
-    auto env = Envelopes::kDecayVolume;
-    env.halfWidthUp = env.halfWidthUp + Envelopes::kSurroundTaggerThickness;
-    env.halfWidthDown = env.halfWidthDown + Envelopes::kSurroundTaggerThickness;
-    env.halfHeightUp = env.halfHeightUp + Envelopes::kSurroundTaggerThickness;
-    env.halfHeightDown = env.halfHeightDown + Envelopes::kSurroundTaggerThickness;
+inline constexpr envelopes::Envelope kDecayVolumeWithSBT = [] {
+    auto env = envelopes::kDecayVolume;
+    env.halfWidthUp = env.halfWidthUp + envelopes::kSurroundTaggerThickness;
+    env.halfWidthDown = env.halfWidthDown + envelopes::kSurroundTaggerThickness;
+    env.halfHeightUp = env.halfHeightUp + envelopes::kSurroundTaggerThickness;
+    env.halfHeightDown = env.halfHeightDown + envelopes::kSurroundTaggerThickness;
     return env;
 }();
 
 /// Tracker stations 1 to 4, including the magnet gap between 2 and 3.
-inline constexpr auto kTrackerRegion = Envelopes::hull("Trackers", Envelopes::kTrackerStations);
+inline constexpr auto kTrackerRegion = envelopes::hull("Trackers", envelopes::kTrackerStations);
 
 /// Split ECAL front and back plus the HCAL.
-inline constexpr auto kCalorimeterRegion = Envelopes::hull("Calorimeter", Envelopes::kCalorimeter);
+inline constexpr auto kCalorimeterRegion = envelopes::hull("Calorimeter", envelopes::kCalorimeter);
 }  // namespace detail
 
-static_assert(kTarget.zSpan().hi <= Envelopes::kHadronStopper.zStart,
+static_assert(kTarget.zSpan().hi <= envelopes::kHadronStopper.zStart,
               "the target vacuum box reaches into the hadron stopper");
 
 static_assert(fitsEnvelopeXY(kMuonShield, detail::kMuonShieldRegion),
               "the muon shield container is outside its EDMS envelope transversely");
-static_assert(fitsEnvelopeZ(kNeutrinoDetector, Envelopes::kNeutrinoDetector),
+static_assert(fitsEnvelopeZ(kNeutrinoDetector, envelopes::kNeutrinoDetector),
               "the SND container is outside its EDMS envelope along z");
-static_assert(fitsEnvelopeXY(kNeutrinoDetector, Envelopes::kNeutrinoDetector),
+static_assert(fitsEnvelopeXY(kNeutrinoDetector, envelopes::kNeutrinoDetector),
               "the SND container is outside its EDMS envelope transversely");
-static_assert(fitsEnvelopeZ(kUpstreamTagger, Envelopes::kUpstreamTagger),
+static_assert(fitsEnvelopeZ(kUpstreamTagger, envelopes::kUpstreamTagger),
               "the UBT container is outside its EDMS envelope along z");
-static_assert(fitsEnvelopeZ(kDecayVolume, Envelopes::kDecayVolume),
+static_assert(fitsEnvelopeZ(kDecayVolume, envelopes::kDecayVolume),
               "the decay volume container is outside its EDMS envelope along z");
 static_assert(fitsEnvelopeXY(kDecayVolume, detail::kDecayVolumeWithSBT),
               "the decay volume container is outside its EDMS envelope transversely");
@@ -320,11 +320,11 @@ static_assert(fitsEnvelopeZ(kTrackers, detail::kTrackerRegion),
               "the trackers container is outside its EDMS envelope along z");
 static_assert(fitsEnvelopeXY(kTrackers, detail::kTrackerRegion),
               "the trackers container is outside its EDMS envelope transversely");
-static_assert(fitsEnvelopeZ(kMagnet, Envelopes::kMagnet),
+static_assert(fitsEnvelopeZ(kMagnet, envelopes::kMagnet),
               "the magnet container is outside its EDMS envelope along z");
-static_assert(fitsEnvelopeXY(kMagnet, Envelopes::kMagnet),
+static_assert(fitsEnvelopeXY(kMagnet, envelopes::kMagnet),
               "the magnet container is outside its EDMS envelope transversely");
-static_assert(fitsEnvelopeXY(kTimingDetector, Envelopes::kTimingDetector),
+static_assert(fitsEnvelopeXY(kTimingDetector, envelopes::kTimingDetector),
               "the timing detector container is outside its EDMS envelope transversely");
 static_assert(fitsEnvelopeZ(kCalorimeter, detail::kCalorimeterRegion),
               "the calorimeter container is outside its EDMS envelope along z");
@@ -343,15 +343,15 @@ static_assert(!fitsEnvelopeZ(kMuonShield, detail::kMuonShieldRegion),
 static_assert(fitsEnvelopeZ(kMuonShield, detail::kMuonShieldRegion, kMuonShieldEarlyStart),
               "the muon shield container deviates from the EDMS region by more than "
               "kMuonShieldEarlyStart");
-static_assert(!fitsEnvelopeXY(kUpstreamTagger, Envelopes::kUpstreamTagger),
+static_assert(!fitsEnvelopeXY(kUpstreamTagger, envelopes::kUpstreamTagger),
               "the UBT container now fits the EDMS envelope: assert fitsEnvelopeXY instead");
-static_assert(fitsEnvelopeXY(kUpstreamTagger, Envelopes::kUpstreamTagger, kUpstreamTaggerExcessX,
+static_assert(fitsEnvelopeXY(kUpstreamTagger, envelopes::kUpstreamTagger, kUpstreamTaggerExcessX,
                              kUpstreamTaggerExcessY),
               "the UBT container exceeds the EDMS envelope by more than "
               "kUpstreamTaggerExcessX/Y");
-static_assert(!fitsEnvelopeZ(kTimingDetector, Envelopes::kTimingDetector),
+static_assert(!fitsEnvelopeZ(kTimingDetector, envelopes::kTimingDetector),
               "the timing detector now fits the EDMS envelope: assert fitsEnvelopeZ instead");
-static_assert(fitsEnvelopeZ(kTimingDetector, Envelopes::kTimingDetector, kTimingDetectorEarlyStart),
+static_assert(fitsEnvelopeZ(kTimingDetector, envelopes::kTimingDetector, kTimingDetectorEarlyStart),
               "the timing detector deviates from the EDMS envelope by more than "
               "kTimingDetectorEarlyStart");
 
@@ -365,11 +365,11 @@ static_assert(fitsEnvelopeZ(kTimingDetector, Envelopes::kTimingDetector, kTiming
 inline constexpr std::array kTrackerStationZ{
     TrackersFactory::s_station1Z, TrackersFactory::s_station2Z, TrackersFactory::s_station3Z,
     TrackersFactory::s_station4Z};
-static_assert(kTrackerStationZ.size() == Envelopes::kTrackerStations.size());
+static_assert(kTrackerStationZ.size() == envelopes::kTrackerStations.size());
 static_assert(
     [] {
         for (std::size_t i = 0; i < kTrackerStationZ.size(); ++i) {
-            if (!checks::contains(Envelopes::kTrackerStations[i].z(),
+            if (!checks::contains(envelopes::kTrackerStations[i].z(),
                                   trackerStation(kTrackerStationZ[i]), 1e-6 * detail::mm)) {
                 return false;
             }
@@ -386,4 +386,4 @@ static_assert(checks::contains({trackerStation(TrackersFactory::s_station2Z).hi,
                                             TrackersFactory::s_trackerMagnetHalfZ)),
               "the tracker-magnet marker must sit in the gap between station 2 and the magnet");
 
-}  // namespace SHiP::geometry::Layout
+}  // namespace SHiP::geometry::layout

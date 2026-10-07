@@ -34,8 +34,8 @@ TEST_CASE("CalorimeterHasChildren", "[calorimeter]") {
     REQUIRE(calo != nullptr);
     // One volume per module per non-air-gap layer, so the sequencer cannot
     // silently drop or duplicate a placement.
-    constexpr unsigned kExpectedChildren = SHiP::geometry::Calo::kModuleNX *
-                                           SHiP::geometry::Calo::kModuleNY *
-                                           SHiP::geometry::Calo::kVolsPerModule;
+    constexpr unsigned kExpectedChildren = SHiP::geometry::calo::kModuleNX *
+                                           SHiP::geometry::calo::kModuleNY *
+                                           SHiP::geometry::calo::kVolsPerModule;
     CHECK(calo->getNChildVols() == kExpectedChildren);  // NOLINT(readability/check)
 }

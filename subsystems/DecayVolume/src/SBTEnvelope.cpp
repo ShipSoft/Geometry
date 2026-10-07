@@ -13,7 +13,7 @@
 #include <span>
 #include <string>
 
-namespace SHiP::geometry::SBT {
+namespace SHiP::geometry::sbt {
 
 using units::gm;
 
@@ -38,4 +38,4 @@ void buildHelium(GeoPhysVol* container, const GeoMaterial* helium,
     }
 }
 
-}  // namespace SHiP::geometry::SBT
+}  // namespace SHiP::geometry::sbt

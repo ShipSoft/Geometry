@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: CERN for the benefit of the SHiP Collaboration
+# SPDX-License-Identifier: LGPL-3.0-or-later
+#
+# Layered on top of the synced .clang-tidy at the repository root, which
+# config-sync owns. This file is ours.
+#
+# The root config enables readability-identifier-naming but configures nothing,
+# which leaves the check silent until a repository has a convention to enforce.
+# This is that opt-in for namespaces: every namespace is lower_case, except the
+# top-level SHiP, which is spelled after the collaboration. So the geometry lives
+# in SHiP::geometry, and the groupings below it are sbt, calo, calo_bar and
+# calo_fibre_hp.
+#
+# The check reads the configuration of the directory a name is *declared* in, not
+# of the translation unit (GetConfigPerFile, on by default), so this file is
+# repeated in every directory that declares a namespace: include/, src/,
+# subsystems/ and tests/. It belongs in the shared config once every ShipSoft
+# repository has moved onto SHiP, at which point these copies go away.
+InheritParentConfig: true
+
+CheckOptions:
+  readability-identifier-naming.NamespaceCase: lower_case
+  readability-identifier-naming.NamespaceIgnoredRegexp: '^SHiP$'
