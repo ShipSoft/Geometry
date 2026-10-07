@@ -58,7 +58,7 @@ is done downstream by name pattern. The whole assembly is returned as a single
 Tile totals: fine 2 × 400 + 2 × 19 200 = 39 200; coarse 300 + 2 × 3 750 = 7 800;
 **47 000 tiles** in total.
 
-Position in world: z = 32 720 mm (centre of the 32.52–32.92 m envelope).
+Position in world: z = 32 990 mm (inside the 32.67–33.07 m slot of integration layout 2026-1.2, EDMS 3287817 v1.2, with the rear face flush with the decay-volume container and the end of the slot at 33.07 m).
 
 ## Materials
 

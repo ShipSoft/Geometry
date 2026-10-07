@@ -34,7 +34,9 @@ class DecayVolumeFactory {
     /**
      * @brief This subsystem's self-description (name, node, id, placement).
      *
-     * Z: 32.92 to 83.32 m, so the container is centred at z = 58.12 m.
+     * Integration layout 2026-1.2 (EDMS 3287817 v1.2): 50 m vessel centred at
+     * z = 58.27 m (33.27 to 83.27 m). The container adds 0.2 m of air at each
+     * end, so it spans 33.07 to 83.47 m.
      */
     static constexpr SubsystemDescriptor descriptor() {
         using units::gm;
@@ -44,7 +46,7 @@ class DecayVolumeFactory {
                 .id = 4,
                 .x_mm = 0.0,
                 .y_mm = 0.0,
-                .z_mm = gm(58.12 * m),
+                .z_mm = gm(58.27 * m),
                 .isWorld = false};
     }
     /// Build the DecayVolume geometry; returns the air container.

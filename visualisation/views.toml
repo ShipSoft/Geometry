@@ -179,7 +179,7 @@ row = 1
 ha = "left"
 [[direct_labels]]
 label = "Decay volume + SBT"
-at = [0, 3000, 58120]
+at = [0, 3000, 58270]
 row = 1
 [[direct_labels]]
 label = "Trackers"
@@ -188,11 +188,11 @@ row = 1
 ha = "right"
 [[direct_labels]]
 label = "Magnet"
-at = [0, 4300, 89570]
+at = [0, 4300, 89720]
 row = 1
 [[direct_labels]]
 label = "Timing detector"
-at = [0, 3200, 95900]
+at = [0, 3200, 96370]
 row = 2
 ha = "right"
 [[direct_labels]]

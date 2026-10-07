@@ -47,9 +47,9 @@ class Materials;
  * calorimeter bar layers; sensitive-detector assignment is performed
  * downstream by name pattern.
  *
- * The container envelope (half 2200 × 3200 × 80 mm, centre Z = 32 720 mm)
- * is unchanged from the previous monolithic slab so the placement in
- * DetectorBuilder and the subsystem-envelope consistency checks still hold.
+ * The container envelope (half 2200 × 3200 × 80 mm) has the same dimensions
+ * as the previous monolithic slab, so the subsystem-envelope consistency
+ * checks still hold. DetectorBuilder places it at centre Z = 32 990 mm.
  */
 class UpstreamTaggerFactory {
    public:
@@ -59,7 +59,10 @@ class UpstreamTaggerFactory {
     /**
      * @brief This subsystem's self-description (name, node, id, placement).
      *
-     * Z: 32.52 to 32.92 m, so the container is centred at z = 32.72 m.
+     * Integration layout 2026-1.2 (EDMS 3287817 v1.2): 0.4 m slot from 32.67
+     * to 33.07 m at the entrance of the decay volume. The 160 mm tile plane is
+     * placed inside that slot with its rear face flush with the decay-volume
+     * container (33.07 m), so it cannot sit exactly on the slot mid-plane.
      */
     static constexpr SubsystemDescriptor descriptor() {
         using units::gm;
@@ -69,7 +72,7 @@ class UpstreamTaggerFactory {
                 .id = 3,
                 .x_mm = 0.0,
                 .y_mm = 0.0,
-                .z_mm = gm(32.72 * m),
+                .z_mm = gm(32.99 * m),
                 .isWorld = false};
     }
     /**
