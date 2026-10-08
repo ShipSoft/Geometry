@@ -39,12 +39,14 @@ class CavernFactory {
     // ── Layout (global frame: origin at the target front face, mm) ──────
     //
     // Integration layout SPSXXSHIP0002 version 2026-0.1 (EDMS 3287817 v1.1)
-    // and the CAD model ST1967028_01. The TCC8/ECN3 step sits at the
-    // mid-plane of the gap between muon-shield magnets M4 and S5; the beam
-    // line is 1.70 m above the TCC8 floor and 3.36 m above the ECN3 floor.
-    // The transverse offsets of the tunnel and the hall and the stair step
-    // between them are carried over from the FairShip cavern (ShipCave).
-    static constexpr double s_stepZ = 21.78 * GeoModelKernelUnits::m;  // TCC8/ECN3 step
+    // and the CAD model ST1967028_01. The TCC8 floor ends 21.37 m downstream
+    // of the target front face; the 0.82 m stair step that follows is centred
+    // on the gap between muon-shield magnets M4 and S5, and the ECN3 floor
+    // starts after it. The beam line is 1.70 m above the TCC8 floor and
+    // 3.36 m above the ECN3 floor. The transverse offsets of the tunnel and
+    // the hall and the stair step between them are carried over from the
+    // FairShip cavern (ShipCave).
+    static constexpr double s_stepZ = 21.37 * GeoModelKernelUnits::m;  // end of the TCC8 floor
     static constexpr double s_tcc8Length =
         170.0 * GeoModelKernelUnits::m;  // tunnel modelled upstream of the step
     static constexpr double s_stairLength =
