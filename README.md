@@ -52,6 +52,7 @@ is written.
 - CMake 3.16 or later
 - C++23 compiler (CI builds with the GCC pinned in `pixi.toml`)
 - GeoModel libraries (GeoModelCore, GeoModelIO, GeoModelTools) version 6.22+
+- Catch2 3 (tests only; configure with `-DBUILD_TESTING=OFF` to skip them)
 
 ### Build Instructions
 

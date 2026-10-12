@@ -46,6 +46,9 @@ sqlite = "*"
 geomodel = ">=6.22"
 eigen-abi-devel = "*"
 nlohmann_json = "*"
+# Only the tests use Catch2, and the package build sets BUILD_TESTING=OFF, so
+# it is not a host dependency.
+catch2 = "3.*"
 
 # Static analysis. clang-tidy lives here rather than in [feature.lint] because
 # it replays the commands in compile_commands.json and so needs the same

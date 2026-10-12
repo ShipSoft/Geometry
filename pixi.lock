@@ -38,6 +38,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/linux-64/bzip2-1.0.8-hda65f42_10.conda
       - conda: https://prefix.dev/conda-forge/linux-64/c-ares-1.34.8-hebe6cf0_2.conda
       - conda: https://prefix.dev/conda-forge/linux-64/cairo-1.18.4-h3c89d7e_3.conda
+      - conda: https://prefix.dev/conda-forge/linux-64/catch2-3.16.1-h4dbf13b_0.conda
       - conda: https://prefix.dev/conda-forge/linux-64/clhep-2.4.7.2-h54a6638_1.conda
       - conda: https://prefix.dev/conda-forge/linux-64/cmake-4.4.3-hff7ac6b_0.conda
       - conda: https://prefix.dev/conda-forge/linux-64/coin3d-4.0.10-he84a68e_1.conda
@@ -233,6 +234,7 @@ environments:
       - conda: https://prefix.dev/conda-forge/linux-64/bzip2-1.0.8-hda65f42_10.conda
       - conda: https://prefix.dev/conda-forge/linux-64/c-ares-1.34.8-hebe6cf0_2.conda
       - conda: https://prefix.dev/conda-forge/linux-64/cairo-1.18.4-h3c89d7e_3.conda
+      - conda: https://prefix.dev/conda-forge/linux-64/catch2-3.16.1-h4dbf13b_0.conda
       - conda: https://prefix.dev/conda-forge/linux-64/clang-format-23-23.1.0-default_h0acdd01_1.conda
       - conda: https://prefix.dev/conda-forge/linux-64/clang-format-23.1.0-default_hcd25269_1.conda
       - conda: https://prefix.dev/conda-forge/linux-64/clhep-2.4.7.2-h54a6638_1.conda
@@ -961,6 +963,20 @@ packages:
     - cairo >=1.18.4,<2.0a0
   size: 991011
   timestamp: 1788221336073
+- conda: https://prefix.dev/conda-forge/linux-64/catch2-3.16.1-h4dbf13b_0.conda
+  sha256: b944bef416ce510cf0d6782e0a4f0aacd25a2c2f8e36baf276eadc0701c46376
+  md5: 448b8cd3cf52aefc044be995ea270605
+  depends:
+  - libstdcxx >=15
+  - libgcc >=15
+  - __glibc >=2.17,<3.0.a0
+  license: BSL-1.0
+  purls: []
+  run_exports:
+    weak:
+    - catch2 >=3.16.1,<4.0a0
+  size: 675208
+  timestamp: 1791497297484
 - conda: https://prefix.dev/conda-forge/linux-64/clang-format-23-23.1.0-default_h0acdd01_1.conda
   sha256: daefff78c52a5a51241c9f34ea0b645f2532de75d925eb987b671ff8d7acca15
   md5: ce1c496a9732c0382c24e01e054372a4
@@ -4382,7 +4398,7 @@ packages:
   - python
   license: MIT
   purls:
-  - pkg:pypi/wcwidth?source=compressed-mapping
+  - pkg:pypi/wcwidth?source=hash-mapping
   run_exports: {}
   size: 146490
   timestamp: 1788174996551
