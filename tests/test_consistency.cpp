@@ -143,3 +143,24 @@ static_assert(
     !SHiPGeometry::checks::overlaps(SHiPGeometry::checks::Span{0.0 * units::mm, 1.0 * units::mm},
                                     SHiPGeometry::checks::Span{1.0 * units::mm, 2.0 * units::mm}),
     "touching spans do not overlap");
+
+namespace {
+constexpr SHiPGeometry::checks::Box cube(double x0, double x1, double y0, double y1, double z0,
+                                         double z1) {
+    return {.x = {.lo = x0 * units::mm, .hi = x1 * units::mm},
+            .y = {.lo = y0 * units::mm, .hi = y1 * units::mm},
+            .z = {.lo = z0 * units::mm, .hi = z1 * units::mm}};
+}
+// An L in x-y: the corner x > 1, y > 1 is rock.
+constexpr std::array kL{cube(0, 2, 0, 1, 0, 1), cube(0, 1, 1, 2, 0, 1)};
+}  // namespace
+
+static_assert(SHiPGeometry::checks::coveredBy(cube(0, 1, 0, 2, 0, 1), kL),
+              "a box spanning two halls is covered");
+static_assert(!SHiPGeometry::checks::coveredBy(cube(0, 2, 0, 2, 0, 1), kL),
+              "the missing corner of the L is found");
+static_assert(!SHiPGeometry::checks::coveredBy(cube(0, 1, 0, 1, 0, 2), kL),
+              "a box poking out along z is not covered");
+// The calorimeter used to end 442 mm past the experiment hall.
+static_assert(Layout::kCalorimeter.box().z.hi <= Layout::kCavities[1].z.hi,
+              "the calorimeter ends inside the experiment hall");

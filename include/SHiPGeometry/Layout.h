@@ -221,25 +221,28 @@ inline constexpr std::array kCavities = [] {
     };
 }();
 
-/// The container lies entirely within one hall.
+/// The container lies within the halls taken together: the muon shield runs
+/// from TCC8 across the step into ECN3, and the magnet sits partly in the
+/// yoke pit.
 [[nodiscard]] constexpr bool isInCavity(const Slot& slot) {
-    for (const auto& cavity : kCavities) {
-        if (checks::contains(cavity, slot.box())) {
-            return true;
-        }
-    }
-    return false;
+    return checks::coveredBy(slot.box(), kCavities);
 }
 
 static_assert(checks::firstFailure(kSlots,
                                    [](const Slot& s) {
-                                       return isInCavity(s) || s.path == kCalorimeter.path;
+                                       return isInCavity(s) || s.path == kTrackers.path ||
+                                              s.path == kCalorimeter.path;
                                    }) == checks::npos,
               "a subsystem container reaches into the cavern rock");
-// Known deviation: the cavern was taken from GDML with a different z origin,
-// and the calorimeter reaches ~442 mm past the end of the experiment hall.
+// Known deviations: the ECN3 floor is 3.364 m below the beam, and two
+// containers centred on the beam are taller than that allows outside the yoke
+// pit. The tracker container (half-height 3.43 m) reaches 66 mm into the
+// floor at stations 1 and 4; the calorimeter container (half-height 3.5 m, the
+// EDMS envelope) reaches 136 mm into it, although its modules fit.
+static_assert(!isInCavity(kTrackers),
+              "the tracker container now fits the experiment hall: drop its exception above");
 static_assert(!isInCavity(kCalorimeter),
-              "the calorimeter now fits the experiment hall: drop its exception above");
+              "the calorimeter container now fits the experiment hall: drop its exception above");
 
 // ── EDMS envelopes ──────────────────────────────────────────────────────
 
