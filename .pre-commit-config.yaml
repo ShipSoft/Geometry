@@ -20,6 +20,13 @@ repos:
       - id: mixed-line-ending
         args: ['--fix=lf']
 
+  # Org-wide hooks. forbid-ship-namespace is the half of the namespace rule that
+  # clang-tidy cannot express (see .clang-tidy).
+  - repo: https://github.com/ShipSoft/.github
+    rev: v1.0.0
+    hooks:
+      - id: forbid-ship-namespace
+
   # Tools below come from the pixi `lint` environment via language: system.
   - repo: local
     hooks:
