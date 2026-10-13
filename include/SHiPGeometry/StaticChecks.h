@@ -5,8 +5,10 @@
 
 #include "SHiPGeometry/Units.h"
 
+#include <array>
 #include <cstddef>
 #include <limits>
+#include <utility>
 
 /**
  * @brief Constexpr predicates for compile-time geometry consistency checks.
@@ -105,6 +107,63 @@ template <typename Range, typename Pred>
         }
     }
     return npos;
+}
+
+/**
+ * Whether @p inner lies within the union of @p outers.
+ *
+ * Every bound of an outer box that falls inside @p inner cuts it into cells;
+ * each cell lies either wholly inside or wholly outside each outer box, so
+ * testing the cell centres decides coverage exactly.
+ */
+template <std::size_t N>
+[[nodiscard]] constexpr bool coveredBy(const Box& inner, const std::array<Box, N>& outers) {
+    struct Cuts {
+        std::array<LengthMm, 2 * N + 2> at{};
+        std::size_t n = 0;
+    };
+    const auto cuts = [&](Span Box::* axis) {
+        const Span s = inner.*axis;
+        Cuts c;
+        c.at[c.n++] = s.lo;
+        c.at[c.n++] = s.hi;
+        for (const auto& outer : outers) {
+            for (const LengthMm v : {(outer.*axis).lo, (outer.*axis).hi}) {
+                if (s.lo < v && v < s.hi) {
+                    c.at[c.n++] = v;
+                }
+            }
+        }
+        for (std::size_t i = 1; i < c.n; ++i) {
+            for (std::size_t j = i; j > 0 && c.at[j] < c.at[j - 1]; --j) {
+                std::swap(c.at[j], c.at[j - 1]);
+            }
+        }
+        return c;
+    };
+    const auto inside = [](Span s, LengthMm v) { return s.lo <= v && v <= s.hi; };
+
+    const Cuts cx = cuts(&Box::x);
+    const Cuts cy = cuts(&Box::y);
+    const Cuts cz = cuts(&Box::z);
+    for (std::size_t i = 0; i + 1 < cx.n; ++i) {
+        for (std::size_t j = 0; j + 1 < cy.n; ++j) {
+            for (std::size_t k = 0; k + 1 < cz.n; ++k) {
+                const LengthMm x = (cx.at[i] + cx.at[i + 1]) / 2.0;
+                const LengthMm y = (cy.at[j] + cy.at[j + 1]) / 2.0;
+                const LengthMm z = (cz.at[k] + cz.at[k + 1]) / 2.0;
+                bool covered = false;
+                for (const auto& outer : outers) {
+                    covered =
+                        covered || (inside(outer.x, x) && inside(outer.y, y) && inside(outer.z, z));
+                }
+                if (!covered) {
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
 }
 
 }  // namespace SHiPGeometry::checks
