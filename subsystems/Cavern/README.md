@@ -14,7 +14,7 @@ The Cavern subsystem defines the world volume and the surrounding rock mass with
 - **Z-axis**: Along beam direction (longitudinal, positive downstream)
 - **Y-axis**: Vertical (against gravity)
 - **X-axis**: Horizontal, perpendicular to beam (completes right-handed system)
-- **Beam axis height**: 1.7 m above floor
+- **Beam axis height**: 1.703 m above the TCC8 floor, 3.364 m above the ECN3 floor
 
 ### World Volume (cave)
 
@@ -27,28 +27,44 @@ The Cavern subsystem defines the world volume and the surrounding rock mass with
 - **Shape**: Box with subtracted cavities
 - **Base dimensions**: 40 m × 40 m × 280 m
 - **Material**: Concrete
-- **Position**: centred on the modelled tunnel and hall (z = −14.08 m)
+- **Position**: centred on the modelled tunnel and hall (z = −13.225 m)
 
 ### Layout reference
 
 The cavities follow the integration layout SPSXXSHIP0002 version 2026-0.1
-(EDMS 3287817 v1.1) and the CAD model ST1967028_01: the TCC8 floor ends at
-z = 21.37 m, the 0.82 m stair step that follows is centred on the gap
-between muon-shield magnets M4 and S5, the beam line is 1.70 m above the TCC8 floor and 3.36 m
-above the ECN3 floor, the yoke pit is centred on the spectrometer magnet
-(z = 89.72 m) and the ECN3 end wall is at z = 120.48 m. The transverse
-offsets of the tunnel and the hall, the stair step and the pit sizes are
-carried over from the FairShip cavern.
+(EDMS 3287817 v1.1). Their cross-sections and the end wall are the inner
+concrete surfaces of the civil-engineering solid in the CAD model
+ST1967028_01 behind that drawing, sectioned across the beam.
+
+- The TCC8 floor is 1.703 m below the beam and ends at z = 21.37 m.
+- A 0.82 m stretch at the TCC8 width follows, with its floor 0.80 m lower.
+- The ECN3 hall starts at z = 22.19 m, with its floor 3.364 m below the beam.
+  Its end wall is at z = 122.18 m.
+- The tunnel and hall walls are not centred on the beam. The values below are
+  taken at mid-hall, because the walls drift by 0.35 mrad relative to the beam
+  axis (34 mm over the hall).
+
+Simplifications:
+
+- The arched part of the TCC8 roof upstream of z = 6.2 m is modelled as the
+  flat 5.761 m ceiling of the rest of the tunnel.
+- ECN3 is cut off at the arch springline (y = 8.636 m). The crane ledges,
+  which widen the hall by 0.5 m on each side above y = 5.84 m, and the arch
+  itself (crown at y = 11.586 m) are not modelled.
+- The CAD model has neither pit. The yoke pit and the target pit are carried
+  over from the FairShip cavern (ShipCave): the yoke pit is centred on the
+  spectrometer magnet (z = 89.72 m).
+- Galleries, niches, doorways and shafts are left out.
 
 ### Subtracted Cavities (global frame)
 
 | Cavity | Dimensions (full) | x range | y range | z range |
 |--------|-------------------|---------|---------|---------|
-| TCC8 tunnel (muon shield cavern) | 9.99 m × 7.5 m × 170 m | −3.56 … +6.43 m | −1.70 … +5.80 m | −148.63 … +21.37 m |
-| Stair step | 15.99 m × 11.2 m × 0.82 m | −4.56 … +11.43 m | −2.56 … +8.64 m | 21.37 … 22.19 m |
-| ECN3 hall (experiment cavern) | 15.99 m × 12 m × 98.29 m | −4.56 … +11.43 m | −3.36 … +8.64 m | 22.19 … 120.48 m |
-| Yoke pit | 8.4 m × 1 m × 9 m | ±4.2 m | −4.36 … −3.36 m | 85.22 … 94.22 m |
-| Target pit | 4 m × 1 m × 4 m | ±2 m | −2.70 … −1.70 m | −0.54 … +3.46 m |
+| TCC8 tunnel (muon shield cavern) | 10.0 m × 7.464 m × 170 m | −3.587 … +6.413 m | −1.703 … +5.761 m | −148.63 … +21.37 m |
+| Stair step | 10.0 m × 8.264 m × 0.82 m | −3.587 … +6.413 m | −2.503 … +5.761 m | 21.37 … 22.19 m |
+| ECN3 hall (experiment cavern) | 16.0 m × 12.0 m × 99.99 m | −4.566 … +11.434 m | −3.364 … +8.636 m | 22.19 … 122.18 m |
+| Yoke pit | 8.4 m × 1 m × 9 m | ±4.2 m | −4.364 … −3.364 m | 85.22 … 94.22 m |
+| Target pit | 4 m × 1 m × 4 m | ±2 m | −2.703 … −1.703 m | −0.54 … +3.46 m |
 
 ## Materials
 
@@ -60,11 +76,12 @@ carried over from the FairShip cavern.
 ## Status
 
 - [x] C++ implementation
-- [x] Cavity positions checked against integration layout 2026-0.1
+- [x] Cavity positions and cross-sections checked against the integration
+      layout 2026-0.1 and its CAD model
 - [ ] Material properties review
 
 ## TODO
 
-- Take the tunnel and hall cross-sections from the civil-engineering model
-  instead of the FairShip values
-- Review concrete composition (currently simplified to O/Si/Ca)
+- Confirm the pits with the civil-engineering drawings; the CAD model has none
+- Review the rock material: concrete simplified to O/Si/Ca, while molasse
+  would be the physical choice for muon transport through the rock

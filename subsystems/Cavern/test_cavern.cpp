@@ -29,7 +29,8 @@ TEST_CASE("CavernWorldVolume", "[cavern]") {
 
 // Probe the rock at points in the global frame (mm, origin at the target
 // front face). The reference values are those of the integration layout
-// SPSXXSHIP0002 version 2026-0.1 (EDMS 3287817 v1.1), not the factory's
+// SPSXXSHIP0002 version 2026-0.1 (EDMS 3287817 v1.1) and its CAD model
+// ST1967028_01, not the factory's
 // constants, so the test compares the code with the drawing.
 TEST_CASE("CavernCavities", "[cavern]") {
     SHiPMaterials materials;
@@ -47,9 +48,9 @@ TEST_CASE("CavernCavities", "[cavern]") {
     };
     constexpr double eps = 10.0;
 
-    SECTION("TCC8 floor 1.70 m below the beam") {
-        CHECK_FALSE(isRock(0, -1700 + eps, 10000));
-        CHECK(isRock(0, -1700 - eps, 10000));
+    SECTION("TCC8 floor 1.703 m below the beam") {
+        CHECK_FALSE(isRock(0, -1703 + eps, 10000));
+        CHECK(isRock(0, -1703 - eps, 10000));
     }
     SECTION("TCC8 floor ends at 21.37 m, ECN3 floor starts 0.82 m later") {
         CHECK(isRock(0, -2000, 21370 - eps));
@@ -57,13 +58,32 @@ TEST_CASE("CavernCavities", "[cavern]") {
         CHECK(isRock(0, -3000, 22190 - eps));
         CHECK_FALSE(isRock(0, -3000, 22190 + eps));
     }
-    SECTION("ECN3 floor 3.36 m below the beam") {
-        CHECK_FALSE(isRock(0, -3360 + eps, 50000));
-        CHECK(isRock(0, -3360 - eps, 50000));
+    SECTION("ECN3 floor 3.364 m below the beam") {
+        CHECK_FALSE(isRock(0, -3364 + eps, 50000));
+        CHECK(isRock(0, -3364 - eps, 50000));
     }
-    SECTION("ECN3 end wall at 120.48 m") {
-        CHECK_FALSE(isRock(0, 0, 120480 - eps));
-        CHECK(isRock(0, 0, 120480 + eps));
+    SECTION("TCC8 walls and ceiling") {
+        CHECK_FALSE(isRock(-3587 + eps, 0, 10000));
+        CHECK(isRock(-3587 - eps, 0, 10000));
+        CHECK_FALSE(isRock(6413 - eps, 0, 10000));
+        CHECK(isRock(6413 + eps, 0, 10000));
+        CHECK_FALSE(isRock(0, 5761 - eps, 10000));
+        CHECK(isRock(0, 5761 + eps, 10000));
+    }
+    SECTION("Intermediate floor 0.80 m below the TCC8 floor") {
+        CHECK_FALSE(isRock(0, -2503 + eps, 21780));
+        CHECK(isRock(0, -2503 - eps, 21780));
+    }
+    SECTION("ECN3 walls and springline") {
+        CHECK_FALSE(isRock(-4566 + eps, 0, 70000));
+        CHECK(isRock(-4566 - eps, 0, 70000));
+        CHECK_FALSE(isRock(11434 - eps, 0, 70000));
+        CHECK(isRock(11434 + eps, 0, 70000));
+        CHECK_FALSE(isRock(0, 8636 - eps, 70000));
+    }
+    SECTION("ECN3 end wall at 122.18 m") {
+        CHECK_FALSE(isRock(0, 0, 122180 - eps));
+        CHECK(isRock(0, 0, 122180 + eps));
     }
     SECTION("Detector chain from target to calorimeter is in air") {
         CHECK_FALSE(isRock(0, 0, 0));
@@ -71,12 +91,12 @@ TEST_CASE("CavernCavities", "[cavern]") {
         CHECK_FALSE(isRock(0, 0, 99770));  // downstream end of the HCAL envelope
     }
     SECTION("Yoke pit 1 m deep, centred on the magnet at 89.72 m") {
-        CHECK_FALSE(isRock(0, -4360 + eps, 89720));
-        CHECK(isRock(0, -4360 - eps, 89720));
-        CHECK(isRock(0, -3360 - eps, 80000));
+        CHECK_FALSE(isRock(0, -4364 + eps, 89720));
+        CHECK(isRock(0, -4364 - eps, 89720));
+        CHECK(isRock(0, -3364 - eps, 80000));
     }
     SECTION("Target pit 1 m deep below the TCC8 floor") {
-        CHECK_FALSE(isRock(0, -2700 + eps, 1460));
-        CHECK(isRock(0, -2700 - eps, 1460));
+        CHECK_FALSE(isRock(0, -2703 + eps, 1460));
+        CHECK(isRock(0, -2703 - eps, 1460));
     }
 }

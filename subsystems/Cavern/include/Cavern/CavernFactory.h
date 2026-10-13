@@ -38,23 +38,37 @@ class CavernFactory {
 
     // ── Layout (global frame: origin at the target front face, mm) ──────
     //
-    // Integration layout SPSXXSHIP0002 version 2026-0.1 (EDMS 3287817 v1.1)
-    // and the CAD model ST1967028_01. The TCC8 floor ends 21.37 m downstream
-    // of the target front face; the 0.82 m stair step that follows is centred
-    // on the gap between muon-shield magnets M4 and S5, and the ECN3 floor
-    // starts after it. The beam line is 1.70 m above the TCC8 floor and
-    // 3.36 m above the ECN3 floor. The transverse offsets of the tunnel and
-    // the hall and the stair step between them are carried over from the
+    // Inner concrete surfaces of the civil-engineering solid in the CAD model
+    // ST1967028_01, which underlies the integration layout SPSXXSHIP0002
+    // version 2026-0.1 (EDMS 3287817 v1.1), sectioned across the beam:
+    //  - TCC8: floor 1.703 m below the beam, walls at x = -3.587 m and
+    //    +6.413 m, flat ceiling at y = 5.761 m. Upstream of z = 6.2 m the
+    //    tunnel is arched instead; the arch is not modelled. The floor ends
+    //    at z = 21.37 m.
+    //  - Step: a floor 0.80 m lower at the TCC8 width, z = 21.37 m to 22.19 m.
+    //  - ECN3: floor 3.364 m below the beam, walls at x = -4.566 m and
+    //    +11.434 m (mid-hall; the walls drift by 0.35 mrad against the beam),
+    //    from z = 22.19 m to the end wall at 122.18 m. The hall is modelled up
+    //    to the arch springline at y = 8.636 m; the 0.5 m crane ledges above
+    //    y = 5.84 m and the arch itself (crown at y = 11.586 m) are not.
+    // Neither pit is in the civil model; both are carried over from the
     // FairShip cavern (ShipCave).
     static constexpr double s_stepZ = 21.37 * GeoModelKernelUnits::m;  // end of the TCC8 floor
     static constexpr double s_tcc8Length =
         170.0 * GeoModelKernelUnits::m;  // tunnel modelled upstream of the step
     static constexpr double s_stairLength =
-        0.82 * GeoModelKernelUnits::m;  // stair step at the start of ECN3
+        0.82 * GeoModelKernelUnits::m;  // intermediate floor before ECN3
     static constexpr double s_ecn3EndZ =
-        120.48 * GeoModelKernelUnits::m;  // downstream end wall of ECN3
-    static constexpr double s_tcc8FloorY = -1.70 * GeoModelKernelUnits::m;
-    static constexpr double s_ecn3FloorY = -3.36 * GeoModelKernelUnits::m;
+        122.18 * GeoModelKernelUnits::m;  // downstream end wall of ECN3
+    static constexpr double s_tcc8FloorY = -1.703 * GeoModelKernelUnits::m;
+    static constexpr double s_tcc8CeilingY = 5.761 * GeoModelKernelUnits::m;
+    static constexpr double s_tcc8LeftX = -3.587 * GeoModelKernelUnits::m;
+    static constexpr double s_tcc8RightX = 6.413 * GeoModelKernelUnits::m;
+    static constexpr double s_stairFloorY = -2.503 * GeoModelKernelUnits::m;
+    static constexpr double s_ecn3FloorY = -3.364 * GeoModelKernelUnits::m;
+    static constexpr double s_ecn3SpringlineY = 8.636 * GeoModelKernelUnits::m;
+    static constexpr double s_ecn3LeftX = -4.566 * GeoModelKernelUnits::m;
+    static constexpr double s_ecn3RightX = 11.434 * GeoModelKernelUnits::m;
     static constexpr double s_magnetZ =
         89.72 * GeoModelKernelUnits::m;  // spectrometer magnet mid-plane
     static constexpr double s_targetEndZ =
@@ -68,28 +82,28 @@ class CavernFactory {
 
     // Cavity positions below are relative to the rock centre.
 
-    // TCC8 tunnel (muon shield cavern): 9.99 m wide, 7.5 m high, ending at the step
-    static constexpr double s_muonCavernHalfX = 4.995 * GeoModelKernelUnits::m;
-    static constexpr double s_muonCavernHalfY = 3.75 * GeoModelKernelUnits::m;
+    // TCC8 tunnel (muon shield cavern), ending at the step
+    static constexpr double s_muonCavernHalfX = (s_tcc8RightX - s_tcc8LeftX) / 2.0;
+    static constexpr double s_muonCavernHalfY = (s_tcc8CeilingY - s_tcc8FloorY) / 2.0;
     static constexpr double s_muonCavernHalfZ = s_tcc8Length / 2.0;
-    static constexpr double s_muonCavernPosX = 1.435 * GeoModelKernelUnits::m;
-    static constexpr double s_muonCavernPosY = s_tcc8FloorY + s_muonCavernHalfY;
+    static constexpr double s_muonCavernPosX = (s_tcc8RightX + s_tcc8LeftX) / 2.0;
+    static constexpr double s_muonCavernPosY = (s_tcc8CeilingY + s_tcc8FloorY) / 2.0;
     static constexpr double s_muonCavernPosZ = s_stepZ - s_muonCavernHalfZ - s_cavernPosZ;
 
-    // Stair step at the start of ECN3 (floor 0.86 m below the TCC8 floor)
-    static constexpr double s_stairHalfX = 7.995 * GeoModelKernelUnits::m;
-    static constexpr double s_stairHalfY = 5.6 * GeoModelKernelUnits::m;
+    // Stair step: intermediate floor at the TCC8 width and ceiling
+    static constexpr double s_stairHalfX = s_muonCavernHalfX;
+    static constexpr double s_stairHalfY = (s_tcc8CeilingY - s_stairFloorY) / 2.0;
     static constexpr double s_stairHalfZ = s_stairLength / 2.0;
-    static constexpr double s_stairPosX = 3.435 * GeoModelKernelUnits::m;
-    static constexpr double s_stairPosY = 3.04 * GeoModelKernelUnits::m;
+    static constexpr double s_stairPosX = s_muonCavernPosX;
+    static constexpr double s_stairPosY = (s_tcc8CeilingY + s_stairFloorY) / 2.0;
     static constexpr double s_stairPosZ = s_stepZ + s_stairHalfZ - s_cavernPosZ;
 
-    // ECN3 hall (experiment cavern): 15.99 m wide, 12 m high, from the stair step to the end wall
-    static constexpr double s_expCavernHalfX = 7.995 * GeoModelKernelUnits::m;
-    static constexpr double s_expCavernHalfY = 6.0 * GeoModelKernelUnits::m;
+    // ECN3 hall (experiment cavern), from the stair step to the end wall
+    static constexpr double s_expCavernHalfX = (s_ecn3RightX - s_ecn3LeftX) / 2.0;
+    static constexpr double s_expCavernHalfY = (s_ecn3SpringlineY - s_ecn3FloorY) / 2.0;
     static constexpr double s_expCavernHalfZ = (s_ecn3EndZ - s_stepZ - s_stairLength) / 2.0;
-    static constexpr double s_expCavernPosX = 3.435 * GeoModelKernelUnits::m;
-    static constexpr double s_expCavernPosY = s_ecn3FloorY + s_expCavernHalfY;
+    static constexpr double s_expCavernPosX = (s_ecn3RightX + s_ecn3LeftX) / 2.0;
+    static constexpr double s_expCavernPosY = (s_ecn3SpringlineY + s_ecn3FloorY) / 2.0;
     static constexpr double s_expCavernPosZ = s_ecn3EndZ - s_expCavernHalfZ - s_cavernPosZ;
 
     // Spectrometer yoke pit: 8.4 m wide, 1 m deep, 9 m long, centred on the magnet
