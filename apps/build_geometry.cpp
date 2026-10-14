@@ -33,6 +33,7 @@
 #include <string>
 #include <string_view>
 #include <system_error>
+#include <utility>
 #include <vector>
 
 namespace {
@@ -120,6 +121,19 @@ int main(int argc, char* argv[]) {
             names.push_back(arg);
         }
     }
+
+    // A subsystem is placed once however often it is named, so drop repeats
+    // (keeping the first) rather than let them inflate the count that the
+    // --standalone check and the output label rely on.
+    std::vector<std::string> unique;
+    for (const auto& name : names) {
+        if (std::ranges::find(unique, name) != unique.end()) {
+            spdlog::warn("'{}' named more than once; building it once.", name);
+            continue;
+        }
+        unique.push_back(name);
+    }
+    names = std::move(unique);
 
     if (standalone && names.size() != 1) {
         spdlog::error("--standalone builds one subsystem, but {} were named.", names.size());
