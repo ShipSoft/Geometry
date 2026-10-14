@@ -51,7 +51,7 @@ class CavernFactory {
     //    from z = 22.19 m to the end wall at 122.18 m. The hall is modelled up
     //    to the arch springline at y = 8.636 m; the 0.5 m crane ledges above
     //    y = 5.84 m and the arch itself (crown at y = 11.586 m) are not.
-    // Neither pit is in the civil model; both are carried over from the
+    // The civil model has no pits; the yoke pit is carried over from the
     // FairShip cavern (ShipCave).
     static constexpr double s_stepZ = 21.37 * GeoModelKernelUnits::m;  // end of the TCC8 floor
     static constexpr double s_tcc8Length =
@@ -71,8 +71,6 @@ class CavernFactory {
     static constexpr double s_ecn3RightX = 11.434 * GeoModelKernelUnits::m;
     static constexpr double s_magnetZ =
         89.72 * GeoModelKernelUnits::m;  // spectrometer magnet mid-plane
-    static constexpr double s_targetEndZ =
-        1.46 * GeoModelKernelUnits::m;  // downstream face of the target
 
     // Rock block (half-sizes in mm), centred on the modelled tunnel + hall
     static constexpr double s_rockHalfX = 20.0 * GeoModelKernelUnits::m;
@@ -113,14 +111,6 @@ class CavernFactory {
     static constexpr double s_yokePitPosX = 0.0;
     static constexpr double s_yokePitPosY = s_ecn3FloorY - s_yokePitHalfY;
     static constexpr double s_yokePitPosZ = s_magnetZ - s_cavernPosZ;
-
-    // Target pit: 4 m wide, 1 m deep, 4 m long, ending 2 m downstream of the target
-    static constexpr double s_targetPitHalfX = 2.0 * GeoModelKernelUnits::m;
-    static constexpr double s_targetPitHalfY = 0.5 * GeoModelKernelUnits::m;
-    static constexpr double s_targetPitHalfZ = 2.0 * GeoModelKernelUnits::m;
-    static constexpr double s_targetPitPosX = 0.0;
-    static constexpr double s_targetPitPosY = s_tcc8FloorY - s_targetPitHalfY;
-    static constexpr double s_targetPitPosZ = s_targetEndZ - s_cavernPosZ;
 };
 
 }  // namespace SHiPGeometry
