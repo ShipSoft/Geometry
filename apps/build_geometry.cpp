@@ -133,8 +133,12 @@ int main(int argc, char* argv[]) {
     const auto known = SHiPGeometry::subsystemNames();
     bool anyUnknown = false;
     for (const auto& name : names) {
-        if (std::find(known.begin(), known.end(), name) == known.end()) {
+        if (std::ranges::find(known, name) == known.end()) {
             spdlog::error("Unknown subsystem: '{}'", name);
+            // Older versions took the output file as a bare *.db argument.
+            if (name.ends_with(".db")) {
+                spdlog::info("Did you mean '-o {}'?", name);
+            }
             anyUnknown = true;
         }
     }
