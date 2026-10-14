@@ -43,8 +43,6 @@ GeoPhysVol* CavernFactory::build() {
         new GeoBox(gm(s_expCavernHalfX), gm(s_expCavernHalfY), gm(s_expCavernHalfZ));
     auto const* stairStep = new GeoBox(gm(s_stairHalfX), gm(s_stairHalfY), gm(s_stairHalfZ));
     auto const* yokePit = new GeoBox(gm(s_yokePitHalfX), gm(s_yokePitHalfY), gm(s_yokePitHalfZ));
-    auto const* targetPit =
-        new GeoBox(gm(s_targetPitHalfX), gm(s_targetPitHalfY), gm(s_targetPitHalfZ));
 
     // Build the cavern shape by successive subtractions
     // First subtract muon shield cavern
@@ -65,12 +63,7 @@ GeoPhysVol* CavernFactory::build() {
     // Subtract yoke pit
     const GeoTrf::Transform3D yokePitTrf =
         GeoTrf::Translate3D(gm(s_yokePitPosX), gm(s_yokePitPosY), gm(s_yokePitPosZ));
-    const GeoShape* shape4 = &shape3->subtract((*yokePit) << yokePitTrf);
-
-    // Subtract target pit
-    const GeoTrf::Transform3D targetPitTrf =
-        GeoTrf::Translate3D(gm(s_targetPitPosX), gm(s_targetPitPosY), gm(s_targetPitPosZ));
-    const GeoShape* cavernShape = &shape4->subtract((*targetPit) << targetPitTrf);
+    const GeoShape* cavernShape = &shape3->subtract((*yokePit) << yokePitTrf);
 
     // Create cavern logical and physical volumes
     const auto* cavernLog = new GeoLogVol("/SHiP/cavern", cavernShape, concrete);

@@ -51,9 +51,10 @@ Simplifications:
 - ECN3 is cut off at the arch springline (y = 8.636 m). The crane ledges,
   which widen the hall by 0.5 m on each side above y = 5.84 m, and the arch
   itself (crown at y = 11.586 m) are not modelled.
-- The CAD model has neither pit. The yoke pit and the target pit are carried
-  over from the FairShip cavern (ShipCave): the yoke pit is centred on the
-  spectrometer magnet (z = 89.72 m).
+- The CAD model has no pits. The yoke pit is carried over from the FairShip
+  cavern (ShipCave) and centred on the spectrometer magnet (z = 89.72 m).
+  The older FairShip cavern also had a target pit. It is left out because in
+  the layout the target station stands on the TCC8 floor.
 - Galleries, niches, doorways and shafts are left out.
 
 ### Subtracted Cavities (global frame)
@@ -64,7 +65,6 @@ Simplifications:
 | Stair step | 10.0 m × 8.264 m × 0.82 m | −3.587 … +6.413 m | −2.503 … +5.761 m | 21.37 … 22.19 m |
 | ECN3 hall (experiment cavern) | 16.0 m × 12.0 m × 99.99 m | −4.566 … +11.434 m | −3.364 … +8.636 m | 22.19 … 122.18 m |
 | Yoke pit | 8.4 m × 1 m × 9 m | ±4.2 m | −4.364 … −3.364 m | 85.22 … 94.22 m |
-| Target pit | 4 m × 1 m × 4 m | ±2 m | −2.703 … −1.703 m | −0.54 … +3.46 m |
 
 ## Materials
 
