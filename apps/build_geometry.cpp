@@ -31,6 +31,7 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 #include <string>
+#include <string_view>
 #include <system_error>
 #include <vector>
 
@@ -101,7 +102,9 @@ int main(int argc, char* argv[]) {
             return 0;
         }
         if (arg == "-o" || arg == "--output") {
-            if (i + 1 >= argc) {
+            // A following option is not a file name: "-o --standalone X" must
+            // not write a file called "--standalone".
+            if (i + 1 >= argc || std::string_view(argv[i + 1]).starts_with('-')) {
                 spdlog::error("{} needs a file name.", arg);
                 printUsage(std::cerr);
                 return 1;
