@@ -69,13 +69,13 @@ ctest --test-dir build
 
 ```bash
 # Build the complete SHiP geometry
-./build/apps/build_geometry [output_file.db]
-
-# Build a single subsystem on its own, in its local frame
-./build/apps/build_geometry <Name> [output_file.db]
+./build/apps/build_geometry [-o output_file.db]
 
 # Assemble a selection of subsystems into the world
-./build/apps/build_geometry <Name> <Name> ... [output_file.db]
+./build/apps/build_geometry <Name> <Name> ... [-o output_file.db]
+
+# Build a single subsystem on its own, in its local frame
+./build/apps/build_geometry --standalone <Name> [-o output_file.db]
 
 # List the available subsystem names
 ./build/apps/build_geometry --list
@@ -84,12 +84,13 @@ ctest --test-dir build
 gmex output_file.db
 ```
 
-With no subsystem named, the complete detector is built. Naming a single
-subsystem (as spelled by `--list`, e.g. `Calorimeter`) builds just that
-subsystem in its own local frame. Naming several assembles those subsystems
-into the world at their declared placements. A token ending in `.db` is taken
-as the output file; the default is `ship_geometry.db` for the full build,
-`<Name>.db` for a single subsystem, and `ship_selection.db` for a selection.
+With no subsystem named, the complete detector is built. Naming subsystems (as
+spelled by `--list`, e.g. `Calorimeter`) assembles those into the world at their
+declared placements. `--standalone` instead builds exactly one named subsystem
+by itself, in its own local frame at the origin, with no world around it.
+
+The output file is set with `-o`; the default is `ship_geometry.db` for the full
+build, `ship_selection.db` for a selection, and `<Name>.db` with `--standalone`.
 
 ### Installing
 

@@ -120,10 +120,12 @@ std::vector<std::string> subsystemNames();
  * constructible from `SHiPMaterials&` with a `build()` returning a volume.
  *
  * NOTE: nothing references this registration, so the subsystem library would
- * otherwise be dropped from a consumer's DT_NEEDED by the toolchain's default
- * --as-needed and the initialiser would never run. src/CMakeLists.txt applies
- * -Wl,--no-as-needed as an INTERFACE link option on SHiPGeometry so the flag
- * lands on each executable's link line. Do not remove it.
+ * otherwise be dropped from the DT_NEEDED of whatever links it by the
+ * toolchain's default --as-needed, and the initialiser would never run.
+ * src/CMakeLists.txt puts -Wl,--no-as-needed among SHiPGeometry's PUBLIC link
+ * libraries, directly before the subsystems, so the flag lands on
+ * libSHiPGeometry's own link line as well as on every consumer's, after any
+ * --as-needed from LDFLAGS. Do not remove it or turn it into a link option.
  */
 #define REGISTER_SUBSYSTEM(FACTORY)                                                             \
     namespace {                                                                                 \

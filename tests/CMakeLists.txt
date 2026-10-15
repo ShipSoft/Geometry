@@ -37,7 +37,25 @@ add_test(
     NAME OverlapCheck
     COMMAND
         bash -c
-        "$<TARGET_FILE:build_geometry> ship_test_overlap.db &&
+        "$<TARGET_FILE:build_geometry> -o ship_test_overlap.db &&
     $<TARGET_FILE:validate_geometry> ship_test_overlap.db"
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
+
+# libSHiPGeometry's own DT_NEEDED must list every subsystem, or a consumer that
+# does not link it through CMake (dlopen, plain -lSHiPGeometry) gets an empty
+# registry. See the --no-as-needed note in src/CMakeLists.txt; this is the
+# same platform gate.
+if(UNIX AND NOT APPLE)
+    add_executable(test_dt_needed test_dt_needed.cpp)
+    target_link_libraries(test_dt_needed PRIVATE ${CMAKE_DL_LIBS})
+    add_dependencies(test_dt_needed SHiPGeometry)
+    set(_subsystem_sonames "")
+    foreach(subsys ${SHIP_SUBSYSTEMS})
+        list(APPEND _subsystem_sonames "$<TARGET_SONAME_FILE_NAME:${subsys}>")
+    endforeach()
+    add_test(
+        NAME SubsystemsInDtNeeded
+        COMMAND test_dt_needed $<TARGET_FILE:SHiPGeometry> ${_subsystem_sonames}
+    )
+endif()
