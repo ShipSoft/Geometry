@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
-#include "Cavern/CavernFactory.h"
+#include "SHiP/geometry/Cavern/CavernFactory.h"
 
-#include "SHiPGeometry/SHiPMaterials.h"
+#include "SHiP/geometry/Materials.h"
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoDefinitions.h>
@@ -17,9 +17,9 @@
 #include <GeoModelKernel/GeoTransform.h>
 #include <GeoModelKernel/Units.h>
 
-namespace SHiPGeometry {
+namespace SHiP::geometry {
 
-CavernFactory::CavernFactory(SHiPMaterials& materials) : m_materials(materials) {}
+CavernFactory::CavernFactory(Materials& materials) : m_materials(materials) {}
 
 GeoPhysVol* CavernFactory::build() {
     // Get materials from central manager with null checking
@@ -80,4 +80,4 @@ GeoPhysVol* CavernFactory::build() {
     return m_world;
 }
 
-}  // namespace SHiPGeometry
+}  // namespace SHiP::geometry

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
-#include "Calorimeter/CaloBarLayer.h"
+#include "SHiP/geometry/Calorimeter/CaloBarLayer.h"
 
 #include <GeoModelKernel/GeoLogVol.h>
 #include <GeoModelKernel/GeoNameTag.h>
@@ -12,13 +12,13 @@
 #include <format>
 #include <string>
 
-namespace SHiPGeometry {
+namespace SHiP::geometry {
 
 using namespace GeoModelKernelUnits;
 
-void CaloBar::placeLayer(GeoVPhysVol* mother, GeoLogVol* barLog, double pitch_mm, int nBars,
-                         double zCenter_mm, std::string_view tagPrefix, int layerIndex,
-                         BarAxis axis, const std::string& nameSuffix) {
+void calo_bar::placeLayer(GeoVPhysVol* mother, GeoLogVol* barLog, double pitch_mm, int nBars,
+                          double zCenter_mm, std::string_view tagPrefix, int layerIndex,
+                          BarAxis axis, const std::string& nameSuffix) {
     const double pitch = pitch_mm * mm;
     const double firstBarCenter = -0.5 * (nBars - 1) * pitch;
 
@@ -40,4 +40,4 @@ void CaloBar::placeLayer(GeoVPhysVol* mother, GeoLogVol* barLog, double pitch_mm
     }
 }
 
-}  // namespace SHiPGeometry
+}  // namespace SHiP::geometry

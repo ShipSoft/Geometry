@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
-#include "SHiPGeometry/SHiPMaterials.h"
-
-#include "NeutrinoDetector/NeutrinoDetectorFactory.h"
+#include "SHiP/geometry/Materials.h"
+#include "SHiP/geometry/NeutrinoDetector/NeutrinoDetectorFactory.h"
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoLogVol.h>
@@ -12,12 +11,12 @@
 
 #include <catch2/catch_test_macros.hpp>
 
-using SHiPGeometry::SHiPMaterials;
+using SHiP::geometry::Materials;
 
 // CSV limits: SND half-width/height ≤ 0.40 m, length 5.10 m (box approximation).
 TEST_CASE("NeutrinoDetectorWithinEnvelope", "[neutrinodetector]") {
-    SHiPMaterials materials;
-    SHiPGeometry::NeutrinoDetectorFactory factory(materials);
+    Materials materials;
+    SHiP::geometry::NeutrinoDetectorFactory factory(materials);
     GeoPhysVol* snd = factory.build();
     REQUIRE(snd != nullptr);
     auto* box = dynamic_cast<const GeoBox*>(snd->getLogVol()->getShape());
@@ -35,8 +34,8 @@ TEST_CASE("NeutrinoDetectorWithinEnvelope", "[neutrinodetector]") {
 //                                                            ------
 //                                                             4819
 TEST_CASE("NeutrinoDetectorChildCount", "[neutrinodetector]") {
-    SHiPMaterials materials;
-    SHiPGeometry::NeutrinoDetectorFactory factory(materials);
+    Materials materials;
+    SHiP::geometry::NeutrinoDetectorFactory factory(materials);
     GeoPhysVol* snd = factory.build();
     REQUIRE(snd != nullptr);
     CHECK(snd->getNChildVols() == 4819u);  // NOLINT(readability/check)

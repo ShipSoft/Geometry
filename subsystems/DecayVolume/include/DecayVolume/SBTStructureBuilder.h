@@ -1,35 +1,10 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
-
+//
+// Forwarding header for the pre-0.3.0 layout, removed in 0.4.0.
+// DecayVolume/SBTStructureBuilder.h is now SHiP/geometry/DecayVolume/SBTStructureBuilder.h.
 #pragma once
 
-#include "DecayVolume/SBTConstants.h"
+#include "SHiP/geometry/DecayVolume/SBTStructureBuilder.h"
 
-#include <string>
-
-class GeoVPhysVol;
-class GeoMaterial;
-
-namespace SHiPGeometry {
-
-/**
- * @brief Builds the SBT steel H-beam supporting structure into @p mother.
- *
- * Ports the standalone SBTStructureBuilder: a rectangular frustum of HEA 260
- * H-beams (each modelled as three GeoBox siblings) comprising vertical
- * columns, segmented corner beams, top/bottom longitudinal beams and
- * top/bottom cross-beams. All pieces are placed as direct children of
- * @p mother (a flat architecture the clash-avoidance logic depends on).
- */
-class SBTStructureBuilder {
-   public:
-    /// Build the structure. @p steel is the absorber material; the frustum
-    /// and H-beam parameters come from SBTConstants.h; @p tag is the
-    /// volume-name prefix.
-    /// @throws std::invalid_argument if !SBT::isWellFormed(params).
-    static void build(GeoVPhysVol* mother, const GeoMaterial* steel,
-                      const std::string& tag = "/SHiP/decay_volume/sbt/structure",
-                      const SBT::SBTParams& params = SBT::kSBT);
-};
-
-}  // namespace SHiPGeometry
+namespace SHiPGeometry = SHiP::geometry;

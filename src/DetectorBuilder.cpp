@@ -1,40 +1,39 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
-#include "SHiPGeometry/SHiPGeometry.h"
+#include "SHiP/geometry/DetectorBuilder.h"
 
-#include "Calorimeter/CalorimeterFactory.h"
-#include "Cavern/CavernFactory.h"
-#include "DecayVolume/DecayVolumeFactory.h"
-#include "Magnet/MagnetFactory.h"
-#include "MuonShield/MuonShieldFactory.h"
-#include "SHiPGeometry/Placement.h"
-#include "SHiPGeometry/SHiPMaterials.h"
-#include "Target/TargetFactory.h"
-#include "TimingDetector/TimingDetectorFactory.h"
-#include "Trackers/TrackersFactory.h"
-#include "UpstreamTagger/SHiPUBTManager.h"
-#include "UpstreamTagger/UpstreamTaggerFactory.h"
-
-#include "NeutrinoDetector/NeutrinoDetectorFactory.h"
+#include "SHiP/geometry/Calorimeter/CalorimeterFactory.h"
+#include "SHiP/geometry/Cavern/CavernFactory.h"
+#include "SHiP/geometry/DecayVolume/DecayVolumeFactory.h"
+#include "SHiP/geometry/Magnet/MagnetFactory.h"
+#include "SHiP/geometry/Materials.h"
+#include "SHiP/geometry/MuonShield/MuonShieldFactory.h"
+#include "SHiP/geometry/NeutrinoDetector/NeutrinoDetectorFactory.h"
+#include "SHiP/geometry/Placement.h"
+#include "SHiP/geometry/Target/TargetFactory.h"
+#include "SHiP/geometry/TimingDetector/TimingDetectorFactory.h"
+#include "SHiP/geometry/Trackers/TrackersFactory.h"
+#include "SHiP/geometry/UpstreamTagger/UpstreamTaggerFactory.h"
+#include "SHiP/geometry/UpstreamTagger/UpstreamTaggerManager.h"
 
 #include <GeoModelKernel/GeoDefinitions.h>
 #include <GeoModelKernel/GeoPhysVol.h>
 #include <GeoModelKernel/Units.h>
 
-namespace SHiPGeometry {
+namespace SHiP::geometry {
 
-SHiPGeometryBuilder::SHiPGeometryBuilder() = default;
-SHiPGeometryBuilder::~SHiPGeometryBuilder() = default;
+DetectorBuilder::DetectorBuilder() = default;
+DetectorBuilder::~DetectorBuilder() = default;
 
-GeoPhysVol* SHiPGeometryBuilder::build() {
+GeoPhysVol* DetectorBuilder::build() {
     // Unit shorthands (GeoModel's native length unit is mm)
     constexpr double mm = GeoModelKernelUnits::mm;
     constexpr double cm = GeoModelKernelUnits::cm;
     constexpr double m = GeoModelKernelUnits::m;
 
     // Create central materials manager
-    SHiPMaterials materials;
+    Materials materials;
 
     // Build the cavern (world volume)
     CavernFactory cavernFactory(materials);
@@ -66,7 +65,7 @@ GeoPhysVol* SHiPGeometryBuilder::build() {
 
     // Build and place UpstreamTagger (sensitive scintillator slab)
     // Z: 32.52 to 32.92 m → centre: 32.72 m
-    SHiPUBTManager ubtManager;
+    UpstreamTaggerManager ubtManager;
     UpstreamTaggerFactory upstreamTaggerFactory(materials);
     GeoVPhysVol* upstreamTagger = upstreamTaggerFactory.build(&ubtManager);
     placeChild(world, upstreamTagger, "/SHiP/upstream_tagger", 3,
@@ -112,4 +111,4 @@ GeoPhysVol* SHiPGeometryBuilder::build() {
     return world;
 }
 
-}  // namespace SHiPGeometry
+}  // namespace SHiP::geometry

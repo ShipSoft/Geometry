@@ -1,34 +1,17 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
-
+//
+// Forwarding header for the pre-0.3.0 layout, removed in 0.4.0.
+// UpstreamTagger/SHiPUBTManager.h is now
+// SHiP/geometry/UpstreamTagger/UpstreamTaggerManager.h, and
+// SHiPGeometry::SHiPUBTManager is now SHiP::geometry::UpstreamTaggerManager.
 #pragma once
 
-#include <GeoModelKernel/GeoFullPhysVol.h>
-#include <GeoModelKernel/GeoVDetectorManager.h>
-#include <GeoModelKernel/GeoVPhysVol.h>
+#include "SHiP/geometry/UpstreamTagger/UpstreamTaggerManager.h"
 
-namespace SHiPGeometry {
+namespace SHiPGeometry = SHiP::geometry;
 
-/**
- * @brief Detector manager for the Upstream Background Tagger (UBT).
- *
- * Stores the GeoFullPhysVol tile-plane container as the single sensitive
- * tree-top and satisfies the GeoVDetectorManager interface for downstream
- * Geant4 integration.
- */
-class SHiPUBTManager : public GeoVDetectorManager {
-   public:
-    SHiPUBTManager() = default;
-    ~SHiPUBTManager() override = default;
-
-    void setContainerVolume(GeoFullPhysVol* fpv) { m_container = fpv; }
-
-    unsigned int getNumTreeTops() const override { return m_container ? 1u : 0u; }
-
-    PVConstLink getTreeTop(unsigned int /*i*/) const override { return PVConstLink(m_container); }
-
-   private:
-    GeoFullPhysVol* m_container{nullptr};
-};
-
-}  // namespace SHiPGeometry
+namespace SHiP::geometry {
+using SHiPUBTManager [[deprecated("use SHiP::geometry::UpstreamTaggerManager")]] =
+    UpstreamTaggerManager;
+}
