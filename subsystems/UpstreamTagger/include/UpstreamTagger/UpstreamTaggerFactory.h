@@ -63,13 +63,9 @@ class UpstreamTaggerFactory {
      */
     [[nodiscard]] GeoVPhysVol* build(SHiPUBTManager* manager = nullptr);
 
-   private:
-    SHiPMaterials& m_materials;
-
     // ── Container envelope (mm) ─────────────────────────────────────────
-    // Kept identical to the GDML statbox (440 × 640 × 16 cm) used by the
-    // previous monolithic slab so placement and the envelope-fit test
-    // (halfX ≤ 2200, halfY ≤ 3200, halfZ ≤ 200) are unchanged.
+    // The GDML statbox (440 × 640 × 16 cm). This is wider than the EDMS
+    // envelope (0.75 × 1.60 m half-sizes); Layout.h records the deviation.
     static constexpr auto s_halfX = 2200.0 * units::mm;
     static constexpr auto s_halfY = 3200.0 * units::mm;
     static constexpr auto s_halfZ = 80.0 * units::mm;
@@ -82,6 +78,9 @@ class UpstreamTaggerFactory {
         20.0 * units::mm;  ///< fine tile full transverse size = pitch
     static constexpr auto s_coarseFace =
         40.0 * units::mm;  ///< coarse tile full transverse size = pitch
+
+   private:
+    SHiPMaterials& m_materials;
 };
 
 }  // namespace SHiPGeometry

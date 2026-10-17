@@ -10,7 +10,6 @@
 #include <GeoModelKernel/GeoPhysVol.h>
 
 #include <catch2/catch_test_macros.hpp>
-#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 using SHiPGeometry::CalorimeterFactory;
 using SHiPGeometry::SHiPMaterials;
@@ -39,12 +38,4 @@ TEST_CASE("CalorimeterHasChildren", "[calorimeter]") {
                                            SHiPGeometry::Calo::kModuleNY *
                                            SHiPGeometry::Calo::kVolsPerModule;
     CHECK(calo->getNChildVols() == kExpectedChildren);  // NOLINT(readability/check)
-}
-
-TEST_CASE("TotalStackZMatchesReference", "[calorimeter]") {
-    // Pinned reference: 40 lead + 40 scint + 8 HPL + 1 air gap in the ECAL
-    // (1600 mm), 100 mm gap, 5 iron + 5 scint in the HCAL (900 mm).
-    // Guards the layer-sequence transcription against accidental edits.
-    CHECK_THAT(SHiPGeometry::Calo::kTotalStackZ.numerical_value_in(SHiPGeometry::units::mm),
-               Catch::Matchers::WithinAbs(2600.0, 1e-9));
 }

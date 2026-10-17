@@ -27,8 +27,10 @@ class MuonShieldFactory {
 
     [[nodiscard]] GeoPhysVol* build();
 
-   private:
-    SHiPMaterials& m_materials;
+    // MuonShieldArea container dimensions
+    static constexpr auto s_areaHalfX = 1810.0 * units::mm;
+    static constexpr auto s_areaHalfY = 1700.0 * units::mm;
+    static constexpr auto s_areaHalfZ = 14724.0 * units::mm;
 
     struct PieceData {
         units::LengthMm halfX, halfY, halfZ;  // bounding-box half-sizes
@@ -45,15 +47,14 @@ class MuonShieldFactory {
         PieceData pieces[8];
     };
 
-    // GDML-derived station data for all 6 stations × 8 pieces
+    /// GDML-derived station data for all 6 stations × 8 pieces. Defined
+    /// constexpr in MuonShieldFactory.cpp, which checks it at compile time.
     static const StationData k_stations[6];
 
-    GeoPhysVol* buildStation(const StationData& station);
+   private:
+    SHiPMaterials& m_materials;
 
-    // MuonShieldArea container dimensions
-    static constexpr auto s_areaHalfX = 1810.0 * units::mm;
-    static constexpr auto s_areaHalfY = 1700.0 * units::mm;
-    static constexpr auto s_areaHalfZ = 14724.0 * units::mm;
+    GeoPhysVol* buildStation(const StationData& station);
 };
 
 }  // namespace SHiPGeometry

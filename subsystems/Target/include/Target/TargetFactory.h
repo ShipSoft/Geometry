@@ -3,9 +3,11 @@
 
 #pragma once
 
+#include "SHiPGeometry/StaticChecks.h"
 #include "SHiPGeometry/Units.h"
 
 #include <array>
+#include <cstddef>
 
 class GeoPhysVol;
 class GeoLogVol;
@@ -51,6 +53,21 @@ class TargetFactory {
      */
     [[nodiscard]] GeoPhysVol* build();
 
+    // Unit shorthands (typed; constants below deduce their quantity type)
+    static constexpr auto cm = units::cm;
+    static constexpr auto mm = units::mm;
+    static constexpr auto deg = units::deg;
+
+    // Target vacuum box dimensions (half-sizes)
+    static constexpr auto s_vacuumBoxHalfX = 80.0 * cm;
+    static constexpr auto s_vacuumBoxHalfY = 113.55 * cm;
+    static constexpr auto s_vacuumBoxHalfZ = 150.0 * cm;
+
+    // TargetArea position within vacuum box: the target frame (z = 0 at the
+    // front face of the first disk) sits at this offset in the vacuum box
+    static constexpr auto s_targetAreaPosY = 14.45 * cm;
+    static constexpr auto s_targetAreaPosZ = -43.25 * cm;
+
    private:
     SHiPMaterials& m_materials;
 
@@ -61,16 +78,6 @@ class TargetFactory {
     GeoPhysVol* createShieldingPedestal();
     GeoPhysVol* createHeVolume();
     const GeoShape* createSteelCoreShape();
-
-    // Unit shorthands (typed; constants below deduce their quantity type)
-    static constexpr auto cm = units::cm;
-    static constexpr auto mm = units::mm;
-    static constexpr auto deg = units::deg;
-
-    // Target vacuum box dimensions (half-sizes)
-    static constexpr auto s_vacuumBoxHalfX = 80.0 * cm;
-    static constexpr auto s_vacuumBoxHalfY = 113.55 * cm;
-    static constexpr auto s_vacuumBoxHalfZ = 150.0 * cm;
 
     // Proximity shielding
     static constexpr auto s_proxEnvHalfX = 80.0 * cm;
@@ -104,11 +111,6 @@ class TargetFactory {
     static constexpr auto s_pedestalHalfZ = 108.5 * cm;
     static constexpr auto s_pedestalPosY = -51.55 * cm;
     static constexpr auto s_pedestalPosZ = 15.0 * cm;
-
-    // TargetArea position within vacuum box: the target frame (z = 0 at the
-    // front face of the first disk) sits at this offset in the vacuum box
-    static constexpr auto s_targetAreaPosY = 14.45 * cm;
-    static constexpr auto s_targetAreaPosZ = -43.25 * cm;
 
     // ---- 2026 BDF target (CATIA ST1A07710_01_AB.02) ----
     // All z values below are in the target frame (z = 0 at disk-1 front face).
@@ -222,6 +224,104 @@ class TargetFactory {
         {1505.0 * mm, 0.0 * mm, 67.0 * mm},
         {1509.7 * mm, 0.0 * mm, 67.0 * mm},
     }};
+
+    // ── Compile-time validation ─────────────────────────────────────────
+    // Target frame: disks, core, grooves, vessel and endcap.
+    static_assert(s_diskZ.front()[0] == 0.0 * mm,
+                  "the target frame origin is the front face of the first disk");
+    static_assert(
+        [] {
+            for (std::size_t i = 0; i < s_diskZ.size(); ++i) {
+                if (!(s_diskZ[i][0] < s_diskZ[i][1]) ||
+                    (i > 0 && !(s_diskZ[i - 1][1] < s_diskZ[i][0]))) {
+                    return false;
+                }
+            }
+            return true;
+        }(),
+        "disks must have positive thickness and He slits between them");
+    static_assert(
+        [] {
+            auto front = 0.0 * mm;
+            for (std::size_t i = 0; i + 1 < s_diskZ.size(); ++i) {
+                front += s_diskZ[i][1] - s_diskZ[i][0];
+            }
+            return front == 875.0 * mm && s_diskZ.back()[1] - s_diskZ.back()[0] == 455.0 * mm;
+        }(),
+        "transcription guard: 875 mm of tungsten in disks 1-32 and a 455 mm rear block");
+    static_assert(s_heZMin <= s_noseZMin && s_noseZMin <= s_windowZMin &&
+                      s_windowZMin < s_windowZMax && s_windowZMax < s_diskZ.front()[0] &&
+                      s_diskZ.back()[1] < s_heZMax,
+                  "beam window, disks and endcap out of order inside the He vessel");
+    static_assert(s_diskRadius <= s_lastDiskRadius && s_lastDiskRadius < s_heRadius);
+    static_assert(s_coreBoreR1 == s_diskRadius && s_coreBoreR2 == s_lastDiskRadius &&
+                      s_coreBoreStepZ == s_diskZ.back()[0],
+                  "the core bore must follow the disk radii and step at the rear block");
+    static_assert(s_heZMin <= s_coreZMin && s_coreZMax <= s_heZMax &&
+                      s_coreFrontZMax < s_coreRearZMin,
+                  "the steel core does not fit the He vessel");
+    static_assert(s_coreFrontOuterR <= s_coreOuterR && s_coreRearOuterR <= s_coreOuterR &&
+                      s_coreOuterR < s_jacketRmin && s_jacketRmin < s_jacketRmax &&
+                      s_jacketRmax <= s_heRadius && s_flangeRearRmax <= s_heRadius,
+                  "core, He annulus, jacket and flanges must nest radially inside the vessel");
+    static_assert(s_flangeFrontRmin == s_coreFrontOuterR,
+                  "the front flange bore must match the core front step");
+    static_assert(s_jacketZMax < s_flangeRearZMax &&
+                      s_flangeRearZMax == s_endcapPlanes.front()[0] &&
+                      s_endcapPlanes.back()[0] == s_heZMax,
+                  "the endcap must run from the rear flange to the end of the He vessel");
+    static_assert(
+        [] {
+            for (std::size_t i = 0; i < s_endcapPlanes.size(); ++i) {
+                const auto& p = s_endcapPlanes[i];
+                if (!(p[1] < p[2]) || p[2] > s_heRadius ||
+                    (i > 0 && s_endcapPlanes[i - 1][0] > p[0])) {
+                    return false;
+                }
+            }
+            return true;
+        }(),
+        "endcap planes must be ordered in z with rmin < rmax inside the vessel");
+    static_assert(
+        [] {
+            auto ok = [](const auto& grooves) {
+                for (std::size_t i = 0; i < grooves.size(); ++i) {
+                    if (!(grooves[i][0] < grooves[i][1]) || grooves[i][0] < s_coreZMin ||
+                        grooves[i][1] > s_coreBoreStepZ ||
+                        (i > 0 && grooves[i - 1][1] > grooves[i][0])) {
+                        return false;
+                    }
+                }
+                return true;
+            };
+            return ok(s_groovesTop) && ok(s_groovesBottom);
+        }(),
+        "cooling grooves must be ordered and lie along the disk bore of the core");
+    static_assert(s_grooveRmin < s_coreBoreR1 && s_grooveRmax < s_coreOuterR &&
+                      s_rearGrooveRmin < s_coreBoreR2 && s_rearGrooveRmax < s_coreRearOuterR &&
+                      s_rearGrooveZMin == s_coreBoreStepZ && s_rearGrooveZMax < s_coreZMax,
+                  "cooling grooves must open into the bore and stay inside the core wall");
+
+    // Vacuum-box frame: the He vessel and the cover plate sit in the cavity
+    // of the proximity shielding.
+    static_assert(
+        [] {
+            const auto cavity = checks::box(0.0 * mm, s_proxPosY, s_proxInnerOffsetZ,
+                                            s_proxInnerHalfX, s_proxInnerHalfY, s_proxInnerHalfZ);
+            const auto he = checks::box(0.0 * mm, s_targetAreaPosY, s_targetAreaPosZ + s_heCentreZ,
+                                        s_heRadius, s_heRadius, 0.5 * (s_heZMax - s_heZMin));
+            const auto cover = checks::box(0.0 * mm, s_targetAreaPosY + s_coverPlateOffsetY,
+                                           s_targetAreaPosZ + 0.5 * (s_heZMin + s_coverZMax),
+                                           s_coverPlateHalfX, s_coverPlateHalfY, s_coverPlateHalfZ);
+            return checks::contains(cavity, he) && checks::contains(cavity, cover);
+        }(),
+        "the He vessel or the cover plate does not fit the proximity-shielding cavity");
+    static_assert(
+        [] {
+            const auto d = (s_coverZMax - s_heZMin) - 2.0 * s_coverPlateHalfZ;
+            return -1e-9 * mm < d && d < 1e-9 * mm;
+        }(),
+        "the cover plate must span from the vessel front face to s_coverZMax");
 };
 
 }  // namespace SHiPGeometry

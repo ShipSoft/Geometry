@@ -59,21 +59,6 @@ ChildShapeCounts countByShape(const GeoVPhysVol* vol) {
 }
 }  // namespace
 
-// The container is an air box enclosing the SBT structure + sensors and the
-// central helium frustum.
-// CSV limits: DecayVolume halfX <= 2200, halfY <= 3300, halfZ <= 25200
-TEST_CASE("DecayVolumeWithinEnvelope", "[decayvolume]") {
-    SHiPMaterials materials;
-    SHiPGeometry::DecayVolumeFactory factory(materials);
-    GeoPhysVol* dv = factory.build();
-    REQUIRE(dv != nullptr);
-    auto* box = dynamic_cast<const GeoBox*>(dv->getLogVol()->getShape());
-    REQUIRE(box != nullptr);
-    CHECK(box->getXHalfLength() <= 2200.0);
-    CHECK(box->getYHalfLength() <= 3300.0);
-    CHECK(box->getZHalfLength() <= 25200.0);
-}
-
 // Steel H-beam structure: 66 column + 120 corner-beam + 60 longitudinal +
 // 66 cross-beam GeoBox pieces = 312, all direct children of the container.
 TEST_CASE("DecayVolumeStructureBoxCount", "[decayvolume]") {

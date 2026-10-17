@@ -54,6 +54,41 @@ constexpr auto kViewHalfZ = TrackersFactory::s_frameHalfZ + kEnvClearance;  // 2
 // Small gap between the frame aperture and the sub-layer envelope.
 constexpr auto kFrameClearance = 0.5 * mm;
 
+// Views are stacked along Z within the station, kViewGap apart.
+constexpr auto kViewGap = 5.0 * mm;
+constexpr auto kViewPitch = 2.0 * kViewHalfZ + kViewGap;
+
+// Sub-layer envelope: an air slab one straw thick, inside the frame aperture.
+// The two sub-layers sit at z = ±kSubLayerOffsetZ, just clear of each other.
+constexpr auto kSubLayerHalfX = kApertureHalfX - kFrameClearance;
+constexpr auto kSubLayerHalfY = kApertureHalfY - kFrameClearance;
+constexpr auto kSubLayerHalfZ = TrackersFactory::s_strawRadius + 0.5 * mm;
+constexpr auto kSubLayerOffsetZ = TrackersFactory::s_strawRadius + 0.55 * mm;
+
+// ── Compile-time validation ──────────────────────────────────────────────
+using TF = TrackersFactory;
+
+// Rotating a view by the stereo angle a grows its half-extents to
+// hx·cos(a) + hy·sin(a) and hy·cos(a) + hx·sin(a). Bounded with cos(a) <= 1
+// and sin(a) <= a, so no trigonometry is needed at compile time.
+constexpr double kStereoBound = units::gm(TF::s_stereoAngleDeg);
+static_assert(kViewHalfX + kViewHalfY * kStereoBound <= TF::s_halfX,
+              "a rotated view sticks out of the station in X");
+static_assert(kViewHalfY + kViewHalfX * kStereoBound <= TF::s_halfY,
+              "a rotated view sticks out of the station in Y");
+static_assert((TF::s_nViews - 1) * 0.5 * kViewPitch + kViewHalfZ <= TF::s_halfZ,
+              "the view stack is thicker than the station");
+static_assert(kSubLayerOffsetZ >= kSubLayerHalfZ, "the two sub-layers overlap at z = 0");
+static_assert(kSubLayerOffsetZ + kSubLayerHalfZ <= kViewHalfZ,
+              "the sub-layers stick out of the view envelope in Z");
+static_assert(kSubLayerHalfZ >= TF::s_strawRadius, "a straw is thicker than its sub-layer");
+static_assert(TF::s_strawLength / 2.0 <= kSubLayerHalfX,
+              "the straws are longer than the sub-layer");
+// Outermost straw edge: half the pattern, plus the half-pitch stagger of the
+// shifted sub-layer, plus one radius.
+static_assert((TF::s_nStraws - 1) * TF::s_strawRadius + 2.0 * TF::s_strawRadius <= kSubLayerHalfY,
+              "the staggered straw pattern does not fit the sub-layer in Y");
+
 // Signed stereo angle for a view: views 0,2 → +, views 1,3 → -.
 units::AngleDeg stereoSignedDeg(int viewIndex) {
     const double sign = (viewIndex % 2 == 0) ? +1.0 : -1.0;
@@ -122,13 +157,10 @@ GeoPhysVol* TrackersFactory::buildStation(int stationIndex) {
 
     // Four stereo views, stacked along Z within the station, each rotated
     // about the beam axis by its signed stereo angle.
-    const auto viewGap = 5.0 * mm;
-    const auto viewPitch = 2.0 * kViewHalfZ + viewGap;
-
     for (int v = 0; v < s_nViews; ++v) {
         GeoPhysVol* viewPhys = buildView(stationIndex, v);
 
-        const auto zView = -0.5 * (s_nViews - 1) * viewPitch + v * viewPitch;
+        const auto zView = -0.5 * (s_nViews - 1) * kViewPitch + v * kViewPitch;
         const double angleRad = gm(stereoSignedDeg(v));
         const GeoTrf::Transform3D viewTrf =
             GeoTrf::Translate3D(0.0, 0.0, gm(zView)) * GeoTrf::RotateZ3D(angleRad);
@@ -166,22 +198,20 @@ GeoPhysVol* TrackersFactory::buildView(int stationIndex, int viewIndex) {
         viewPhys->add(framePhys);
     }
 
-    // Two sub-layers of straws. Centres at z = ±(strawRadius + 0.55) mm so the
-    // two sub-layer envelopes do not overlap each other at z = 0.
-    const auto dz = s_strawRadius + 0.55 * mm;
+    // Two sub-layers of straws at z = ±kSubLayerOffsetZ.
 
     {
         GeoPhysVol* sub0 = buildSubLayer(stationIndex, viewIndex, false);
         viewPhys->add(new GeoNameTag(viewName + "/sublayer_0"));
         viewPhys->add(new GeoIdentifierTag(0));
-        viewPhys->add(new GeoTransform(GeoTrf::Translate3D(0.0, 0.0, gm(-dz))));
+        viewPhys->add(new GeoTransform(GeoTrf::Translate3D(0.0, 0.0, gm(-kSubLayerOffsetZ))));
         viewPhys->add(sub0);
     }
     {
         GeoPhysVol* sub1 = buildSubLayer(stationIndex, viewIndex, true);
         viewPhys->add(new GeoNameTag(viewName + "/sublayer_1"));
         viewPhys->add(new GeoIdentifierTag(1));
-        viewPhys->add(new GeoTransform(GeoTrf::Translate3D(0.0, 0.0, gm(+dz))));
+        viewPhys->add(new GeoTransform(GeoTrf::Translate3D(0.0, 0.0, gm(+kSubLayerOffsetZ))));
         viewPhys->add(sub1);
     }
 
@@ -219,14 +249,10 @@ GeoPhysVol* TrackersFactory::buildSubLayer(int stationIndex, int viewIndex, bool
     const auto pitch = 2.0 * s_strawRadius;                    // 20 mm
     const auto yStagger = shifted ? s_strawRadius : 0.0 * mm;  // +10 mm if shifted
 
-    const auto subHalfX = kApertureHalfX - kFrameClearance;
-    const auto subHalfY = kApertureHalfY - kFrameClearance;
-    const auto subHalfZ = s_strawRadius + 0.5 * mm;
-
     const std::string subName = "/SHiP/trackers/station_" + std::to_string(stationIndex + 1) +
                                 "/view_" + std::to_string(viewIndex) + "/sublayer_" +
                                 (shifted ? "1" : "0") + "_body";
-    auto const* subBox = new GeoBox(gm(subHalfX), gm(subHalfY), gm(subHalfZ));
+    auto const* subBox = new GeoBox(gm(kSubLayerHalfX), gm(kSubLayerHalfY), gm(kSubLayerHalfZ));
     auto* subLog = new GeoLogVol(subName, subBox, air);
     auto* subPhys = new GeoPhysVol(subLog);
 

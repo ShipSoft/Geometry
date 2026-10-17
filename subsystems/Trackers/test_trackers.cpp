@@ -2,6 +2,7 @@
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
 #include "SHiPGeometry/SHiPMaterials.h"
+#include "SHiPGeometry/Units.h"
 #include "Trackers/TrackersFactory.h"
 
 #include <GeoModelKernel/GeoBox.h>
@@ -9,11 +10,15 @@
 #include <GeoModelKernel/GeoPhysVol.h>
 #include <GeoModelKernel/GeoVPhysVol.h>
 
+#include <array>
 #include <catch2/catch_test_macros.hpp>
+#include <cstddef>
+#include <optional>
 #include <string>
 
 using SHiPGeometry::SHiPMaterials;
 using SHiPGeometry::TrackersFactory;
+using SHiPGeometry::units::gm;
 
 static const GeoVPhysVol* findChild(const GeoVPhysVol* parent, const std::string& name) {
     for (unsigned int i = 0; i < parent->getNChildVols(); ++i) {
@@ -25,20 +30,40 @@ static const GeoVPhysVol* findChild(const GeoVPhysVol* parent, const std::string
     return nullptr;
 }
 
-// CSV limits: Trackers per-station halfX ≤ 3000, halfY ≤ 3500, halfZ ≤ 500
-TEST_CASE("TrackersWithinEnvelope", "[trackers]") {
+static std::optional<unsigned int> findChildIndex(const GeoVPhysVol* parent,
+                                                  const std::string& name) {
+    for (unsigned int i = 0; i < parent->getNChildVols(); ++i) {
+        if (parent->getChildVol(i)->getLogVol()->getName() == name) {
+            return i;
+        }
+    }
+    return std::nullopt;
+}
+
+// Station sizes and positions are checked against the EDMS envelopes at
+// compile time (Layout.h); this checks the factory builds what those
+// constants describe.
+TEST_CASE("TrackersStationsMatchConstants", "[trackers]") {
     SHiPMaterials materials;
     TrackersFactory factory(materials);
     GeoPhysVol* tc = factory.build();
     REQUIRE(tc != nullptr);
-    const GeoVPhysVol* st1 = findChild(tc, "/SHiP/trackers/station_1");
-    INFO("TrackerStation_1 not found");
-    REQUIRE(st1 != nullptr);
-    auto* box = dynamic_cast<const GeoBox*>(st1->getLogVol()->getShape());
-    REQUIRE(box != nullptr);
-    CHECK(box->getXHalfLength() <= 3000.0);
-    CHECK(box->getYHalfLength() <= 3500.0);
-    CHECK(box->getZHalfLength() <= 500.0);
+    const std::array stationZ = {TrackersFactory::s_station1Z, TrackersFactory::s_station2Z,
+                                 TrackersFactory::s_station3Z, TrackersFactory::s_station4Z};
+    for (std::size_t s = 0; s < stationZ.size(); ++s) {
+        const std::string name = "/SHiP/trackers/station_" + std::to_string(s + 1);
+        INFO("station " << name);
+        const auto index = findChildIndex(tc, name);
+        REQUIRE(index.has_value());
+        const GeoVPhysVol* station = &*tc->getChildVol(*index);
+        auto* box = dynamic_cast<const GeoBox*>(station->getLogVol()->getShape());
+        REQUIRE(box != nullptr);
+        CHECK(box->getXHalfLength() == gm(TrackersFactory::s_halfX));
+        CHECK(box->getYHalfLength() == gm(TrackersFactory::s_halfY));
+        CHECK(box->getZHalfLength() == gm(TrackersFactory::s_halfZ));
+        CHECK(tc->getXToChildVol(*index).translation().z() ==
+              gm(stationZ[s] - TrackersFactory::s_containerCentreZ));
+    }
 }
 
 // The container holds all 4 stations.
@@ -83,23 +108,21 @@ TEST_CASE("TrackersViewHasFrameAndSubLayers", "[trackers]") {
     CHECK(sub0->getNChildVols() == static_cast<unsigned>(TrackersFactory::s_nStraws));
 }
 
-// The inert TrackerMagnet marker is present and fits in the gap before the
-// spectrometer-magnet yoke (i.e. it does not overlap station 2 or the yoke).
+// The inert TrackerMagnet marker is built where s_trackerMagnetZ puts it;
+// Layout.h checks at compile time that this is in the gap between station 2
+// and the spectrometer-magnet yoke.
 TEST_CASE("TrackersHasTrackerMagnet", "[trackers]") {
     SHiPMaterials materials;
     TrackersFactory factory(materials);
     GeoPhysVol* tc = factory.build();
     REQUIRE(tc != nullptr);
-    const GeoVPhysVol* tm = findChild(tc, "/SHiP/trackers/tracker_magnet");
+    const auto index = findChildIndex(tc, "/SHiP/trackers/tracker_magnet");
     INFO("tracker_magnet not found");
-    REQUIRE(tm != nullptr);
+    REQUIRE(index.has_value());
+    const GeoVPhysVol* tm = &*tc->getChildVol(*index);
     auto* box = dynamic_cast<const GeoBox*>(tm->getLogVol()->getShape());
     REQUIRE(box != nullptr);
-    // Span must stay clear of station 2 (ends 86570 mm) and the Magnet yoke
-    // (starts 87070 mm): 86570 <= centre ± halfZ <= 87070.
-    const double centre =
-        TrackersFactory::s_trackerMagnetZ.numerical_value_in(SHiPGeometry::units::mm);
-    const double halfZ = box->getZHalfLength();
-    CHECK(centre - halfZ >= 86570.0);
-    CHECK(centre + halfZ <= 87070.0);
+    CHECK(box->getZHalfLength() == gm(TrackersFactory::s_trackerMagnetHalfZ));
+    CHECK(tc->getXToChildVol(*index).translation().z() ==
+          gm(TrackersFactory::s_trackerMagnetZ - TrackersFactory::s_containerCentreZ));
 }
