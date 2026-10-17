@@ -59,7 +59,7 @@ registered with `SHiPUBTManager`.
 Tile totals: fine 2 × 400 + 2 × 19 200 = 39 200; coarse 300 + 2 × 3 750 = 7 800;
 **47 000 tiles** in total.
 
-Position in world: z = 32 720 mm (centre of the 32.52–32.92 m envelope).
+Position in world: z = 32 840 mm (inside the 32.67–33.07 m slot of integration layout 2026-0.1, EDMS 3287817 v1.1, with the rear face flush with the decay-volume container at 32.92 m).
 
 ## Materials
 
