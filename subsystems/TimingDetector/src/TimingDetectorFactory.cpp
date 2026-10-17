@@ -35,13 +35,15 @@ GeoPhysVol* TimingDetectorFactory::build() {
     // 3 columns × 110 rows = 330 bars. Positions are analytic:
     //   x = (ic - 1) * pitch          → -1300, 0, +1300 mm
     //   y = y0 + ir * step            → -3220 … +3220 mm (step 6440/109)
-    //   z = (ir%2)*12 + (ic%2)*90     → 4 stagger levels: 0, 12, 90, 102 mm
+    //   z = (ir%2)*12 + (ic%2)*90     → 4 stagger levels: 0, 12, 90, 102 mm,
+    //                                   measured from the front face of the slot
     m_barCount = 0;
     for (int ic = 0; ic < s_nColumns; ++ic) {
         const double x = (ic - 1) * s_columnPitchX;
         for (int ir = 0; ir < s_nRows; ++ir) {
             const double y = s_rowY0 + ir * s_rowStepY;
-            const double z = (ir % 2) * s_zStaggerRow + (ic % 2) * s_zStaggerCol;
+            const double z = -s_containerHalfZ + s_barHalfZ + (ir % 2) * s_zStaggerRow +
+                             (ic % 2) * s_zStaggerCol;
             const std::string name =
                 "/SHiP/timing_detector/bar_" + std::to_string(ic) + "_" + std::to_string(ir);
             containerPhys->add(new GeoNameTag(name));
