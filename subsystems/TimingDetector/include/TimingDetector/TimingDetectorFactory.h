@@ -20,7 +20,7 @@ class SHiPMaterials;
  * "/SHiP/timing_detector/bar_<col>_<row>" names; sensitive-detector assignment
  * is performed downstream by name pattern.
  *
- * Container half-sizes (mm): 2750 × 3250 × 250.
+ * Container half-sizes (mm): 2750 × 3250 × 230.
  * Bar half-sizes (mm):        700 × 30 × 5.
  * Z stagger (mm):             z = (row%2)·12 + (col%2)·90 → levels 0/12/90/102.
  */
