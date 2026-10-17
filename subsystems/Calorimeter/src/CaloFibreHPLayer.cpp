@@ -9,7 +9,6 @@
 #include <GeoModelKernel/GeoPhysVol.h>
 #include <GeoModelKernel/GeoTransform.h>
 #include <GeoModelKernel/GeoTube.h>
-#include <GeoModelKernel/Units.h>
 
 #include <algorithm>
 #include <cmath>
@@ -19,15 +18,15 @@
 
 namespace SHiPGeometry {
 
-using namespace GeoModelKernelUnits;
+using units::gm;
 
 void CaloFibreHP::buildLayer(GeoVPhysVol* mother, GeoMaterial* aluminiumMat, GeoMaterial* fibreMat,
-                             const std::string& layerTag, double zCenter_mm, int layerIndex,
-                             double casingXY_mm, double casingZ_mm, double fiberDiam_mm,
-                             double fiberCoreDiam_mm, bool fibresAlongY,
-                             const std::string& nameSuffix) {
-    const double casingXY = casingXY_mm * mm;
-    const double casingZ = casingZ_mm * mm;
+                             const std::string& layerTag, units::LengthMm zCenter, int layerIndex,
+                             units::LengthMm casingXYIn, units::LengthMm casingZIn,
+                             units::LengthMm fiberDiam, units::LengthMm fiberCoreDiam,
+                             bool fibresAlongY, const std::string& nameSuffix) {
+    const double casingXY = gm(casingXYIn);
+    const double casingZ = gm(casingZIn);
 
     // ── aluminium casing ──────────────────────────────────────────────────
     auto* casingShape = new GeoBox(0.5 * casingXY, 0.5 * casingXY, 0.5 * casingZ);
@@ -35,12 +34,12 @@ void CaloFibreHP::buildLayer(GeoVPhysVol* mother, GeoMaterial* aluminiumMat, Geo
     auto* casingPhys = new GeoPhysVol(casingLog);
 
     mother->add(new GeoNameTag((layerTag + "_HPL_Casing" + nameSuffix).c_str()));
-    mother->add(new GeoTransform(GeoTrf::Translate3D(0.0, 0.0, zCenter_mm * mm)));
+    mother->add(new GeoTransform(GeoTrf::Translate3D(0.0, 0.0, gm(zCenter))));
     mother->add(casingPhys);
 
     // ── fibre geometry ────────────────────────────────────────────────────
-    const double rOuter = 0.5 * fiberDiam_mm * mm;
-    const double rCore = 0.5 * fiberCoreDiam_mm * mm;
+    const double rOuter = 0.5 * gm(fiberDiam);
+    const double rCore = 0.5 * gm(fiberCoreDiam);
 
     if (rCore <= 0.0 || rCore > rOuter)
         throw std::runtime_error(
@@ -50,8 +49,8 @@ void CaloFibreHP::buildLayer(GeoVPhysVol* mother, GeoMaterial* aluminiumMat, Geo
     // GeoTube axis is Z; rotate so fibres run along Y or X
     const double halfLen = 0.5 * casingXY;
     GeoTrf::Transform3D rotAxis =
-        fibresAlongY ? GeoTrf::Transform3D(GeoTrf::RotateX3D(90.0 * deg))    // Z → Y
-                     : GeoTrf::Transform3D(GeoTrf::RotateY3D(-90.0 * deg));  // Z → X
+        fibresAlongY ? GeoTrf::Transform3D(GeoTrf::RotateX3D(gm(90.0 * units::deg)))    // Z → Y
+                     : GeoTrf::Transform3D(GeoTrf::RotateY3D(gm(-90.0 * units::deg)));  // Z → X
 
     auto* cladShape = new GeoTube(0.0, rOuter, halfLen);
     auto* coreShape = new GeoTube(0.0, rCore, halfLen);

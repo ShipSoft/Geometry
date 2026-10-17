@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <GeoModelKernel/Units.h>
+#include "SHiPGeometry/Units.h"
 
 #include <array>
 #include <string>
@@ -47,30 +47,29 @@ class TrackersFactory {
     [[nodiscard]] GeoPhysVol* build();
 
     // ── Straw / view geometry constants ─────────────────────────────────
-    // Unit shorthand (GeoModel's native length unit is mm)
-    static constexpr double mm = GeoModelKernelUnits::mm;
 
     static constexpr int s_nStations = 4;
     static constexpr int s_nViews = 4;      ///< stereo views per station
     static constexpr int s_nSubLayers = 2;  ///< staggered straw layers per view
 
-    static constexpr double s_strawRadius = 10.0 * mm;     ///< 1 cm radius (2 cm diam)
-    static constexpr double s_strawLength = 4000.0 * mm;   ///< 4 m, along X
-    static constexpr double s_wallThickness = 0.030 * mm;  ///< 30 µm Mylar wall
+    static constexpr auto s_strawRadius = 10.0 * units::mm;     ///< 1 cm radius (2 cm diam)
+    static constexpr auto s_strawLength = 4000.0 * units::mm;   ///< 4 m, along X
+    static constexpr auto s_wallThickness = 0.030 * units::mm;  ///< 30 µm Mylar wall
 
     /// Active aperture inside a view frame (X = straw length region, Y = pitch).
-    static constexpr double s_apertureX = 4000.0 * mm;
-    static constexpr double s_apertureY = 6000.0 * mm;
+    static constexpr auto s_apertureX = 4000.0 * units::mm;
+    static constexpr auto s_apertureY = 6000.0 * units::mm;
 
     /// Straws per sub-layer (aperture height / straw diameter).
-    static constexpr int s_nStraws = static_cast<int>(s_apertureY / (2.0 * s_strawRadius));
+    static constexpr int s_nStraws =
+        static_cast<int>(units::ratio(s_apertureY / (2.0 * s_strawRadius)));
 
-    static constexpr double s_stereoAngleDeg = 2.3;  ///< |stereo angle| per view
+    static constexpr auto s_stereoAngleDeg = 2.3 * units::deg;  ///< |stereo angle| per view
 
     // View frame (FairShip-style hollow rectangle).
-    static constexpr double s_frameBarX = 100.0 * mm;  ///< frame bar width in X
-    static constexpr double s_frameBarY = 100.0 * mm;  ///< frame bar width in Y
-    static constexpr double s_frameHalfZ = 22.0 * mm;  ///< frame half-thickness in Z
+    static constexpr auto s_frameBarX = 100.0 * units::mm;  ///< frame bar width in X
+    static constexpr auto s_frameBarY = 100.0 * units::mm;  ///< frame bar width in Y
+    static constexpr auto s_frameHalfZ = 22.0 * units::mm;  ///< frame half-thickness in Z
 
     // ── Tracker magnet ──────────────────────────────────────────────────
     // An inert, air-filled marker volume named "TrackerMagnet", placed in
@@ -83,8 +82,8 @@ class TrackersFactory {
     // there. It exists so the tracker magnet has a named placeholder in the
     // geometry; simulation/field code can locate it by the name
     // "/SHiP/trackers/tracker_magnet".
-    static constexpr double s_trackerMagnetZ = 86820.0 * mm;    ///< centre
-    static constexpr double s_trackerMagnetHalfZ = 230.0 * mm;  ///< half-depth
+    static constexpr auto s_trackerMagnetZ = 86820.0 * units::mm;    ///< centre
+    static constexpr auto s_trackerMagnetHalfZ = 230.0 * units::mm;  ///< half-depth
 
    private:
     SHiPMaterials& m_materials;
@@ -93,19 +92,19 @@ class TrackersFactory {
     std::string m_frameMaterialName = "Aluminium";
 
     // ── Station envelope from GDML statbox ──────────────────────────────
-    static constexpr double s_halfX = 3000.0 * mm;  // 300 cm
-    static constexpr double s_halfY = 3430.0 * mm;  // 343 cm (GDML y = 686 cm)
-    static constexpr double s_halfZ = 500.0 * mm;   // 50 cm
+    static constexpr auto s_halfX = 3000.0 * units::mm;  // 300 cm
+    static constexpr auto s_halfY = 3430.0 * units::mm;  // 343 cm (GDML y = 686 cm)
+    static constexpr auto s_halfZ = 500.0 * units::mm;   // 50 cm
 
     // Station Z positions (centres, from origin).
-    static constexpr double s_station1Z = 84070.0 * mm;  // 84.07 m
-    static constexpr double s_station2Z = 86070.0 * mm;  // 86.07 m
-    static constexpr double s_station3Z = 93070.0 * mm;  // 93.07 m
-    static constexpr double s_station4Z = 95070.0 * mm;  // 95.07 m
+    static constexpr auto s_station1Z = 84070.0 * units::mm;  // 84.07 m
+    static constexpr auto s_station2Z = 86070.0 * units::mm;  // 86.07 m
+    static constexpr auto s_station3Z = 93070.0 * units::mm;  // 93.07 m
+    static constexpr auto s_station4Z = 95070.0 * units::mm;  // 95.07 m
 
     // Container dimensions (spans all stations).
-    static constexpr double s_containerHalfZ = (s_station4Z - s_station1Z) / 2.0 + s_halfZ;
-    static constexpr double s_containerCentreZ = (s_station1Z + s_station4Z) / 2.0;
+    static constexpr auto s_containerHalfZ = (s_station4Z - s_station1Z) / 2.0 + s_halfZ;
+    static constexpr auto s_containerCentreZ = (s_station1Z + s_station4Z) / 2.0;
 
     // ── Internal builders ───────────────────────────────────────────────
 
