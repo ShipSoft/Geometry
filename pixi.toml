@@ -5,7 +5,7 @@
 name = "shipgeometry"
 description = "SHiP detector geometry implementation using GeoModel"
 channels = ["https://prefix.dev/ship-experiment/stable", "conda-forge"]
-platforms = ["linux-64"]
+platforms = ["linux-64", "linux-aarch64"]
 preview = ["pixi-build"]
 requires-pixi = ">=0.68"
 
