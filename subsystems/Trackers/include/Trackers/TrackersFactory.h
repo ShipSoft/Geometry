@@ -18,12 +18,13 @@ class SHiPMaterials;
  * @brief Factory for the Trackers (straw tube tracking stations) geometry.
  *
  * Builds 4 straw tracking stations for the SHiP spectrometer. Station
- * envelopes and z-positions follow the GDML reference / subsystem_envelopes.csv:
+ * z-positions follow the GDML reference / subsystem_envelopes.csv:
  * - Station 1: Z 83.57-84.57 m → centre 84.07 m
  * - Station 2: Z 85.57-86.57 m → centre 86.07 m
  * - Station 3: Z 92.57-93.57 m → centre 93.07 m
  * - Station 4: Z 94.57-95.57 m → centre 95.07 m
- * Station envelope (GDML statbox): half 3000 × 3430 × 500 mm.
+ * Station envelope (integration CAD model ST1967028_01, layout 2026-0.1):
+ * half 2607 × 3480.5 × 500 mm, centred 120.5 mm above the beam axis.
  *
  * Each station envelope is filled with 4 stereo views. A view is a material
  * frame (FairShip-style hollow rectangle) enclosing a staggered double
