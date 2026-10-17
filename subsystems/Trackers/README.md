@@ -32,7 +32,7 @@ The spectrometer dipole between stations 2 and 3 is a separate subsystem
  └─ /SHiP/trackers/tracker_magnet (Air, inert marker box)
 ```
 
-Station Z positions (centres): 84070, 86070, 93070, 95070 mm.
+Station Z positions (centres): 84220, 86220, 93220, 95220 mm.
 Position in world: centred at z = 89720 mm (average of stations 1 and 4).
 Stations 1-2 are upstream of the magnet, stations 3-4 downstream.
 
@@ -42,8 +42,8 @@ Stations 1-2 are upstream of the magnet, stations 3-4 downstream.
 the tracker magnet, centred at z = 86970 mm with a 460 mm Z extent.
 
 It is **not** a physically-scaled dipole. The spectrometer dipole proper is
-the separate `Magnet` subsystem (iron yoke + coils) occupying z = 87.07 to
-92.07 m. The only space inside the trackers container that is clear of both
+the separate `Magnet` subsystem (iron yoke + coils) occupying z = 87.22 to
+92.22 m. The only space inside the trackers container that is clear of both
 the straw stations and that yoke is the ~0.5 m gap between station 2 and the
 yoke, so the marker is sized and placed to fit there without overlap.
 
