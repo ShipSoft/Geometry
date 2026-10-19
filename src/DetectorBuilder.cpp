@@ -3,11 +3,13 @@
 //
 // The assembler. It contains NO subsystem names: every subsystem registers
 // itself (see REGISTER_SUBSYSTEM in each subsystem's .cpp) and this file only
-// iterates whatever registered.
+// iterates whatever registered. Each entry point calls linkSubsystems() only so
+// that the subsystem libraries stay linked; see src/CMakeLists.txt.
 #include "SHiP/geometry/DetectorBuilder.h"
 
 // Not used here: included so the library build runs the layout static_asserts
 // against the descriptors the registry places from.
+#include "LinkSubsystems.h"
 #include "SHiP/geometry/Layout.h"
 #include "SHiP/geometry/Materials.h"
 #include "SHiP/geometry/Placement.h"
@@ -22,6 +24,7 @@
 #include <vector>
 namespace SHiP::geometry {
 GeoPhysVol* assembleGeometry(const std::vector<std::string>& only) {
+    detail::linkSubsystems();
     Materials materials;
     auto& reg = registry();
     // Validate any requested names up front, so a typo fails clearly rather
@@ -84,6 +87,7 @@ GeoPhysVol* assembleGeometry(const std::vector<std::string>& only) {
     return world;
 }
 GeoVPhysVol* buildSubsystem(const std::string& name) {
+    detail::linkSubsystems();
     auto& reg = registry();
     auto it = reg.find(name);
     if (it == reg.end()) {
@@ -93,6 +97,7 @@ GeoVPhysVol* buildSubsystem(const std::string& name) {
     return it->second.build(materials);
 }
 std::vector<std::string> subsystemNames() {
+    detail::linkSubsystems();
     std::vector<std::string> names;
     for (auto& entry : registry())
         names.push_back(entry.first);

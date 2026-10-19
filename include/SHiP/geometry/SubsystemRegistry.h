@@ -119,13 +119,12 @@ std::vector<std::string> subsystemNames();
  * The factory must expose `static SubsystemDescriptor descriptor()` and be
  * constructible from `Materials&` with a `build()` returning a volume.
  *
- * NOTE: nothing references this registration, so the subsystem library would
- * otherwise be dropped from the DT_NEEDED of whatever links it by the
- * toolchain's default --as-needed, and the initialiser would never run.
- * src/CMakeLists.txt puts -Wl,--no-as-needed among ship_geometry's PUBLIC link
- * libraries, directly before the subsystems, so the flag lands on
- * libship_geometry's own link line as well as on every consumer's, after any
- * --as-needed from LDFLAGS. Do not remove it or turn it into a link option.
+ * It also defines `FACTORY_linkAnchor()`, an empty function. Nothing else
+ * references the registration, so without it the linker would drop the
+ * subsystem library (under --as-needed, or from a static archive) and the
+ * initialiser would never run. src/CMakeLists.txt generates a call to the
+ * anchor of every subsystem in SHIP_SUBSYSTEMS, assuming the factory of
+ * subsystem <Name> is called <Name>Factory.
  */
 #define REGISTER_SUBSYSTEM(FACTORY)                                                           \
     namespace {                                                                               \
@@ -133,4 +132,6 @@ std::vector<std::string> subsystemNames();
         FACTORY::descriptor(), [](::SHiP::geometry::Materials& materials) -> ::GeoVPhysVol* { \
             return FACTORY(materials).build();                                                \
         });                                                                                   \
-    }
+    }                                                                                         \
+    void FACTORY##_linkAnchor();                                                              \
+    void FACTORY##_linkAnchor() {}

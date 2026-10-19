@@ -193,11 +193,10 @@ To add a new material, edit `src/Materials.cpp`:
    add `<Name>` to `SHIP_SUBSYSTEMS` in the top-level `CMakeLists.txt`. That
    list drives the subdirectory walk, the install rules, and the libraries
    `ship_geometry` links, and `test_registry` requires every entry to have
-   registered itself under that name. `ship_geometry` puts `-Wl,--no-as-needed`
-   among its PUBLIC link libraries, directly before the subsystems, so each
-   one stays in `DT_NEEDED` and its `REGISTER_SUBSYSTEM` initializer is not
-   dropped by the linker's default `--as-needed`. Only shared-library builds
-   are supported.
+   registered itself under that name. `ship_geometry` also calls the empty
+   `<Name>Factory_linkAnchor()` that `REGISTER_SUBSYSTEM` defines, so the
+   linker keeps the library and its registration. The factory therefore has to
+   be called `<Name>Factory`; otherwise `ship_geometry` fails to link.
 5. **Docs**: update the subsystem `README.md` with geometry tree, materials,
    and status
 

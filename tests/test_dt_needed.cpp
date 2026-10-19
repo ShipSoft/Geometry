@@ -7,9 +7,9 @@
 // Usage: test_dt_needed <path/to/libship_geometry.so> <subsystem soname> ...
 //
 // This executable deliberately does not link ship_geometry: a CMake-linked
-// consumer gets -Wl,--no-as-needed on its own link line and finds the
-// subsystems either way, which is why the registry tests cannot catch a
-// library whose own link line dropped them. Here the library is dlopen()ed, as
+// consumer also links every subsystem directly, through ship_geometry's link
+// interface, so the registry tests cannot catch a library whose own link line
+// dropped them. Here the library is dlopen()ed, as
 // a plugin or a hand-written -lship_geometry would see it, and each subsystem
 // must then already be resident (RTLD_NOLOAD loads nothing itself).
 

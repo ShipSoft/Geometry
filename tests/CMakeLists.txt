@@ -49,9 +49,9 @@ add_test(
 
 # libship_geometry's own DT_NEEDED must list every subsystem, or a consumer that
 # does not link it through CMake (dlopen, plain -lship_geometry) gets an empty
-# registry. See the --no-as-needed note in src/CMakeLists.txt; this is the
-# same platform gate.
-if(UNIX AND NOT APPLE)
+# registry. See the link-anchor note in src/CMakeLists.txt. Only meaningful for
+# shared libraries, and the RTLD_NOLOAD lookup by soname is ELF-specific.
+if(BUILD_SHARED_LIBS AND UNIX AND NOT APPLE)
     add_executable(test_dt_needed test_dt_needed.cpp)
     target_link_libraries(test_dt_needed PRIVATE ${CMAKE_DL_LIBS})
     add_dependencies(test_dt_needed ship_geometry)

@@ -81,10 +81,9 @@ unsigned int worldOwnChildCount() {
 }  // namespace
 
 TEST_CASE("RegistryTest.SubsystemsAreRegistered", "[registry]") {
-    // Guards the link configuration as much as the registry: if
-    // -Wl,--no-as-needed is dropped, the subsystem libraries fall out of the
-    // executable's DT_NEEDED, their static initialisers never run and the
-    // registry is silently empty.
+    // Guards the link configuration as much as the registry: if the linker
+    // drops the subsystem libraries, their static initialisers never run and
+    // the registry is silently empty.
     CHECK(registry().size() > 1u);  // NOLINT(readability/check)
 }
 
