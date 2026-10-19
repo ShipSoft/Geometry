@@ -6,7 +6,6 @@
 #include "SHiP/geometry/Materials.h"
 #include "SHiP/geometry/StaticChecks.h"
 #include "SHiP/geometry/SubsystemRegistry.h"
-#include "SHiP/geometry/UpstreamTagger/UpstreamTaggerManager.h"
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoDefinitions.h>
@@ -208,12 +207,12 @@ UpstreamTaggerFactory::UpstreamTaggerFactory(Materials& materials) : m_materials
 
 // ── build ────────────────────────────────────────────────────────────────────
 
-GeoVPhysVol* UpstreamTaggerFactory::build(UpstreamTaggerManager* manager) {
+GeoVPhysVol* UpstreamTaggerFactory::build() {
     const GeoMaterial* air = m_materials.requireMaterial("Air");
     const GeoMaterial* polystyrene = m_materials.requireMaterial("Polystyrene");
 
-    // Container: a GeoFullPhysVol so the tagger keeps a sensitive tree-top for
-    // UpstreamTaggerManager. Dimensions are unchanged from the previous slab.
+    // Container: a GeoFullPhysVol so the tagger keeps a sensitive tree-top.
+    // Dimensions are unchanged from the previous slab.
     auto const* containerBox = new GeoBox(gm(s_halfX), gm(s_halfY), gm(s_halfZ));
     auto const* containerLog = new GeoLogVol("/SHiP/upstream_tagger", containerBox, air);
     auto* containerPhys = new GeoFullPhysVol(containerLog);
@@ -240,13 +239,6 @@ GeoVPhysVol* UpstreamTaggerFactory::build(UpstreamTaggerManager* manager) {
         auto* env = makeRegionEnvelope(containerPhys, air, r.name, regionId++, halfX, halfY,
                                        envHalfZ, gm(r.ctrX), gm(r.ctrY), 0.0);
         placeTileGrid(env, r.fine ? fineTileLog : coarseTileLog, r);
-    }
-
-    // A manager is optional: it only records the container as a tree-top for
-    // callers that pass one. Built generically via the registry (no manager),
-    // there is nothing to record — the container is returned regardless.
-    if (manager) {
-        manager->setContainerVolume(containerPhys);
     }
 
     return containerPhys;
