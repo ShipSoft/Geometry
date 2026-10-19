@@ -177,16 +177,18 @@ TEST_CASE("ConsistencyTest.PositionsSanity", "[consistency]") {
         double tolerance;  // mm
     };
 
-    // Centres as placed in SHiPGeometryBuilder::build()
+    // Centres as placed in SHiPGeometryBuilder::build(). The subsystems moved for
+    // integration layout 2026-0.1 use a 50 mm tolerance, below the smallest of
+    // those shifts (120 mm), so the old positions would fail the check.
     std::vector<Expected> expected = {
         {"/SHiP/target", 432.5, 500.0},
         {"/SHiP/muon_shield", 16763.3, 500.0},
         {"/SHiP/neutrino_detector", 28950.0, 500.0},
-        {"/SHiP/upstream_tagger", 32720.0, 500.0},
+        {"/SHiP/upstream_tagger", 32840.0, 50.0},
         {"/SHiP/decay_volume", 58120.0, 500.0},
-        {"/SHiP/trackers", 89570.0, 500.0},
-        {"/SHiP/magnet", 89570.0, 500.0},
-        {"/SHiP/timing_detector", 95902.0, 500.0},
+        {"/SHiP/trackers", 89720.0, 50.0},
+        {"/SHiP/magnet", 89720.0, 50.0},
+        {"/SHiP/timing_detector", 96370.0, 50.0},
         {"/SHiP/calorimeter", 98320.0, 500.0},
     };
 

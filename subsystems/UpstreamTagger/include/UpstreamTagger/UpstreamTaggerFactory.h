@@ -45,9 +45,9 @@ class SHiPUBTManager;
  * "/SHiP/upstream_tagger/..." names, mirroring the calorimeter bar layers;
  * sensitive-detector assignment is performed downstream by name pattern.
  *
- * The container envelope (half 2200 × 3200 × 80 mm, centre Z = 32 720 mm)
- * is unchanged from the previous monolithic slab so the placement in
- * SHiPGeometry and the subsystem-envelope consistency checks still hold.
+ * The container envelope (half 2200 × 3200 × 80 mm) has the same dimensions
+ * as the previous monolithic slab, so the subsystem-envelope consistency
+ * checks still hold. SHiPGeometry places it at centre Z = 32 840 mm.
  */
 class UpstreamTaggerFactory {
    public:
