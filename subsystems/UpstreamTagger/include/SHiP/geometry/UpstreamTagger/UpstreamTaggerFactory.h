@@ -11,7 +11,6 @@ class GeoVPhysVol;
 namespace SHiP::geometry {
 
 class Materials;
-class UpstreamTaggerManager;
 
 /**
  * @brief Factory for the UpstreamTagger (upstream veto tagger) geometry.
@@ -43,10 +42,10 @@ class UpstreamTaggerManager;
  * thick, coarse tiles 10 mm; both are centred on the same Z plane.
  *
  * The whole assembly is returned as a single GeoFullPhysVol container (air),
- * so the tagger keeps a sensitive tree-top that can be registered with the
- * UpstreamTaggerManager. Individual tiles are GeoPhysVol with hierarchical
- * "/SHiP/upstream_tagger/..." names, mirroring the calorimeter bar layers;
- * sensitive-detector assignment is performed downstream by name pattern.
+ * so the tagger keeps a sensitive tree-top. Individual tiles are GeoPhysVol
+ * with hierarchical "/SHiP/upstream_tagger/..." names, mirroring the
+ * calorimeter bar layers; sensitive-detector assignment is performed
+ * downstream by name pattern.
  *
  * The container envelope (half 2200 × 3200 × 80 mm, centre Z = 32 720 mm)
  * is unchanged from the previous monolithic slab so the placement in
@@ -69,10 +68,9 @@ class UpstreamTaggerFactory {
     }
     /**
      * @brief Build the UpstreamTagger geometry.
-     * @param manager Optional manager to register the container tree-top; may be null.
      * @return Pointer to the GeoFullPhysVol tile-plane container.
      */
-    [[nodiscard]] GeoVPhysVol* build(UpstreamTaggerManager* manager = nullptr);
+    [[nodiscard]] GeoVPhysVol* build();
 
     // ── Container envelope (mm) ─────────────────────────────────────────
     // The GDML statbox (440 × 640 × 16 cm). This is wider than the EDMS

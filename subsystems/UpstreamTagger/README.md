@@ -40,8 +40,7 @@ spans X ∈ [−2200, +2200] mm, Y ∈ [−3200, +3200] mm: the tiles cover the 
 Like the calorimeter bar layers, the individual tiles are `GeoPhysVol` with
 hierarchical `/SHiP/upstream_tagger/...` names; sensitive-detector assignment
 is done downstream by name pattern. The whole assembly is returned as a single
-`GeoFullPhysVol` container so the tagger keeps a sensitive tree-top, which is
-registered with `UpstreamTaggerManager`.
+`GeoFullPhysVol` container so the tagger keeps a sensitive tree-top.
 
 ## Geometry tree
 
@@ -87,7 +86,7 @@ the shared catalogue.
 
 - [x] C++ implementation (tile-segmented plane)
 - [x] Fine / coarse dual-granularity tiling
-- [x] `GeoFullPhysVol` container registered with `UpstreamTaggerManager`
+- [x] `GeoFullPhysVol` container as a sensitive tree-top
 - [ ] Per-tile SiPM readout geometry
 - [ ] Register tiles as sensitive volumes in the simulation (currently by name)
 - [ ] Verification against GDML / TDR tile map
