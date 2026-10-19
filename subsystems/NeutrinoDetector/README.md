@@ -74,7 +74,7 @@ material was new (added alongside this subsystem); the rest already existed.
 
 - `NeutrinoDetectorIsBoxContainer` - the container is a `GeoBox` large enough to
   hold the contents.
-- `NeutrinoDetectorChildCount` - the container has 4819 direct children.
+- `NeutrinoDetectorChildCount` - the container has 6588 direct children.
 - `NeutrinoDetectorFibreCount` - the recursive descendant count is 340819,
   guarding the individual-fibre placement.
 
