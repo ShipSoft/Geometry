@@ -11,6 +11,7 @@
 #include <cstdlib>
 #include <functional>
 #include <map>
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
@@ -71,6 +72,25 @@ inline bool registerSubsystem(const SubsystemDescriptor& desc,
     return true;
 }
 
+/**
+ * @brief Thrown when a subsystem name is not in the registry.
+ *
+ * A distinct type so that callers can tell a mis-spelled name, for which the
+ * list of subsystemNames() is useful advice, from a failure inside a build.
+ */
+class UnknownSubsystem : public std::runtime_error {
+   public:
+    /// @param name The name that was looked up.
+    explicit UnknownSubsystem(const std::string& name)
+        : std::runtime_error("Unknown subsystem: '" + name + "'"), m_name(name) {}
+
+    /// @return The name that was looked up.
+    [[nodiscard]] const std::string& name() const noexcept { return m_name; }
+
+   private:
+    std::string m_name;
+};
+
 // ── Generic consumers — these name no subsystem ─────────────────────────────
 
 /**
@@ -83,8 +103,9 @@ inline bool registerSubsystem(const SubsystemDescriptor& desc,
  *
  * @param only Subsystem names to place; an empty selection places all of them.
  * @return The world physical volume, owning the placed subsystems.
- * @throws std::runtime_error if a name is not registered, if no world is
- *         registered, if more than one is, or if a factory builds nothing.
+ * @throws UnknownSubsystem if a name is not registered.
+ * @throws std::runtime_error if no world is registered, if more than one is,
+ *         or if a factory builds nothing. The world built so far is freed.
  */
 GeoPhysVol* assembleGeometry(const std::vector<std::string>& only = {});
 
@@ -96,7 +117,7 @@ GeoPhysVol* assembleGeometry(const std::vector<std::string>& only = {});
  *
  * @param name The subsystem name, as returned by subsystemNames().
  * @return The subsystem's volume in its local frame.
- * @throws std::runtime_error if the name is not registered.
+ * @throws UnknownSubsystem if the name is not registered.
  */
 GeoVPhysVol* buildSubsystem(const std::string& name);
 

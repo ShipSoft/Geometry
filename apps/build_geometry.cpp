@@ -141,28 +141,6 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // Check the names here rather than leaving it to the builders, so that the
-    // list of available subsystems is offered for a mis-spelled name and not
-    // for, say, a configuration file that failed to parse.
-    const auto known = SHiP::geometry::subsystemNames();
-    bool anyUnknown = false;
-    for (const auto& name : names) {
-        if (std::ranges::find(known, name) == known.end()) {
-            spdlog::error("Unknown subsystem: '{}'", name);
-            // Older versions took the output file as a bare *.db argument.
-            if (name.ends_with(".db")) {
-                spdlog::info("Did you mean '-o {}'?", name);
-            }
-            anyUnknown = true;
-        }
-    }
-    if (anyUnknown) {
-        spdlog::info("Available subsystems:");
-        for (const auto& n : known)
-            spdlog::info("  {}", n);
-        return 1;
-    }
-
     GeoVPhysVol* geometry = nullptr;
     std::string label;
 
@@ -191,6 +169,17 @@ int main(int argc, char* argv[]) {
             if (outputFile.empty())
                 outputFile = "ship_selection.db";
         }
+    } catch (const SHiP::geometry::UnknownSubsystem& e) {
+        // A mis-spelled name: offer the names that would have worked.
+        spdlog::error("{}", e.what());
+        // Older versions took the output file as a bare *.db argument.
+        if (e.name().ends_with(".db")) {
+            spdlog::info("Did you mean '-o {}'?", e.name());
+        }
+        spdlog::info("Available subsystems:");
+        for (const auto& n : SHiP::geometry::subsystemNames())
+            spdlog::info("  {}", n);
+        return 1;
     } catch (const std::exception& e) {
         spdlog::error("{}", e.what());
         return 1;
