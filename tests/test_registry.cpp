@@ -1,9 +1,12 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
+#include "SHiP/geometry/Materials.h"
 #include "SHiP/geometry/SubsystemRegistry.h"
 
+#include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoDefinitions.h>
+#include <GeoModelKernel/GeoIntrusivePtr.h>
 #include <GeoModelKernel/GeoLogVol.h>
 #include <GeoModelKernel/GeoPhysVol.h>
 #include <GeoModelKernel/GeoVPhysVol.h>
@@ -69,14 +72,49 @@ std::string someNonWorldName() {
 // so child counts must be measured against this baseline rather than zero.
 // Selecting only the world yields it: assembleGeometry() always builds the
 // world, and skips isWorld entries when collecting subsystems to place.
+// Computed once, since each call would build the cavern again.
 unsigned int worldOwnChildCount() {
-    const std::string world = worldName();
-    if (world.empty()) {
-        return 0;
-    }
-    GeoPhysVol* bare = assembleGeometry({world});
-    return bare ? bare->getNChildVols() : 0;
+    static const unsigned int count = [] {
+        const std::string world = worldName();
+        if (world.empty()) {
+            return 0u;
+        }
+        const GeoIntrusivePtr<GeoPhysVol> bare{assembleGeometry({world})};
+        return bare.get() ? bare->getNChildVols() : 0u;
+    }();
+    return count;
 }
+
+// The complete detector, assembled once and shared by the tests that only
+// read it: building it takes most of this test's run time.
+const GeoPhysVol* fullAssembly() {
+    static const GeoIntrusivePtr<GeoPhysVol> world{assembleGeometry()};
+    return world.get();
+}
+
+// Adds a subsystem to the registry for the lifetime of the guard, so that a
+// test can control the descriptors the assembler sees. Removed again on
+// destruction, so later tests see the real registry only.
+class StubSubsystem {
+   public:
+    StubSubsystem(const char* name, int id, double z_mm) : m_name(name) {
+        SHiP::geometry::registerSubsystem(
+            {name, name, id, 0.0, 0.0, z_mm, false},
+            [name](SHiP::geometry::Materials& materials) -> GeoVPhysVol* {
+                auto* box = new GeoBox(10.0, 10.0, 10.0);
+                auto* log = new GeoLogVol(name, box, materials.getMaterial("Air"));
+                return new GeoPhysVol(log);
+            });
+    }
+    ~StubSubsystem() { registry().erase(m_name); }
+    StubSubsystem(const StubSubsystem&) = delete;
+    StubSubsystem& operator=(const StubSubsystem&) = delete;
+    StubSubsystem(StubSubsystem&&) = delete;
+    StubSubsystem& operator=(StubSubsystem&&) = delete;
+
+   private:
+    std::string m_name;
+};
 
 }  // namespace
 
@@ -139,17 +177,26 @@ TEST_CASE("RegistryTest.BuildSubsystemReturnsAVolume", "[registry]") {
     REQUIRE(!name.empty());
 
     INFO("Building subsystem " << name << " on its own");
-    GeoVPhysVol* volume = buildSubsystem(name);
-    CHECK(volume != nullptr);
+    const GeoIntrusivePtr<GeoVPhysVol> volume{buildSubsystem(name)};
+    CHECK(volume.get() != nullptr);
 }
 
 TEST_CASE("RegistryTest.BuildSubsystemRejectsUnknownNames", "[registry]") {
     // A typo must fail loudly rather than yield a null or partial geometry.
-    CHECK_THROWS_AS(buildSubsystem("NoSuchSubsystem"), std::runtime_error);
+    CHECK_THROWS_AS(buildSubsystem("NoSuchSubsystem"), SHiP::geometry::UnknownSubsystem);
 }
 
 TEST_CASE("RegistryTest.AssembleGeometryRejectsUnknownNames", "[registry]") {
-    CHECK_THROWS_AS(assembleGeometry({"NoSuchSubsystem"}), std::runtime_error);
+    CHECK_THROWS_AS(assembleGeometry({"NoSuchSubsystem"}), SHiP::geometry::UnknownSubsystem);
+}
+
+TEST_CASE("RegistryTest.UnknownSubsystemCarriesTheName", "[registry]") {
+    try {
+        (void)buildSubsystem("NoSuchSubsystem");
+        FAIL("buildSubsystem() accepted an unknown name");
+    } catch (const SHiP::geometry::UnknownSubsystem& e) {
+        CHECK(e.name() == "NoSuchSubsystem");
+    }
 }
 
 TEST_CASE("RegistryTest.AssembleGeometryPlacesOnlyTheSelection", "[registry]") {
@@ -158,8 +205,8 @@ TEST_CASE("RegistryTest.AssembleGeometryPlacesOnlyTheSelection", "[registry]") {
 
     const unsigned int baseline = worldOwnChildCount();
 
-    GeoPhysVol* world = assembleGeometry({name});
-    REQUIRE(world != nullptr);
+    const GeoIntrusivePtr<GeoPhysVol> world{assembleGeometry({name})};
+    REQUIRE(world.get() != nullptr);
 
     // The world is always built; the selection controls what is added to it.
     INFO("Selecting " << name << " should add one child to the world's own " << baseline);
@@ -169,7 +216,7 @@ TEST_CASE("RegistryTest.AssembleGeometryPlacesOnlyTheSelection", "[registry]") {
 TEST_CASE("RegistryTest.EmptySelectionPlacesEveryNonWorldSubsystem", "[registry]") {
     const unsigned int baseline = worldOwnChildCount();
 
-    GeoPhysVol* world = assembleGeometry();
+    const GeoPhysVol* world = fullAssembly();
     REQUIRE(world != nullptr);
 
     const auto expected = baseline + static_cast<unsigned int>(registry().size() - 1);
@@ -178,21 +225,19 @@ TEST_CASE("RegistryTest.EmptySelectionPlacesEveryNonWorldSubsystem", "[registry]
     CHECK(world->getNChildVols() == expected);
 }
 
-TEST_CASE("RegistryTest.PlacementOrderIsDeterministic", "[registry]") {
-    // assembleGeometry() sorts by (z, id), so the child order must not depend
-    // on registration order. Two independent assemblies must agree.
-    GeoPhysVol* first = assembleGeometry();
-    GeoPhysVol* second = assembleGeometry();
-    REQUIRE(first != nullptr);
-    REQUIRE(second != nullptr);
-    REQUIRE(first->getNChildVols() == second->getNChildVols());
+TEST_CASE("RegistryTest.EqualZIsOrderedById", "[registry]") {
+    // The registry iterates by name, so without the (z, id) sort AAStub would
+    // be placed first. With it, the lower id wins the tie on z.
+    const StubSubsystem first{"AAStub", 9001, 0.0};
+    const StubSubsystem second{"ZZStub", 9000, 0.0};
+    const unsigned int baseline = worldOwnChildCount();
 
-    for (unsigned int i = 0; i < first->getNChildVols(); ++i) {
-        const std::string a = first->getChildVol(i)->getLogVol()->getName();
-        const std::string b = second->getChildVol(i)->getLogVol()->getName();
-        INFO("Child " << i << ": '" << a << "' vs '" << b << "'");
-        CHECK(a == b);
-    }
+    const GeoIntrusivePtr<GeoPhysVol> world{assembleGeometry({"AAStub", "ZZStub"})};
+    REQUIRE(world.get() != nullptr);
+    REQUIRE(world->getNChildVols() == baseline + 2u);
+
+    CHECK(world->getChildVol(baseline)->getLogVol()->getName() == "ZZStub");
+    CHECK(world->getChildVol(baseline + 1)->getLogVol()->getName() == "AAStub");
 }
 
 TEST_CASE("RegistryTest.PlacementsFollowDescriptorZOrder", "[registry]") {
@@ -201,7 +246,7 @@ TEST_CASE("RegistryTest.PlacementsFollowDescriptorZOrder", "[registry]") {
     // so including it would test the cavern z-origin rather than the ordering.
     const unsigned int baseline = worldOwnChildCount();
 
-    GeoPhysVol* world = assembleGeometry();
+    const GeoPhysVol* world = fullAssembly();
     REQUIRE(world != nullptr);
     REQUIRE(world->getNChildVols() >= baseline + 2u);
 
