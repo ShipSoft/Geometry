@@ -20,7 +20,7 @@ class SHiPMaterials;
  * "/SHiP/timing_detector/bar_<col>_<row>" names; sensitive-detector assignment
  * is performed downstream by name pattern.
  *
- * Container half-sizes (mm): 2750 × 3250 × 250.
+ * Container half-sizes (mm): 2750 × 3250 × 230.
  * Bar half-sizes (mm):        700 × 30 × 5.
  * Z stagger (mm):             z = (row%2)·12 + (col%2)·90 → levels 0/12/90/102.
  */
@@ -39,10 +39,12 @@ class TimingDetectorFactory {
     SHiPMaterials& m_materials;
     int m_barCount{0};
 
-    // Container dimensions
+    // Container dimensions. The length is the 0.46 m slot of the integration
+    // layout 2026-0.1 (EDMS 3287817 v1.1); the bar layer sits at the front
+    // of the slot, where the CAD model ST1967028_01 has the first bar layer.
     static constexpr double s_containerHalfX = 2750.0 * GeoModelKernelUnits::mm;
     static constexpr double s_containerHalfY = 3250.0 * GeoModelKernelUnits::mm;
-    static constexpr double s_containerHalfZ = 250.0 * GeoModelKernelUnits::mm;
+    static constexpr double s_containerHalfZ = 230.0 * GeoModelKernelUnits::mm;
 
     // Bar dimensions
     static constexpr double s_barHalfX = 700.0 * GeoModelKernelUnits::mm;  // 140 cm full length
