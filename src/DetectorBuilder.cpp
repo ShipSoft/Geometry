@@ -25,13 +25,12 @@
 namespace SHiP::geometry {
 GeoPhysVol* assembleGeometry(const std::vector<std::string>& only) {
     detail::linkSubsystems();
-    Materials materials;
     auto& reg = registry();
     // Validate any requested names up front, so a typo fails clearly rather
     // than silently producing a partial geometry.
     for (const auto& name : only) {
         if (reg.find(name) == reg.end()) {
-            throw std::runtime_error("Unknown subsystem: '" + name + "'");
+            throw UnknownSubsystem(name);
         }
     }
     // Require exactly one world (isWorld) subsystem, and require it to build a
@@ -54,11 +53,6 @@ GeoPhysVol* assembleGeometry(const std::vector<std::string>& only) {
     if (!worldInfo) {
         throw std::runtime_error("No world (isWorld) subsystem is registered");
     }
-    GeoPhysVol* world = dynamic_cast<GeoPhysVol*>(worldInfo->build(materials));
-    if (!world) {
-        throw std::runtime_error("World subsystem '" + std::string(worldInfo->desc.name) +
-                                 "' did not build a GeoPhysVol (needed to hold children).");
-    }
     // Gather the selected non-world subsystems (all, if none requested), then
     // order them deterministically by (z, id) — independent of registration order.
     std::vector<const SubsystemInfo*> placed;
@@ -75,14 +69,34 @@ GeoPhysVol* assembleGeometry(const std::vector<std::string>& only) {
             return a->desc.z_mm < b->desc.z_mm;
         return a->desc.id < b->desc.id;
     });
-    for (const SubsystemInfo* info : placed) {
-        const SubsystemDescriptor& d = info->desc;
-        GeoVPhysVol* volume = info->build(materials);
-        if (!volume) {
-            throw std::runtime_error("Subsystem '" + std::string(d.name) +
-                                     "' built a null volume.");
+    // Everything that can be checked without building has passed, so only now
+    // define the materials and build.
+    Materials materials;
+    GeoVPhysVol* built = worldInfo->build(materials);
+    auto* world = dynamic_cast<GeoPhysVol*>(built);
+    if (!world) {
+        // unref() on a fresh volume (refcount 0) deletes it.
+        if (built) {
+            built->unref();
         }
-        placeChild(world, volume, d.node, d.id, GeoTrf::Translate3D(d.x_mm, d.y_mm, d.z_mm));
+        throw std::runtime_error("World subsystem '" + std::string(worldInfo->desc.name) +
+                                 "' did not build a GeoPhysVol (needed to hold children).");
+    }
+    try {
+        for (const SubsystemInfo* info : placed) {
+            const SubsystemDescriptor& d = info->desc;
+            GeoVPhysVol* volume = info->build(materials);
+            if (!volume) {
+                throw std::runtime_error("Subsystem '" + std::string(d.name) +
+                                         "' built a null volume.");
+            }
+            placeChild(world, volume, d.node, d.id, GeoTrf::Translate3D(d.x_mm, d.y_mm, d.z_mm));
+        }
+    } catch (...) {
+        // Nobody holds the world yet, so this deletes it with everything
+        // placed so far.
+        world->unref();
+        throw;
     }
     return world;
 }
@@ -91,7 +105,7 @@ GeoVPhysVol* buildSubsystem(const std::string& name) {
     auto& reg = registry();
     auto it = reg.find(name);
     if (it == reg.end()) {
-        throw std::runtime_error("Unknown subsystem: '" + name + "'");
+        throw UnknownSubsystem(name);
     }
     Materials materials;
     return it->second.build(materials);
