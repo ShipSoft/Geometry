@@ -178,10 +178,10 @@ To add a new material, edit `src/Materials.cpp`:
 
 ## Adding or Modifying a Subsystem
 
-1. **Header**: `subsystems/<Name>/include/<Name>/<Name>Factory.h` — declare
-   the factory class with dimension constants as `static constexpr` members,
-   plus `static SubsystemDescriptor descriptor()` returning its name, tree
-   node, id, and placement
+1. **Header**: `subsystems/<Name>/include/SHiP/geometry/<Name>/<Name>Factory.h`
+   — declare the factory class with dimension constants as `static constexpr`
+   members, plus `static SubsystemDescriptor descriptor()` returning its name,
+   tree node, id, and placement
 2. **Implementation**: `subsystems/<Name>/src/<Name>Factory.cpp` — implement
    `build()` using GeoModel primitives (`GeoBox`, `GeoTubs`, `GeoLogVol`,
    `GeoPhysVol`, `GeoTransform`, etc.)

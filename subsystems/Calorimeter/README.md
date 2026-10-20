@@ -11,7 +11,7 @@ scintillator bars and HPL fibre layers.
 
 All parameters — layer sequences, thicknesses, module tiling — are
 `constexpr` constants in `CalorimeterConstants.h`
-(namespace `SHiP::geometry::Calo`).
+(namespace `SHiP::geometry::calo`).
 
 ## Geometry tree
 
