@@ -107,11 +107,16 @@ class MagnetFactory {
                   "a magnet part sticks out of the container");
     static_assert(!checks::overlaps(s_connectorBox, s_yokeSideBox),
                   "the connectors must sit clear of the yoke");
-    // Known deviations: the box coils approximate GDML half-tubes and overlap
-    // both the yoke sides and the connectors. Asserted so a fix is noticed.
-    static_assert(checks::overlaps(s_coilBox, s_yokeSideBox) &&
-                      checks::overlaps(s_coilBox, s_connectorBox),
-                  "the coils no longer overlap the yoke and connectors: assert !overlaps");
+    // Known deviations (#119): the box coils approximate GDML half-tubes and
+    // overlap both the yoke sides and the connectors. Each overlap must stay
+    // within its current region (magnet frame, mm), so the build fails both
+    // when it is fixed and when it grows.
+    static_assert(checks::overlapsWithin(s_coilBox, s_yokeSideBox,
+                                         checks::bounds(2200, 3000, 2850, 3650, -1400, 1400)),
+                  "the coil/yoke overlap is gone (assert !overlaps) or has grown");
+    static_assert(checks::overlapsWithin(s_coilBox, s_connectorBox,
+                                         checks::bounds(2200, 3000, 2850, 3250, 1400, 1650)),
+                  "the coil/connector overlap is gone (assert !overlaps) or has grown");
 };
 
 }  // namespace SHiPGeometry
