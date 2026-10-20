@@ -144,13 +144,18 @@ constexpr checks::Box stationBox(const MSF::StationData& st) {
 }
 
 // Pieces are placed in the station's XY frame at z = 0.
-constexpr bool pieceFits(const MSF::StationData& st, const MSF::PieceData& p) {
+constexpr bool pieceFits(const MSF::StationData& st, const MSF::PieceData& p,
+                         units::LengthMm tol = 0.0 * mm) {
     return checks::contains(checks::box(st.containerHalfX, st.containerHalfY, st.containerHalfZ),
-                            checks::box(p.centX, p.centY, 0.0 * mm, p.halfX, p.halfY, p.halfZ));
+                            checks::box(p.centX, p.centY, 0.0 * mm, p.halfX, p.halfY, p.halfZ),
+                            tol);
 }
 
-// Known deviation: the magn_5 return-yoke pieces (1079.2 + 728.9 mm) reach
-// 0.1 mm past the station container half-width (1808.0 mm).
+// Known deviation (#120): the magn_5 return-yoke pieces (1079.2 + 728.9 mm)
+// reach 0.1 mm past the station container half-width (1808.0 mm). They may
+// stick out by no more than kKnownProtrusion (0.1 mm plus rounding).
+constexpr auto kKnownProtrusion = 0.11 * mm;
+
 constexpr bool isKnownProtrusion(const MSF::StationData& st, const MSF::PieceData& p) {
     const std::string_view station = st.name;
     const std::string_view piece = p.name;
@@ -160,7 +165,8 @@ constexpr bool isKnownProtrusion(const MSF::StationData& st, const MSF::PieceDat
 constexpr bool piecesFitStations() {
     for (const auto& st : MSF::k_stations) {
         for (const auto& p : st.pieces) {
-            if (pieceFits(st, p) == isKnownProtrusion(st, p)) {
+            const bool known = isKnownProtrusion(st, p);
+            if (pieceFits(st, p) == known || (known && !pieceFits(st, p, kKnownProtrusion))) {
                 return false;
             }
         }
@@ -172,7 +178,8 @@ constexpr bool piecesFitStations() {
 
 static_assert(piecesFitStations(),
               "a muon-shield piece sticks out of its station container, or a known "
-              "protrusion has been fixed (then drop it from isKnownProtrusion)");
+              "protrusion has been fixed (then drop it from isKnownProtrusion) or has grown "
+              "past kKnownProtrusion");
 static_assert(checks::firstFailure(MSF::k_stations,
                                    [](const MSF::StationData& st) {
                                        return checks::contains(
