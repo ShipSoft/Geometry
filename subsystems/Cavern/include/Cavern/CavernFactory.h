@@ -21,7 +21,7 @@ class CavernFactory {
     ~CavernFactory() = default;
 
     /// This subsystem's self-description (name, node, id, placement).
-    static SubsystemDescriptor descriptor() {
+    static constexpr SubsystemDescriptor descriptor() {
         return {"Cavern", "/SHiP/cavern", 0, 0.0, 0.0, 0.0, true};
     }
     /**
@@ -30,16 +30,16 @@ class CavernFactory {
      */
     [[nodiscard]] GeoPhysVol* build();
 
+    // World volume dimensions (half-sizes)
+    static constexpr auto s_worldHalfX = 200.0 * units::m;
+    static constexpr auto s_worldHalfY = 200.0 * units::m;
+    static constexpr auto s_worldHalfZ = 200.0 * units::m;
+
    private:
     SHiPMaterials& m_materials;
 
     GeoPhysVol* m_world{nullptr};
     GeoPhysVol* m_cavern{nullptr};
-
-    // World volume dimensions (half-sizes)
-    static constexpr auto s_worldHalfX = 200.0 * units::m;
-    static constexpr auto s_worldHalfY = 200.0 * units::m;
-    static constexpr auto s_worldHalfZ = 200.0 * units::m;
 
     // ── Layout (global frame: origin at the target front face) ──────
     //

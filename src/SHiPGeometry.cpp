@@ -6,6 +6,9 @@
 // iterates whatever registered.
 #include "SHiPGeometry/SHiPGeometry.h"
 
+// Not used here: included so the library build runs the layout static_asserts
+// against the descriptors the registry places from.
+#include "SHiPGeometry/Layout.h"
 #include "SHiPGeometry/Placement.h"
 #include "SHiPGeometry/SHiPMaterials.h"
 #include "SHiPGeometry/SubsystemRegistry.h"

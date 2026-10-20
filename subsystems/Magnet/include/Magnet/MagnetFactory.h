@@ -32,7 +32,7 @@ class MagnetFactory {
      *
      * Z: 87.07 to 92.07 m, so the container is centred at z = 89.57 m.
      */
-    static SubsystemDescriptor descriptor() {
+    static constexpr SubsystemDescriptor descriptor() {
         using units::gm;
         using units::m;
         return {"Magnet", "/SHiP/magnet", 6, 0.0, 0.0, gm(89.57 * m), false};
@@ -42,6 +42,12 @@ class MagnetFactory {
      * @return Pointer to the physical volume
      */
     [[nodiscard]] GeoPhysVol* build();
+
+    // Container sized to enclose the yoke, coils, and connectors: HalfX and
+    // HalfZ exceed the yoke outer dimensions, while HalfY matches it.
+    static constexpr auto s_containerHalfX = 3250.0 * units::mm;
+    static constexpr auto s_containerHalfY = 4300.0 * units::mm;
+    static constexpr auto s_containerHalfZ = 2500.0 * units::mm;
 
    private:
     SHiPMaterials& m_materials;
@@ -72,12 +78,6 @@ class MagnetFactory {
     static constexpr auto s_connectorHalfZ = 125.0 * units::mm;
     static constexpr auto s_connectorXOffset = 2600.0 * units::mm;
     static constexpr auto s_connectorZOffset = 1525.0 * units::mm;  // From GDML positions
-
-    // Container sized to enclose the yoke, coils, and connectors: HalfX and
-    // HalfZ exceed the yoke outer dimensions, while HalfY matches it.
-    static constexpr auto s_containerHalfX = 3250.0 * units::mm;
-    static constexpr auto s_containerHalfY = 4300.0 * units::mm;
-    static constexpr auto s_containerHalfZ = 2500.0 * units::mm;
 };
 
 }  // namespace SHiPGeometry
