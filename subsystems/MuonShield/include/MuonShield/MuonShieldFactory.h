@@ -34,11 +34,16 @@ class MuonShieldFactory {
      * The GDML MuonShieldArea spans z = 204 to 3148.66 cm, so the container
      * is centred at 1676.33 cm = 16763.3 mm from the world origin.
      */
-    static SubsystemDescriptor descriptor() {
+    static constexpr SubsystemDescriptor descriptor() {
         using units::gm;
         using units::mm;
         return {"MuonShield", "/SHiP/muon_shield", 2, 0.0, 0.0, gm(16763.3 * mm), false};
     }
+
+    // MuonShieldArea container dimensions
+    static constexpr auto s_areaHalfX = 1810.0 * units::mm;
+    static constexpr auto s_areaHalfY = 1700.0 * units::mm;
+    static constexpr auto s_areaHalfZ = 14724.0 * units::mm;
 
    private:
     SHiPMaterials& m_materials;
@@ -62,11 +67,6 @@ class MuonShieldFactory {
     static const StationData k_stations[6];
 
     GeoPhysVol* buildStation(const StationData& station);
-
-    // MuonShieldArea container dimensions
-    static constexpr auto s_areaHalfX = 1810.0 * units::mm;
-    static constexpr auto s_areaHalfY = 1700.0 * units::mm;
-    static constexpr auto s_areaHalfZ = 14724.0 * units::mm;
 };
 
 }  // namespace SHiPGeometry

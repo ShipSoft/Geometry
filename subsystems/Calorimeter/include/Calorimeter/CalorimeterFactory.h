@@ -30,7 +30,7 @@ class CalorimeterFactory {
      * The container is fixed to the SHiP subsystem envelope, centred at
      * z = 98.32 m.
      */
-    static SubsystemDescriptor descriptor() {
+    static constexpr SubsystemDescriptor descriptor() {
         using units::gm;
         using units::m;
         return {"Calorimeter", "/SHiP/calorimeter", 8, 0.0, 0.0, gm(98.32 * m), false};

@@ -50,7 +50,7 @@ class TrackersFactory {
      * a quantity of mm; gm() turns it into the raw-mm double that
      * SubsystemDescriptor uses.
      */
-    static SubsystemDescriptor descriptor() {
+    static constexpr SubsystemDescriptor descriptor() {
         return {"Trackers", "/SHiP/trackers", 5, 0.0, 0.0, units::gm(s_containerCentreZ), false};
     }
     /**
@@ -98,12 +98,6 @@ class TrackersFactory {
     static constexpr auto s_trackerMagnetZ = 86820.0 * units::mm;    ///< centre
     static constexpr auto s_trackerMagnetHalfZ = 230.0 * units::mm;  ///< half-depth
 
-   private:
-    SHiPMaterials& m_materials;
-
-    /// Frame material name in the central SHiPMaterials catalogue.
-    std::string m_frameMaterialName = "Aluminium";
-
     // ── Station envelope from GDML statbox ──────────────────────────────
     static constexpr auto s_halfX = 3000.0 * units::mm;  // 300 cm
     static constexpr auto s_halfY = 3430.0 * units::mm;  // 343 cm (GDML y = 686 cm)
@@ -118,6 +112,12 @@ class TrackersFactory {
     // Container dimensions (spans all stations).
     static constexpr auto s_containerHalfZ = (s_station4Z - s_station1Z) / 2.0 + s_halfZ;
     static constexpr auto s_containerCentreZ = (s_station1Z + s_station4Z) / 2.0;
+
+   private:
+    SHiPMaterials& m_materials;
+
+    /// Frame material name in the central SHiPMaterials catalogue.
+    std::string m_frameMaterialName = "Aluminium";
 
     // ── Internal builders ───────────────────────────────────────────────
 

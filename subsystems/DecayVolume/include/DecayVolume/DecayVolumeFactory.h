@@ -36,7 +36,7 @@ class DecayVolumeFactory {
      *
      * Z: 32.92 to 83.32 m, so the container is centred at z = 58.12 m.
      */
-    static SubsystemDescriptor descriptor() {
+    static constexpr SubsystemDescriptor descriptor() {
         using units::gm;
         using units::m;
         return {"DecayVolume", "/SHiP/decay_volume", 4, 0.0, 0.0, gm(58.12 * m), false};

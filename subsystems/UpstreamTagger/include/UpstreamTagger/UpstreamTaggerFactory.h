@@ -62,7 +62,7 @@ class UpstreamTaggerFactory {
      *
      * Z: 32.52 to 32.92 m, so the container is centred at z = 32.72 m.
      */
-    static SubsystemDescriptor descriptor() {
+    static constexpr SubsystemDescriptor descriptor() {
         using units::gm;
         using units::m;
         return {"UpstreamTagger", "/SHiP/upstream_tagger", 3, 0.0, 0.0, gm(32.72 * m), false};
@@ -74,9 +74,6 @@ class UpstreamTaggerFactory {
      */
     [[nodiscard]] GeoVPhysVol* build(SHiPUBTManager* manager = nullptr);
 
-   private:
-    SHiPMaterials& m_materials;
-
     // ── Container envelope (mm) ─────────────────────────────────────────
     // Kept identical to the GDML statbox (440 × 640 × 16 cm) used by the
     // previous monolithic slab so placement and the envelope-fit test
@@ -84,6 +81,9 @@ class UpstreamTaggerFactory {
     static constexpr auto s_halfX = 2200.0 * units::mm;
     static constexpr auto s_halfY = 3200.0 * units::mm;
     static constexpr auto s_halfZ = 80.0 * units::mm;
+
+   private:
+    SHiPMaterials& m_materials;
 
     // ── Tile geometry (mm) ──────────────────────────────────────────────
     static constexpr auto s_fineThickness = 5.0 * units::mm;  ///< full Z thickness of fine tiles

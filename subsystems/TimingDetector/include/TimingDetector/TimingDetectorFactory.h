@@ -35,7 +35,7 @@ class TimingDetectorFactory {
      *
      * Placed at z = 95.902 m, from the GDML reference.
      */
-    static SubsystemDescriptor descriptor() {
+    static constexpr SubsystemDescriptor descriptor() {
         using units::gm;
         using units::m;
         return {"TimingDetector", "/SHiP/timing_detector", 7, 0.0, 0.0, gm(95.902 * m), false};
@@ -47,14 +47,14 @@ class TimingDetectorFactory {
     /** Number of bars placed during the last build() call. */
     int barCount() const { return m_barCount; }
 
-   private:
-    SHiPMaterials& m_materials;
-    int m_barCount{0};
-
     // Container dimensions
     static constexpr auto s_containerHalfX = 2750.0 * units::mm;
     static constexpr auto s_containerHalfY = 3250.0 * units::mm;
     static constexpr auto s_containerHalfZ = 250.0 * units::mm;
+
+   private:
+    SHiPMaterials& m_materials;
+    int m_barCount{0};
 
     // Bar dimensions
     static constexpr auto s_barHalfX = 700.0 * units::mm;  // 140 cm full length
