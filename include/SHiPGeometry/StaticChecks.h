@@ -76,6 +76,37 @@ struct Box {
     return overlaps(a.x, b.x) && overlaps(a.y, b.y) && overlaps(a.z, b.z);
 }
 
+/// Box from its bounds in mm, for writing a known region down literally.
+[[nodiscard]] constexpr Box bounds(double x0, double x1, double y0, double y1, double z0,
+                                   double z1) {
+    return {.x = {.lo = x0 * units::mm, .hi = x1 * units::mm},
+            .y = {.lo = y0 * units::mm, .hi = y1 * units::mm},
+            .z = {.lo = z0 * units::mm, .hi = z1 * units::mm}};
+}
+
+/// The region two boxes share. Only meaningful if they overlap.
+[[nodiscard]] constexpr Box intersection(const Box& a, const Box& b) {
+    const auto meet = [](Span s, Span t) {
+        return Span{.lo = s.lo < t.lo ? t.lo : s.lo, .hi = s.hi < t.hi ? s.hi : t.hi};
+    };
+    return {.x = meet(a.x, b.x), .y = meet(a.y, b.y), .z = meet(a.z, b.z)};
+}
+
+/// The boxes overlap, and only within @p region. Bounds a known overlap: it
+/// fails both when the overlap is removed and when it grows.
+[[nodiscard]] constexpr bool overlapsWithin(const Box& a, const Box& b, const Box& region,
+                                            LengthMm tol = 1e-6 * units::mm) {
+    return overlaps(a, b) && contains(region, intersection(a, b), tol);
+}
+
+/// @p b with every face moved inwards by @p d. A box sticks out of a region
+/// by at most d exactly when shrunk(box, d) lies within it.
+[[nodiscard]] constexpr Box shrunk(const Box& b, LengthMm d) {
+    return {.x = {.lo = b.x.lo + d, .hi = b.x.hi - d},
+            .y = {.lo = b.y.lo + d, .hi = b.y.hi - d},
+            .z = {.lo = b.z.lo + d, .hi = b.z.hi - d}};
+}
+
 /// Returned by the first*() searches when every element passes.
 inline constexpr std::size_t npos = std::numeric_limits<std::size_t>::max();
 

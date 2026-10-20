@@ -29,9 +29,11 @@
  * Each slot pairs a subsystem's registered placement (its descriptor(), which
  * the assembler places it from) with its container half-lengths. The
  * static_asserts below check the layout as a whole: ordering along the beam,
- * no unintended overlaps, everything inside the world, and every container
- * inside its EDMS envelope (Envelopes.h). Container half-lengths are read
- * from the factories, so resizing a container is checked here as well.
+ * no overlaps beyond the known ones, everything inside the world, and every
+ * container inside its EDMS envelope (Envelopes.h). Container half-lengths
+ * are read from the factories, so resizing a container is checked here as
+ * well. Known deviations are bounded: each fails the build both when it is
+ * fixed and when it gets worse.
  *
  * Coordinates are in the world frame, whose origin is the front face of the
  * first target disk.
@@ -79,7 +81,7 @@ inline constexpr Slot kMuonShield = slotOf<MuonShieldFactory>(
 
 /// z 26.40-31.50 m (WARM muon-shield configuration). The SND sits within the
 /// downstream end of the muon-shield region, so the two containers overlap
-/// by design (see kAllowedOverlaps).
+/// (known deviation #117, see kKnownOverlaps).
 inline constexpr Slot kNeutrinoDetector = slotOf<NeutrinoDetectorFactory>(
     NeutrinoDetectorFactory::s_halfX, NeutrinoDetectorFactory::s_halfY,
     NeutrinoDetectorFactory::s_halfZ);
@@ -112,11 +114,26 @@ inline constexpr std::array kSlots{kTarget,         kMuonShield,     kNeutrinoDe
                                    kUpstreamTagger, kDecayVolume,    kTrackers,
                                    kMagnet,         kTimingDetector, kCalorimeter};
 
-/// Pairs of containers that overlap on purpose.
-inline constexpr std::array<std::array<std::string_view, 2>, 2> kAllowedOverlaps{{
-    {kMuonShield.path, kNeutrinoDetector.path},
-    {kTrackers.path, kMagnet.path},
-}};
+/// Two containers that overlap, although Geant4 does not support overlapping
+/// siblings. Known deviations, each tracked in an issue: the overlap must lie
+/// within @c region (world frame, mm), so the build fails both when one is
+/// fixed and when one grows.
+struct KnownOverlap {
+    std::string_view a;
+    std::string_view b;
+    checks::Box region;
+};
+
+inline constexpr std::array kKnownOverlaps{
+    // #117: the SND sits in the downstream end of the muon shield.
+    KnownOverlap{.a = kMuonShield.path,
+                 .b = kNeutrinoDetector.path,
+                 .region = checks::bounds(-400, 400, -400, 400, 26400, 31487.3)},
+    // #118: the trackers container spans the whole magnet along the beam.
+    KnownOverlap{.a = kTrackers.path,
+                 .b = kMagnet.path,
+                 .region = checks::bounds(-3000, 3000, -3430, 3430, 87070, 92070)},
+};
 
 // ── Layout predicates ───────────────────────────────────────────────────
 
@@ -126,27 +143,27 @@ template <std::size_t N>
     return checks::firstPairFailure(slots, [](const Slot& a, const Slot& b) { return a.z <= b.z; });
 }
 
+/// The pair is listed in @p known and overlaps no further than its region.
 template <std::size_t M>
-[[nodiscard]] constexpr bool isAllowedOverlap(
-    const std::array<std::array<std::string_view, 2>, M>& allowed, const Slot& a, const Slot& b) {
-    for (const auto& pair : allowed) {
-        if ((pair[0] == a.path && pair[1] == b.path) || (pair[0] == b.path && pair[1] == a.path)) {
-            return true;
+[[nodiscard]] constexpr bool isKnownOverlap(const std::array<KnownOverlap, M>& known, const Slot& a,
+                                            const Slot& b) {
+    for (const auto& k : known) {
+        if ((k.a == a.path && k.b == b.path) || (k.a == b.path && k.b == a.path)) {
+            return checks::overlapsWithin(a.box(), b.box(), k.region);
         }
     }
     return false;
 }
 
-/// Index of the first slot that overlaps a later one without being on the
-/// allowlist, or npos.
-template <std::size_t N, std::size_t M = kAllowedOverlaps.size()>
+/// Index of the first slot that overlaps a later one, unless the pair is a
+/// known overlap that has not grown; npos if there is none.
+template <std::size_t N, std::size_t M = kKnownOverlaps.size()>
 [[nodiscard]] constexpr std::size_t firstUnexpectedOverlap(
-    const std::array<Slot, N>& slots,
-    const std::array<std::array<std::string_view, 2>, M>& allowed = kAllowedOverlaps) {
+    const std::array<Slot, N>& slots, const std::array<KnownOverlap, M>& known = kKnownOverlaps) {
     for (std::size_t i = 0; i < N; ++i) {
         for (std::size_t j = i + 1; j < N; ++j) {
             if (checks::overlaps(slots[i].box(), slots[j].box()) &&
-                !isAllowedOverlap(allowed, slots[i], slots[j])) {
+                !isKnownOverlap(known, slots[i], slots[j])) {
                 return i;
             }
         }
@@ -165,11 +182,14 @@ inline constexpr checks::Box kWorld = checks::box(
     return checks::contains(env.z(), slot.zSpan(), tol);
 }
 
-/// Container stays inside the envelope's largest transverse size.
-[[nodiscard]] constexpr bool fitsEnvelopeXY(const Slot& slot, const Envelopes::Envelope& env) {
+/// Container stays inside the envelope's largest transverse size (with
+/// @p tolX and @p tolY of slack).
+[[nodiscard]] constexpr bool fitsEnvelopeXY(const Slot& slot, const Envelopes::Envelope& env,
+                                            LengthMm tolX = detail::zero,
+                                            LengthMm tolY = detail::zero) {
     const auto xReach = (slot.x < detail::zero ? -slot.x : slot.x) + slot.halfX;
     const auto yReach = (slot.y < detail::zero ? -slot.y : slot.y) + slot.halfY;
-    return xReach <= env.maxHalfWidth() && yReach <= env.maxHalfHeight();
+    return xReach <= env.maxHalfWidth() + tolX && yReach <= env.maxHalfHeight() + tolY;
 }
 
 // ── Layout checks ───────────────────────────────────────────────────────
@@ -177,25 +197,26 @@ inline constexpr checks::Box kWorld = checks::box(
 static_assert(firstOutOfOrder(kSlots) == checks::npos,
               "subsystem centres must not decrease along the beam");
 static_assert(firstUnexpectedOverlap(kSlots) == checks::npos,
-              "two subsystem containers overlap and are not in kAllowedOverlaps");
+              "two subsystem containers overlap, and the pair is not in kKnownOverlaps or "
+              "overlaps beyond its recorded region");
 static_assert(checks::firstFailure(kSlots,
                                    [](const Slot& s) {
                                        return checks::contains(kWorld, s.box());
                                    }) == checks::npos,
               "a subsystem container reaches outside the world volume");
-static_assert(checks::firstFailure(kAllowedOverlaps,
-                                   [](const auto& pair) {
+static_assert(checks::firstFailure(kKnownOverlaps,
+                                   [](const KnownOverlap& known) {
                                        for (const auto& a : kSlots) {
                                            for (const auto& b : kSlots) {
-                                               if (a.path == pair[0] && b.path == pair[1]) {
+                                               if (a.path == known.a && b.path == known.b) {
                                                    return checks::overlaps(a.box(), b.box());
                                                }
                                            }
                                        }
                                        return false;
                                    }) == checks::npos,
-              "an allowlisted pair no longer overlaps (or names an unknown subsystem): "
-              "drop it from kAllowedOverlaps");
+              "a known overlap is gone (or names an unknown subsystem): "
+              "drop it from kKnownOverlaps and close its issue");
 
 // ── Cavern ──────────────────────────────────────────────────────────────
 
@@ -234,15 +255,23 @@ static_assert(checks::firstFailure(kSlots,
                                               s.path == kCalorimeter.path;
                                    }) == checks::npos,
               "a subsystem container reaches into the cavern rock");
-// Known deviations: the ECN3 floor is 3.364 m below the beam, and two
+// Known deviations (#120): the ECN3 floor is 3.364 m below the beam, and two
 // containers centred on the beam are taller than that allows outside the yoke
 // pit. The tracker container (half-height 3.43 m) reaches 66 mm into the
 // floor at stations 1 and 4; the calorimeter container (half-height 3.5 m, the
 // EDMS envelope) reaches 136 mm into it, although its modules fit.
+inline constexpr auto kTrackersIntoFloor = 66.0 * detail::mm;
+inline constexpr auto kCalorimeterIntoFloor = 136.0 * detail::mm;
 static_assert(!isInCavity(kTrackers),
               "the tracker container now fits the experiment hall: drop its exception above");
+static_assert(checks::coveredBy(checks::shrunk(kTrackers.box(), kTrackersIntoFloor), kCavities),
+              "the tracker container reaches further into the rock than kTrackersIntoFloor");
 static_assert(!isInCavity(kCalorimeter),
               "the calorimeter container now fits the experiment hall: drop its exception above");
+static_assert(checks::coveredBy(checks::shrunk(kCalorimeter.box(), kCalorimeterIntoFloor),
+                                kCavities),
+              "the calorimeter container reaches further into the rock than "
+              "kCalorimeterIntoFloor");
 
 // ── EDMS envelopes ──────────────────────────────────────────────────────
 
@@ -303,14 +332,29 @@ static_assert(fitsEnvelopeZ(kCalorimeter, detail::kCalorimeterRegion),
 static_assert(fitsEnvelopeXY(kCalorimeter, detail::kCalorimeterRegion),
               "the calorimeter container is outside its EDMS envelope transversely");
 
-// Known deviations from the EDMS envelopes. Each is asserted to still be a
-// deviation, so whoever fixes one is told to turn it into a positive check.
+// Known deviations from the EDMS envelopes (#120). Each is bounded by its
+// current size: if one is fixed, assert the positive check above instead; if
+// one gets worse, the second assert fails.
+inline constexpr auto kMuonShieldEarlyStart = 101.0 * detail::mm;  // 100.7 mm
+inline constexpr auto kUpstreamTaggerExcessX = 1450.0 * detail::mm;
+inline constexpr auto kUpstreamTaggerExcessY = 1600.0 * detail::mm;
+inline constexpr auto kTimingDetectorEarlyStart = 168.0 * detail::mm;
 static_assert(!fitsEnvelopeZ(kMuonShield, detail::kMuonShieldRegion),
               "the muon shield container now fits the EDMS region: assert fitsEnvelopeZ instead");
+static_assert(fitsEnvelopeZ(kMuonShield, detail::kMuonShieldRegion, kMuonShieldEarlyStart),
+              "the muon shield container deviates from the EDMS region by more than "
+              "kMuonShieldEarlyStart");
 static_assert(!fitsEnvelopeXY(kUpstreamTagger, Envelopes::kUpstreamTagger),
               "the UBT container now fits the EDMS envelope: assert fitsEnvelopeXY instead");
+static_assert(fitsEnvelopeXY(kUpstreamTagger, Envelopes::kUpstreamTagger, kUpstreamTaggerExcessX,
+                             kUpstreamTaggerExcessY),
+              "the UBT container exceeds the EDMS envelope by more than "
+              "kUpstreamTaggerExcessX/Y");
 static_assert(!fitsEnvelopeZ(kTimingDetector, Envelopes::kTimingDetector),
               "the timing detector now fits the EDMS envelope: assert fitsEnvelopeZ instead");
+static_assert(fitsEnvelopeZ(kTimingDetector, Envelopes::kTimingDetector, kTimingDetectorEarlyStart),
+              "the timing detector deviates from the EDMS envelope by more than "
+              "kTimingDetectorEarlyStart");
 
 // ── Trackers against their neighbours ──────────────────────────────────
 
