@@ -15,7 +15,7 @@ requires-pixi = ">=0.68"
 # version and the host dependencies in lockstep with it.
 [package]
 name = "shipgeometry"
-version = "0.2.1"
+version = "0.3.0"
 
 [package.build]
 backend = { name = "pixi-build-cmake", version = "0.*" }
