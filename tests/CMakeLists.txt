@@ -33,13 +33,14 @@ target_compile_definitions(
 )
 catch_discover_tests(test_registry)
 
-# Integration test: build geometry into SQLite then run overlap check
+# Integration test: build the geometry into SQLite and read it back. This does
+# not check for overlaps; see #121.
 add_test(
-    NAME OverlapCheck
+    NAME BuildAndReadBack
     COMMAND
         bash -c
-        "$<TARGET_FILE:build_geometry> -o ship_test_overlap.db &&
-    $<TARGET_FILE:validate_geometry> ship_test_overlap.db"
+        "$<TARGET_FILE:build_geometry> -o ship_test_readback.db &&
+    $<TARGET_FILE:validate_geometry> ship_test_readback.db"
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
 )
 
