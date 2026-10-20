@@ -88,7 +88,7 @@ central `Materials` catalogue for the SBT cells.
 ## Parameters
 
 The SBT geometry is defined by `SBTParams` in `SBTConstants.h` (namespace
-`SHiP::geometry::SBT`): the frustum envelope, sub-frustum count, H-beam
+`SHiP::geometry::sbt`): the frustum envelope, sub-frustum count, H-beam
 cross-section, sensor container/cell parameters, helium clearance and the SBT
 entrance Z. `kSBT` is the shipped instance, and every placement primitive —
 the ones both builders and the helium derivation share — takes an `SBTParams`
