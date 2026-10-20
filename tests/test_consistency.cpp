@@ -129,13 +129,21 @@ constexpr auto kMagnetOnTiming = [] {
     slots[6].z = Layout::kTimingDetector.z;
     return slots;
 }();
-constexpr std::array<std::array<std::string_view, 2>, 0> kNoOverlapsAllowed{};
+// The SND moved 1 m upstream, deeper into the muon shield.
+constexpr auto kSndUpstream = [] {
+    auto slots = Layout::kSlots;
+    slots[2].z = slots[2].z - 1000.0 * units::mm;
+    return slots;
+}();
+constexpr std::array<Layout::KnownOverlap, 0> kNoKnownOverlaps{};
 }  // namespace
 
 static_assert(Layout::firstOutOfOrder(kSwapped) == 3);
 static_assert(Layout::firstUnexpectedOverlap(kMagnetOnTiming) != SHiPGeometry::checks::npos);
-static_assert(Layout::firstUnexpectedOverlap(Layout::kSlots, kNoOverlapsAllowed) == 1,
-              "muon shield / SND is the first intended overlap");
+static_assert(Layout::firstUnexpectedOverlap(Layout::kSlots, kNoKnownOverlaps) == 1,
+              "muon shield / SND is the first known overlap");
+static_assert(Layout::firstUnexpectedOverlap(kSndUpstream) == 1,
+              "a known overlap that grows is no longer accepted");
 static_assert(!Layout::fitsEnvelopeZ(Slot{.z = Layout::kDecayVolume.z + 1.0 * units::mm,
                                           .halfZ = Layout::kDecayVolume.halfZ},
                                      SHiPGeometry::Envelopes::kDecayVolume));
@@ -145,22 +153,39 @@ static_assert(
     "touching spans do not overlap");
 
 namespace {
-constexpr SHiPGeometry::checks::Box cube(double x0, double x1, double y0, double y1, double z0,
-                                         double z1) {
-    return {.x = {.lo = x0 * units::mm, .hi = x1 * units::mm},
-            .y = {.lo = y0 * units::mm, .hi = y1 * units::mm},
-            .z = {.lo = z0 * units::mm, .hi = z1 * units::mm}};
-}
+using SHiPGeometry::checks::bounds;
 // An L in x-y: the corner x > 1, y > 1 is rock.
-constexpr std::array kL{cube(0, 2, 0, 1, 0, 1), cube(0, 1, 1, 2, 0, 1)};
+constexpr std::array kL{bounds(0, 2, 0, 1, 0, 1), bounds(0, 1, 1, 2, 0, 1)};
 }  // namespace
 
-static_assert(SHiPGeometry::checks::coveredBy(cube(0, 1, 0, 2, 0, 1), kL),
+static_assert(SHiPGeometry::checks::coveredBy(bounds(0, 1, 0, 2, 0, 1), kL),
               "a box spanning two halls is covered");
-static_assert(!SHiPGeometry::checks::coveredBy(cube(0, 2, 0, 2, 0, 1), kL),
+static_assert(!SHiPGeometry::checks::coveredBy(bounds(0, 2, 0, 2, 0, 1), kL),
               "the missing corner of the L is found");
-static_assert(!SHiPGeometry::checks::coveredBy(cube(0, 1, 0, 1, 0, 2), kL),
+static_assert(!SHiPGeometry::checks::coveredBy(bounds(0, 1, 0, 1, 0, 2), kL),
               "a box poking out along z is not covered");
 // The calorimeter used to end 442 mm past the experiment hall.
 static_assert(Layout::kCalorimeter.box().z.hi <= Layout::kCavities[1].z.hi,
               "the calorimeter ends inside the experiment hall");
+
+namespace {
+constexpr auto kUnit = bounds(0, 1, 0, 1, 0, 1);
+}  // namespace
+
+static_assert(SHiPGeometry::checks::overlapsWithin(kUnit, bounds(0.5, 2, 0, 1, 0, 1),
+                                                   bounds(0.5, 1, 0, 1, 0, 1)),
+              "an overlap inside its region is accepted");
+static_assert(!SHiPGeometry::checks::overlapsWithin(kUnit, bounds(0.4, 2, 0, 1, 0, 1),
+                                                    bounds(0.5, 1, 0, 1, 0, 1)),
+              "an overlap that grows past its region is rejected");
+static_assert(!SHiPGeometry::checks::overlapsWithin(kUnit, bounds(1, 2, 0, 1, 0, 1),
+                                                    bounds(0.5, 1, 0, 1, 0, 1)),
+              "boxes that only touch are not a known overlap");
+static_assert(SHiPGeometry::checks::coveredBy(
+                  SHiPGeometry::checks::shrunk(bounds(0, 4, 0, 4, -1, 4), 1.0 * units::mm),
+                  std::array{bounds(0, 4, 0, 4, 0, 4)}),
+              "a box sticking out by 1 is within 1 of the region");
+static_assert(!SHiPGeometry::checks::coveredBy(
+                  SHiPGeometry::checks::shrunk(bounds(0, 4, 0, 4, -1.5, 4), 1.0 * units::mm),
+                  std::array{bounds(0, 4, 0, 4, 0, 4)}),
+              "a box sticking out by 1.5 is not");
