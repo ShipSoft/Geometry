@@ -60,13 +60,13 @@ constexpr auto s_tgt_pitch =
 
 // Medium Granularity Calorimeter: silicon/tungsten (10 layers).
 constexpr auto s_mgc_plate_xy = 500.0 * mm;
-constexpr auto s_mgc_w = 20 * mm;
+constexpr auto s_mgc_w = 20.0 * mm;
 constexpr auto s_mgc_si = 0.65 * mm;
 constexpr auto s_mgc_w_si_gap = 0.050 * mm;
 constexpr auto s_mgc_si_si_gap = 0.200 * mm;
 constexpr int s_mgc_n_layers = 10;
 constexpr auto s_mgc_pitch =
-    s_mgc_w + s_mgc_w_si_gap + s_mgc_si + s_mgc_si_si_gap + s_mgc_si + s_mgc_w_si_gap;  //
+    s_mgc_w + s_mgc_w_si_gap + s_mgc_si + s_mgc_si_si_gap + s_mgc_si + s_mgc_w_si_gap;  // 21.6 mm
 
 // HCAL: 3 transverse sections, 14 layers each.
 constexpr auto s_hcal_gap_to_target = 10.0 * mm;
