@@ -5,7 +5,7 @@ Scattering and Neutrino Detector (SND).
 ## Description
 
 The SND measures tau-neutrino interactions in the muon-shield region. It is
-built as a single air container holding three sub-detectors in sequence along
+built as a single air container holding four sub-detectors in sequence along
 the beam (upstream -> downstream):
 
 - **Veto** - an upstream PVT scintillator-bar station: three planes of seven
@@ -14,7 +14,10 @@ the beam (upstream -> downstream):
 - **NuTarget** - a silicon/tungsten sampling target: 120 layers, each a 3.5 mm
   tungsten absorber plate followed by an X and a Y silicon tracking plane
   (0.3 mm), on a 400 x 400 mm plate at 11.3 mm pitch (total 1356 mm).
-- **HCAL** - a hadronic calorimeter: three transverse sections (40, 50, 60 cm),
+  3 Timing layers are inserted at 1/3, 2/3 and 3/3 of the target depth.
+* **MGC**      — a medium-granularity calorimeter: 10 layers, each a tungsten
+   absorber plate followed by an X and a Y silicon tracking.
+- **HCAL** - a hadronic calorimeter: three transverse sections (60, 60, 60 cm),
   14 layers each. Every layer is a 50 mm iron absorber, an X and a Y
   scintillating-fibre plane, and a polystyrene tile grid (50 x 50 x 10 mm tiles).
 
