@@ -52,17 +52,23 @@ set_tests_properties(BuildAndReadBack PROPERTIES FIXTURES_SETUP geometry_db)
 # 100 random points per volume this takes a few minutes; skip it with
 # `ctest -LE overlap`. After an intended change, refresh the list with
 # check_clashes.py --update (see the script).
+#
+# x86_64 only: the geometry is the same everywhere, but the random points
+# gmclash samples are not, so on aarch64 Geant4 reports other partners and
+# depths for the same clashing volumes and the list would not match.
 find_program(GMCLASH_EXECUTABLE gmclash)
 find_package(Python3 COMPONENTS Interpreter)
-if(GMCLASH_EXECUTABLE AND Python3_Interpreter_FOUND)
+if(NOT CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64)$")
+    message(STATUS "OverlapCheck runs on x86_64 only")
+elseif(GMCLASH_EXECUTABLE AND Python3_Interpreter_FOUND)
     add_test(
         NAME OverlapCheck
         COMMAND
             bash -c
             "rm -f gmclash_report.json &&
-    ${GMCLASH_EXECUTABLE} -g ship_test_readback.db -n 100 -o gmclash_report.json > gmclash.log 2>&1 ||
+    \"${GMCLASH_EXECUTABLE}\" -g ship_test_readback.db -n 100 -o gmclash_report.json > gmclash.log 2>&1 ||
     { tail -n 50 gmclash.log; exit 1; }
-    ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/check_clashes.py gmclash_report.json ${CMAKE_CURRENT_SOURCE_DIR}/known_clashes.json"
+    \"${Python3_EXECUTABLE}\" \"${CMAKE_CURRENT_SOURCE_DIR}/check_clashes.py\" gmclash_report.json \"${CMAKE_CURRENT_SOURCE_DIR}/known_clashes.json\""
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     )
     set_tests_properties(

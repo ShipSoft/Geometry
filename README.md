@@ -78,7 +78,7 @@ cmake --build build
 ctest --test-dir build
 ```
 
-The `OverlapCheck` test runs `gmclash` on the built geometry and compares its
+On x86_64, the `OverlapCheck` test runs `gmclash` on the built geometry and compares its
 report with `tests/known_clashes.json`. It fails on a new overlap, on a known
 one that got deeper, and on a known one that has gone away. It takes a few
 minutes; `ctest --test-dir build -LE overlap` skips it. After an intended
