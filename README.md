@@ -85,7 +85,7 @@ minutes; `ctest --test-dir build -LE overlap` skips it. After an intended
 change, refresh the list and give every new entry an issue number:
 
 ```bash
-python tests/check_clashes.py build/gmclash_report.json tests/known_clashes.json --update
+python3 tests/check_clashes.py build/gmclash_report.json tests/known_clashes.json --update
 ```
 
 ### Build Geometry
