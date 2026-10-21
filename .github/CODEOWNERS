@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: CERN for the benefit of the SHiP Collaboration
+# SPDX-License-Identifier: LGPL-3.0-or-later
+
+# Global owner; the last matching rule wins. See
+# https://docs.github.com/articles/about-code-owners
+
+* @olantwin  # Oliver Lantwin (U Siegen)
+
+# By default, the software contact for a subsystem in FairShip owns its geometry.
+
+/subsystems/Calorimeter/ @matclim  # Matei Climescu (Ghent University)
+/subsystems/DecayVolume/ @jasminwss  # Jasmin Weiß (HU Berlin)
+/subsystems/MuonShield/ @Gfrisella  # Guglielmo Frisella (U Zürich)
+/subsystems/NeutrinoDetector/ @antonioiuliano2  # Antonio Iuliano (INFN Napoli)
+/subsystems/Trackers/ @wcmartylee  # Wei-Chieh Marty Lee (U Hamburg)
+/subsystems/UpstreamTagger/ @kholoimov  # Valerii Kholoimov (EPFL)
