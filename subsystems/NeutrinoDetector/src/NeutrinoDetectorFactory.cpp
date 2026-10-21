@@ -95,17 +95,20 @@ constexpr auto s_content_depth = s_veto_total_thickness + s_veto_gap_to_target +
 using SND = NeutrinoDetectorFactory;
 
 static_assert(s_content_depth <= 2.0 * SND::s_halfZ,
-              "veto, target and HCAL are longer than the SND container");
+              "veto, target, MGC and HCAL are longer than the SND container");
 static_assert(0.5 * s_veto_bar_length <= SND::s_halfX &&
                   0.5 * s_veto_plane_xy + s_veto_shift_y <= SND::s_halfY,
               "the staggered veto planes do not fit the container");
 static_assert(0.5 * s_tgt_plate_xy <= SND::s_halfX && 0.5 * s_tgt_plate_xy <= SND::s_halfY,
               "the target plates do not fit the container");
+static_assert(0.5 * s_mgc_plate_xy <= SND::s_halfX && 0.5 * s_mgc_plate_xy <= SND::s_halfY,
+              "the mgc plates do not fit the container");
 // A fibre plane's envelope is one fibre diameter wider than its section.
 static_assert(0.5 * s_hcal_section_xy[s_hcal_n_sections - 1] + s_hcal_fibre_diameter <=
                   SND::s_halfX,
               "the largest HCAL section does not fit the container");
-
+static_assert(s_tgt_n_layers % s_tgt_n_timing_layers == 0,
+              "the target timing layers are not evenly spaced");
 constexpr bool hcalSectionsTileExactly() {
     for (const auto xy : s_hcal_section_xy) {
         const int nTiles = static_cast<int>(units::ratio(xy / s_hcal_tile_xy));
@@ -339,7 +342,7 @@ void buildHCal(GeoVPhysVol* mother, const GeoMaterial* air, const GeoMaterial* i
 /// Construct the factory against the shared materials catalogue.
 NeutrinoDetectorFactory::NeutrinoDetectorFactory(Materials& materials) : m_materials(materials) {}
 
-/// Resolve materials, create the air container, lay out the veto, target and
+/// Resolve materials, create the air container, lay out the veto, target, MGC and
 /// HCAL in beam order (content centred in the container), and return it.
 GeoPhysVol* NeutrinoDetectorFactory::build() {
     const GeoMaterial* air = m_materials.requireMaterial("Air");
