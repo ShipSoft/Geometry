@@ -41,12 +41,12 @@ constexpr int s_veto_n_bars = 7;
 constexpr auto s_veto_shift_y = 9.0 * mm;    // ±stagger of planes 0/1 in Y
 constexpr auto s_veto_plane_gap = 5.0 * mm;  // air gap between plane faces
 constexpr auto s_veto_gap_to_target = 20.0 * mm;
-constexpr auto s_target_gap_to_mgc = 10.0 * mm;
 constexpr auto s_veto_plane_xy = s_veto_n_bars * s_veto_bar_width;  // 420 mm
 constexpr auto s_veto_total_thickness =
     3.0 * s_veto_bar_thickness + 2.0 * s_veto_plane_gap;  // 40 mm
 
 // NuTarget: silicon/tungsten sampling target (120 layers).
+constexpr auto s_target_gap_to_mgc = 10.0 * mm;
 constexpr auto s_tgt_plate_xy = 400.0 * mm;
 constexpr auto s_tgt_w = 3.5 * mm;
 constexpr auto s_tgt_si = 0.300 * mm;
@@ -69,7 +69,7 @@ constexpr auto s_mgc_pitch =
     s_mgc_w + s_mgc_w_si_gap + s_mgc_si + s_mgc_si_si_gap + s_mgc_si + s_mgc_w_si_gap;  // 21.6 mm
 
 // HCAL: 3 transverse sections, 14 layers each.
-constexpr auto s_hcal_gap_to_target = 10.0 * mm;
+constexpr auto s_hcal_gap_to_mgc = 10.0 * mm;
 constexpr auto s_hcal_iron = 50.0 * mm;
 constexpr auto s_hcal_fibre_diameter = 0.250 * mm;  // round scintillating fibre
 constexpr int s_hcal_fibre_sublayers = 2;           // staggered sub-layers per plane
@@ -87,7 +87,7 @@ constexpr LengthMm s_hcal_section_xy[s_hcal_n_sections] = {600.0 * mm, 600.0 * m
 constexpr auto s_tgt_depth = s_tgt_pitch * s_tgt_n_layers + s_tgt_n_timing_layers * s_tgt_timing;
 constexpr auto s_mgc_depth = s_mgc_pitch * s_mgc_n_layers;
 constexpr auto s_hcal_depth =
-    s_hcal_gap_to_target + s_hcal_n_sections * (s_hcal_layer * s_hcal_n_layers);
+    s_hcal_gap_to_mgc + s_hcal_n_sections * (s_hcal_layer * s_hcal_n_layers);
 constexpr auto s_content_depth = s_veto_total_thickness + s_veto_gap_to_target + s_tgt_depth +
                                  s_target_gap_to_mgc + s_mgc_depth + s_hcal_depth;
 
@@ -285,7 +285,7 @@ void buildHCal(GeoVPhysVol* mother, const GeoMaterial* air, const GeoMaterial* i
     const LengthMm r = 0.5 * s_hcal_fibre_diameter;
     const LengthMm envHalfZ = s_hcal_fibre_sublayers * r;
 
-    LengthMm z = zStart + s_hcal_gap_to_target;
+    LengthMm z = zStart + s_hcal_gap_to_mgc;
     int tileId = 0;
 
     for (int s = 0; s < s_hcal_n_sections; ++s) {
@@ -357,7 +357,7 @@ GeoPhysVol* NeutrinoDetectorFactory::build() {
     const LengthMm vetoDownstreamFace = zStart + s_veto_total_thickness;
     const LengthMm targetStart = vetoDownstreamFace + s_veto_gap_to_target;
     const LengthMm mgcStart = targetStart + s_tgt_depth + s_target_gap_to_mgc;
-    const LengthMm hcalStart = targetStart + s_tgt_depth + s_target_gap_to_mgc + s_mgc_depth;
+    const LengthMm hcalStart = mgcStart + s_mgc_depth;
 
     buildVeto(containerPhys, pvt, vetoDownstreamFace);
     buildTarget(containerPhys, tungsten, silicon, targetStart);
