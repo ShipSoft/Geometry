@@ -4,7 +4,7 @@
 # Global owner; the last matching rule wins. See
 # https://docs.github.com/articles/about-code-owners
 
-* @olantwin  # Oliver Lantwin (U Siegen)
+* @olantwin @matclim  # Oliver Lantwin (U Siegen), Matei Climescu (Ghent University)
 
 # By default, the software contact for a subsystem in FairShip owns its geometry.
 
