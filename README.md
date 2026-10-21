@@ -78,6 +78,16 @@ cmake --build build
 ctest --test-dir build
 ```
 
+The `OverlapCheck` test runs `gmclash` on the built geometry and compares its
+report with `tests/known_clashes.json`. It fails on a new overlap, on a known
+one that got deeper, and on a known one that has gone away. It takes a few
+minutes; `ctest --test-dir build -LE overlap` skips it. After an intended
+change, refresh the list and give every new entry an issue number:
+
+```bash
+python tests/check_clashes.py build/gmclash_report.json tests/known_clashes.json --update
+```
+
 ### Build Geometry
 
 ```bash
