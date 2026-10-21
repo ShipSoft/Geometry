@@ -86,7 +86,8 @@ def check(found, known):
                 f"fixed      {describe(c)}  (#{c['issue']}): "
                 "remove it from the known clashes"
             )
-        if not c.get("issue"):
+        issue = c.get("issue")
+        if isinstance(issue, bool) or not isinstance(issue, int) or issue <= 0:
             failures.append(f"no issue   {describe(c)}")
     return failures
 
