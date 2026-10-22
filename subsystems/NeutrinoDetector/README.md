@@ -5,18 +5,21 @@ Scattering and Neutrino Detector (SND).
 ## Description
 
 The SND measures tau-neutrino interactions in the muon-shield region. It is
-built as a single air container holding three sub-detectors in sequence along
+built as a single air container holding four sub-detectors in sequence along
 the beam (upstream -> downstream):
 
 - **Veto** - an upstream PVT scintillator-bar station: three planes of seven
   bars (420 x 60 x 10 mm). Planes 0 and 1 run horizontally and are staggered by
   +/-9 mm in Y; plane 2 runs vertically. Total depth 40 mm.
-- **NuTarget** - a silicon/tungsten sampling target: 120 layers, each a 3.5 mm
+- **NuTarget (HGC)** - a silicon/tungsten sampling target: 120 layers, each a 3.5 mm
   tungsten absorber plate followed by an X and a Y silicon tracking plane
-  (0.3 mm), on a 400 x 400 mm plate at 11.3 mm pitch (total 1356 mm).
-- **HCAL** - a hadronic calorimeter: three transverse sections (40, 50, 60 cm),
+  (0.3 mm), on a 400 x 400 mm plate at 11.3 mm pitch (total 1410 mm).
+  3 Timing layers are inserted at 1/3, 2/3 and 3/3 of the target depth.
+- **MGC**      — a medium-granularity calorimeter: 10 layers, each a tungsten
+   absorber plate (20 mm) followed by an X and a Y silicon tracking plane (0.325 mm each).
+- **HCAL (MTC)** - a hadronic calorimeter: three transverse sections (60, 60, 60 cm),
   14 layers each. Every layer is a 50 mm iron absorber, an X and a Y
-  scintillating-fibre plane, and a polystyrene tile grid (50 x 50 x 10 mm tiles).
+  scintillating-fibre plane, and a polystyrene tile grid (50 x 50 x 29 mm tiles).
 
 Like the calorimeter and straw tracker, all elements are `GeoPhysVol` with
 hierarchical `/SHiP/neutrino_detector/...` names that reuse shared `GeoLogVol`s;
@@ -37,16 +40,19 @@ bounded for navigation.
 ```text
 /SHiP/neutrino_detector (Air, 640 x 640 x 4100 mm box)
  |- veto/P{0..2}_B{0..6}                21 PVT bars (3 planes x 7)
- |- target/L{0..119}/{W,Si_X,Si_Y}      120 W + 120 Si-X + 120 Si-Y
+ \- target/
+       |- L{0..119}/{W,Si_X,Si_Y}      120 W + 120 Si-X + 120 Si-Y
+       |- L{39,79,119}/Timing          3 Timing Layers
+ |- mgc/L{0..9}/{W,Si_X,Si_Y}           10 W + 10 Si-X + 10 Si-Y
  \- hcal/S{0..2}_L{0..13}/
        |- Fe                            iron absorber
        |- FibreX, FibreY (air envelopes)
        |     \- 0.25 mm polystyrene fibres, 2 staggered sub-layers
-       \- tile_{c}_{r}                  tile grid (8x8 / 10x10 / 12x12)
+       \- tile_{c}_{r}                  tile grid (12x12 / 12x12 / 12x12)
 ```
 
-Direct container children: 21 + 360 + 4438 = 4819. Total volumes including the
-individual fibres: 340819 (~336k fibres).
+Direct container children: 21 + 363 + 30 + 6174 = 6588. Total volumes including the
+individual fibres: 409 788  (~403k fibres).
 
 Position in world: z = 28 950 mm (centre of the 26.40-31.50 m WARM SND slot).
 The SND is part of the muon shield, so its box container sits within the
@@ -56,14 +62,14 @@ overlap.
 
 ## Materials
 
-| Material    | Density     | Usage                              |
-|-------------|-------------|------------------------------------|
-| Tungsten    | 19.3 g/cm3  | Target absorber plates             |
-| Silicon     | 2.33 g/cm3  | Target X/Y tracking planes         |
-| Iron        | 7.87 g/cm3  | HCAL absorber plates               |
-| Polystyrene | 1.05 g/cm3  | HCAL fibres and tiles              |
-| PVT         | 1.032 g/cm3 | Veto bars                          |
-| Air         | 1.29 mg/cm3 | Container and fibre-plane envelopes|
+| Material    | Density     | Usage                                |
+|-------------|-------------|--------------------------------------|
+| Tungsten    | 19.3 g/cm3  | Target absorber plates               |
+| Silicon     | 2.33 g/cm3  | Target/Timing/MGC X/Y tracking planes|
+| Iron        | 7.87 g/cm3  | HCAL absorber plates                 |
+| Polystyrene | 1.05 g/cm3  | HCAL fibres and tiles                |
+| PVT         | 1.032 g/cm3 | Veto bars                            |
+| Air         | 1.29 mg/cm3 | Container and fibre-plane envelopes  |
 
 All are taken from the central `Materials` catalogue. Only the pure Silicon
 material was new (added alongside this subsystem); the rest already existed.
@@ -74,8 +80,8 @@ material was new (added alongside this subsystem); the rest already existed.
 
 - `NeutrinoDetectorIsBoxContainer` - the container is a `GeoBox` large enough to
   hold the contents.
-- `NeutrinoDetectorChildCount` - the container has 4819 direct children.
-- `NeutrinoDetectorFibreCount` - the recursive descendant count is 340819,
+- `NeutrinoDetectorChildCount` - the container has 6588 direct children.
+- `NeutrinoDetectorFibreCount` - the recursive descendant count is 403200,
   guarding the individual-fibre placement.
 
 ## Status
