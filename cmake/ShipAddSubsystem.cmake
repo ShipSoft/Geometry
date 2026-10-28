@@ -40,6 +40,18 @@ function(ship_add_subsystem NAME)
     set_target_properties(${_target} PROPERTIES EXPORT_NAME Geometry${NAME})
     add_library(SHiP::Geometry${NAME} ALIAS ${_target})
 
+    # Subsystems call back into ship_geometry (e.g. Materials), which in turn
+    # links every subsystem (see src/CMakeLists.txt), so neither can be linked
+    # first. Linux shared libraries leave those symbols to the loader; Apple's
+    # linker needs them resolved unless told to look them up at load time,
+    # when ship_geometry is always loaded alongside the subsystem.
+    if(APPLE)
+        target_link_options(
+            ${_target}
+            PRIVATE "LINKER:-undefined,dynamic_lookup"
+        )
+    endif()
+
     target_include_directories(
         ${_target}
         PUBLIC
