@@ -288,7 +288,7 @@ void buildHCal(GeoVPhysVol* mother, const GeoMaterial* air, const GeoMaterial* i
     const LengthMm r = 0.5 * s_hcal_fibre_diameter;
     const LengthMm envHalfZ = s_hcal_fibre_sublayers * r;
 
-    LengthMm z = zStart + s_hcal_gap_to_mgc;
+    LengthMm z = zStart;
     int tileId = 0;
 
     for (int s = 0; s < s_hcal_n_sections; ++s) {
@@ -360,7 +360,7 @@ GeoPhysVol* NeutrinoDetectorFactory::build() {
     const LengthMm vetoDownstreamFace = zStart + s_veto_total_thickness;
     const LengthMm targetStart = vetoDownstreamFace + s_veto_gap_to_target;
     const LengthMm mgcStart = targetStart + s_tgt_depth + s_target_gap_to_mgc;
-    const LengthMm hcalStart = mgcStart + s_mgc_depth;
+    const LengthMm hcalStart = mgcStart + s_mgc_depth + s_hcal_gap_to_mgc;
 
     buildVeto(containerPhys, pvt, vetoDownstreamFace);
     buildTarget(containerPhys, tungsten, silicon, targetStart);
