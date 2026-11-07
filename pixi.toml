@@ -45,6 +45,11 @@ ninja = "*"
 git = "*"
 sqlite = "*"
 geomodel = ">=6.22"
+# Pinned so that the Geant4 version only changes on purpose. geomodel is
+# published once per Geant4 version, and the solver has no reason to
+# prefer the newest one, so without this pin a lock update can silently
+# move to a different Geant4 (it fell back to 10.7.4 once).
+geant4 = "11.4.3.*"
 mp-units = "2.5.*"
 eigen-abi-devel = "*"
 nlohmann_json = "*"
