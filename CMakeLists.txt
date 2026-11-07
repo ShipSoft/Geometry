@@ -23,7 +23,6 @@ option(BUILD_SHARED_LIBS "Build shared libraries by default" ON)
 # Find GeoModel packages
 find_package(GeoModelCore REQUIRED)
 find_package(GeoModelIO REQUIRED)
-find_package(GeoModelTools REQUIRED)
 find_package(mp-units 2.5 CONFIG REQUIRED)
 find_package(SQLite3 REQUIRED)
 # Logging. PRIVATE to the executables: keeping spdlog out of ship_geometry's
