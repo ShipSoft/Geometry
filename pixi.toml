@@ -57,6 +57,10 @@ nlohmann_json = "*"
 # it is not a host dependency.
 catch2 = "3.*"
 spdlog = "*"
+# The OverlapCheck test script and the clang-tidy tasks run Python. It used to
+# come in only transitively (through some Geant4 builds), so it is listed here
+# rather than left to whatever the host provides.
+python = ">=3.11"
 
 # Static analysis. clang-tidy lives here rather than in [feature.lint] because
 # it replays the commands in compile_commands.json and so needs the same
