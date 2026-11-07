@@ -26,15 +26,13 @@ extra-args = [
     "-DBUILD_TESTING=OFF",
 ]
 
-# eigen-abi-devel and nlohmann_json are needed for the same GeoModel CMake
-# config reasons documented in the release recipe.
+# eigen-abi-devel is needed for the same GeoModel CMake config reason
+# documented in the release recipe.
 [package.host-dependencies]
 geomodel-core = "*"
-geomodel-tools = "*"
 sqlite = "*"
 mp-units = "2.5.*"
 eigen-abi-devel = "*"
-nlohmann_json = "*"
 spdlog = "*"
 
 [dependencies]
@@ -44,15 +42,16 @@ make = "*"
 ninja = "*"
 git = "*"
 sqlite = "*"
-geomodel = ">=6.22"
-# Pinned so that the Geant4 version only changes on purpose. geomodel is
-# published once per Geant4 version, and the solver has no reason to
-# prefer the newest one, so without this pin a lock update can silently
-# move to a different Geant4 (it fell back to 10.7.4 once).
+geomodel-core = ">=6.22"
+# gm2gdml and gmclash, for the gdml task and the OverlapCheck test.
+geomodel-fullsimlight = ">=6.22"
+# Pinned so that the Geant4 version only changes on purpose. GeoModel's
+# Geant4 packages are published once per Geant4 version, and the solver has
+# no reason to prefer the newest one, so without this pin a lock update can
+# silently move to a different Geant4 (it fell back to 10.7.4 once).
 geant4 = "11.4.3.*"
 mp-units = "2.5.*"
 eigen-abi-devel = "*"
-nlohmann_json = "*"
 # Only the tests use Catch2, and the package build sets BUILD_TESTING=OFF, so
 # it is not a host dependency.
 catch2 = "3.*"
