@@ -51,7 +51,7 @@ milestone lands.)
 | [NeutrinoDetector](subsystems/NeutrinoDetector/README.md) | Approximate | Veto + Si/W target + HCAL with individual scintillating fibres |
 | [Magnet](subsystems/Magnet/README.md) | Approximate | Iron yoke with box-shaped coils (should be tubes) |
 | [DecayVolume](subsystems/DecayVolume/README.md) | Implemented | Frustum: SBT steel structure + LAB sensors + helium centre |
-| [TimingDetector](subsystems/TimingDetector/README.md) | Complete | 330 scintillator bars via GeoModelXML |
+| [TimingDetector](subsystems/TimingDetector/README.md) | Complete | 330 scintillator bars |
 | [UpstreamTagger](subsystems/UpstreamTagger/README.md) | Simulation-ready | Segmented 4.4 × 6.4 m tile plane, 47000 polystyrene tiles (fine 20 mm + coarse 40 mm) |
 | [Trackers](subsystems/Trackers/README.md) | Complete | 4 stations, 4 stereo views each, 9600 straw tubes |
 | [Calorimeter](subsystems/Calorimeter/README.md) | Simulation-ready | ECAL + HCAL sampling layers (Pb/PVT/HPL + Fe/PVT) |
@@ -62,7 +62,7 @@ milestone lands.)
 
 - CMake 3.16 or later
 - C++23 compiler (CI builds with the GCC pinned in `pixi.toml`)
-- GeoModel libraries (GeoModelCore, GeoModelIO, GeoModelTools) version 6.22+
+- GeoModel libraries (GeoModelCore, GeoModelIO) version 6.22+
 - Catch2 3 (tests only; configure with `-DBUILD_TESTING=OFF` to skip them)
 
 ### Build Instructions
@@ -130,9 +130,9 @@ target_link_libraries(myapp PRIVATE SHiP::Geometry)
 ```
 
 The package config calls `find_dependency` for GeoModelCore, GeoModelIO,
-GeoModelTools, and mp-units automatically. mp-units 2.5 (header-only, from
-the ship conda channel) is a public dependency: the installed headers use
-its quantity types.
+and mp-units automatically. mp-units 2.5 (header-only, from the ship conda
+channel) is a public dependency: the installed headers use its quantity
+types.
 
 ## Architecture
 
