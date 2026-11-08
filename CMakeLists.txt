@@ -83,6 +83,9 @@ add_subdirectory(subsystems)
 add_subdirectory(apps)
 if(BUILD_TESTING)
     add_subdirectory(tests)
+    # Developer tooling, like the tests: the release package sets BUILD_TESTING=OFF
+    # and so neither builds this nor links Qt because of it.
+    add_subdirectory(visualisation)
 endif()
 
 # ----------------------------------------------------------------------------

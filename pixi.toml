@@ -89,15 +89,6 @@ build = { cmd = "cmake --build build -j", depends-on = ["configure"] }
 test = { cmd = "ctest --test-dir build --output-on-failure", depends-on = ["build"] }
 geometry = { cmd = "./build/apps/build_geometry -o build/ship_geometry.db", depends-on = ["build"] }
 gdml = { cmd = "gm2gdml -g build/ship_geometry.db -o build/ship_geometry.gdml", depends-on = ["geometry"] }
-# Standard geometry figures, see visualisation/README.md. The layout tool uses the
-# Qt that fullSimLight already needs, and is its own CMake project so that the
-# geometry library and its release package do not link Qt because of it.
-visualisation-tool = { cmd = """
-cmake -S visualisation -B build/visualisation-tool -G Ninja \
-    -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-    -DCMAKE_PREFIX_PATH=$CONDA_PREFIX \
-&& cmake --build build/visualisation-tool
-""" }
 
 # Linting / formatting toolchain. prek orchestrates the hooks; the tools come
 # from this environment so versions are tracked in pixi.lock and run identically

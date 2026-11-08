@@ -72,10 +72,10 @@ Cropped loadCropped(const QString& path, int supersample) {
     int top = size.height();
     int bottom = -1;
     for (int y = 0; y < size.height(); ++y) {
-        const auto* line = reinterpret_cast<const QRgb*>(image.constScanLine(y));
         for (int x = 0; x < size.width(); ++x) {
-            if (qRed(line[x]) < kBackgroundLevel || qGreen(line[x]) < kBackgroundLevel ||
-                qBlue(line[x]) < kBackgroundLevel) {
+            const QRgb pixel = image.pixel(x, y);
+            if (qRed(pixel) < kBackgroundLevel || qGreen(pixel) < kBackgroundLevel ||
+                qBlue(pixel) < kBackgroundLevel) {
                 left = std::min(left, x);
                 right = std::max(right, x);
                 top = std::min(top, y);
@@ -89,7 +89,9 @@ Cropped loadCropped(const QString& path, int supersample) {
     const QRect crop = QRect(QPoint(left, top), QPoint(right, bottom))
                            .adjusted(-kCropMarginPx, -kCropMarginPx, kCropMarginPx, kCropMarginPx)
                            .intersected(image.rect());
-    return {image.copy(crop), QPointF(crop.topLeft()), QPointF(size.width(), size.height()) / 2};
+    return {.image = image.copy(crop),
+            .origin = QPointF(crop.topLeft()),
+            .centre = QPointF(size.width(), size.height()) / 2};
 }
 
 /**
@@ -97,7 +99,7 @@ Cropped loadCropped(const QString& path, int supersample) {
  */
 class PageDrawer {
    public:
-    PageDrawer(QPainter& painter, QSizeF page) : painter_(painter), page_(page) {}
+    PageDrawer(QPainter& painter, QSizeF page) : painter_(&painter), page_(page) {}
 
     void draw(const QJsonObject& spec) {
         drawText(spec["title"].toString(), {0.04, 0.05}, 20, Qt::AlignLeft, true);
@@ -107,7 +109,7 @@ class PageDrawer {
 
         const Cropped cropped = loadCropped(spec["image"].toString(), spec["supersample"].toInt());
         const QRectF target = imageTarget(cropped.image.size());
-        painter_.drawImage(target, cropped.image);
+        painter_->drawImage(target, cropped.image);
 
         const double scale = target.width() / cropped.image.width();
         if (spec["scale_bar"].toBool()) {
@@ -115,7 +117,7 @@ class PageDrawer {
         }
         const QPointF centreOnPage = target.topLeft() + (cropped.centre - cropped.origin) * scale;
         for (const auto& label : spec["labels"].toArray()) {
-            drawLabel(label.toObject(), centreOnPage, target, scale);
+            drawLabel(label.toObject(), centreOnPage, scale);
         }
         drawAxes(spec["axes"].toArray());
         drawLegend(spec["legend"].toArray());
@@ -141,34 +143,34 @@ class PageDrawer {
         font.setFamilies({"Ubuntu", "DejaVu Sans Mono"});
         font.setPointSizeF(points);
         font.setBold(bold);
-        painter_.setFont(font);
+        painter_->setFont(font);
     }
 
     void drawText(const QString& text, QPointF fraction, double points, Qt::Alignment alignment,
                   bool bold = false, const QColor& colour = Qt::black) {
         setFont(points, bold);
-        painter_.setPen(colour);
+        painter_->setPen(colour);
         drawTextAt(text, at(fraction), alignment);
     }
 
     /** Draws text with its baseline at a point, aligned horizontally about it. */
     void drawTextAt(const QString& text, QPointF point, Qt::Alignment alignment) {
-        const double width = QFontMetricsF(painter_.font()).horizontalAdvance(text);
+        const double width = QFontMetricsF(painter_->font()).horizontalAdvance(text);
         double x = point.x();
         if (alignment & Qt::AlignHCenter) {
             x -= width / 2;
         } else if (alignment & Qt::AlignRight) {
             x -= width;
         }
-        painter_.drawText(QPointF(x, point.y()), text);
+        painter_->drawText(QPointF(x, point.y()), text);
     }
 
     void drawLine(QPointF from, QPointF to, double points) {
         QPen pen(Qt::black);
         pen.setWidthF(points * kResolutionDpi / 72);
         pen.setCapStyle(Qt::FlatCap);
-        painter_.setPen(pen);
-        painter_.drawLine(from, to);
+        painter_->setPen(pen);
+        painter_->drawLine(from, to);
     }
 
     /** Draws a round-numbered scale bar about a fifth of the image wide. */
@@ -183,33 +185,37 @@ class PageDrawer {
         }
         const QString label =
             length >= 1000 ? QString("%1 m").arg(length / 1000) : QString("%1 mm").arg(length);
-        const double y = target.bottom() + 0.015 * page_.height();
+        const double y = target.bottom() + (0.015 * page_.height());
         const QPointF right(target.right(), y);
         const QPointF left = right - QPointF(length * pixelsPerMm * scale, 0);
         drawLine(left, right, 2.5);
         setFont(12);
-        painter_.setPen(Qt::black);
+        painter_->setPen(Qt::black);
         drawTextAt(label, (left + right) / 2 + QPointF(0, 0.03 * page_.height()), Qt::AlignHCenter);
     }
 
     /** Labels a subsystem directly, so that reading the figure never relies on colour. */
-    void drawLabel(const QJsonObject& label, QPointF centre, const QRectF& target, double scale) {
+    void drawLabel(const QJsonObject& label, QPointF centre, double scale) {
         const QPointF anchor =
             centre + QPointF(label["dx"].toDouble(), label["dy"].toDouble()) * scale;
-        const QPointF text(anchor.x(), anchor.y() - label["row"].toInt() * 0.042 * page_.height());
+        const QPointF text(anchor.x(),
+                           anchor.y() - (label["row"].toInt() * 0.042 * page_.height()));
         const QString align = label["align"].toString();
         drawLine(anchor, text, 0.7);
         setFont(10.5);
-        painter_.setPen(Qt::black);
-        const Qt::Alignment alignment = align == "left"    ? Qt::AlignLeft
-                                        : align == "right" ? Qt::AlignRight
-                                                           : Qt::AlignHCenter;
+        painter_->setPen(Qt::black);
+        Qt::Alignment alignment = Qt::AlignHCenter;
+        if (align == "left") {
+            alignment = Qt::AlignLeft;
+        } else if (align == "right") {
+            alignment = Qt::AlignRight;
+        }
         drawTextAt(label["text"].toString(), text - QPointF(0, 0.005 * page_.height()), alignment);
     }
 
     /** Draws x/y/z arrows as the view sees them. */
     void drawAxes(const QJsonArray& axes) {
-        const QPointF centre = at({kAxesLeft + kAxesWidth / 2, kAxesCentreY});
+        const QPointF centre = at({kAxesLeft + (kAxesWidth / 2), kAxesCentreY});
         const double length = kAxesWidth * page_.width() * 0.33;
         for (const auto& value : axes) {
             const QJsonObject axis = value.toObject();
@@ -218,7 +224,7 @@ class PageDrawer {
             setFont(12, true);
             if (size < 0.05) {
                 drawAxisAlongSight(centre, axis["toward_viewer"].toBool(), length);
-                painter_.setPen(Qt::black);
+                painter_->setPen(Qt::black);
                 setFont(12, true);
                 drawTextAt(axis["name"].toString(), centre + QPointF(length * 0.3, length * 0.5),
                            Qt::AlignHCenter);
@@ -226,7 +232,7 @@ class PageDrawer {
             }
             const QPointF tip = centre + direction * length;
             drawArrow(centre, tip);
-            painter_.setPen(Qt::black);
+            painter_->setPen(Qt::black);
             setFont(12, true);
             // The baseline sits below the point, so that the letter is centred on it.
             const QPointF textAt =
@@ -249,7 +255,7 @@ class PageDrawer {
         path.lineTo(to - unit * head * 1.6 + normal * head * 0.6);
         path.lineTo(to - unit * head * 1.6 - normal * head * 0.6);
         path.closeSubpath();
-        painter_.fillPath(path, Qt::black);
+        painter_->fillPath(path, Qt::black);
     }
 
     /** Draws an axis pointing out of the page as a dot, and into it as a cross. */
@@ -257,17 +263,17 @@ class PageDrawer {
         const double radius = length * 0.14;
         QPen pen(Qt::black);
         pen.setWidthF(1.2 * kResolutionDpi / 72);
-        painter_.setPen(pen);
-        painter_.setBrush(Qt::NoBrush);
-        painter_.drawEllipse(centre, radius, radius);
+        painter_->setPen(pen);
+        painter_->setBrush(Qt::NoBrush);
+        painter_->drawEllipse(centre, radius, radius);
         if (towardViewer) {
-            painter_.setBrush(Qt::black);
-            painter_.drawEllipse(centre, radius * 0.3, radius * 0.3);
-            painter_.setBrush(Qt::NoBrush);
+            painter_->setBrush(Qt::black);
+            painter_->drawEllipse(centre, radius * 0.3, radius * 0.3);
+            painter_->setBrush(Qt::NoBrush);
         } else {
             const double arm = radius * 0.7;
-            painter_.drawLine(centre + QPointF(-arm, -arm), centre + QPointF(arm, arm));
-            painter_.drawLine(centre + QPointF(-arm, arm), centre + QPointF(arm, -arm));
+            painter_->drawLine(centre + QPointF(-arm, -arm), centre + QPointF(arm, arm));
+            painter_->drawLine(centre + QPointF(-arm, arm), centre + QPointF(arm, -arm));
         }
     }
 
@@ -275,7 +281,7 @@ class PageDrawer {
     void drawLegend(const QJsonArray& legend) {
         constexpr int kPerRow = 5;
         setFont(12);
-        const QFontMetricsF metrics(painter_.font());
+        const QFontMetricsF metrics(painter_->font());
         const double swatch = 0.018 * page_.width();
         const double gap = 0.008 * page_.width();
         const double spacing = 0.022 * page_.width();
@@ -297,7 +303,7 @@ class PageDrawer {
         for (const double width : columnWidths) {
             total += width;
         }
-        const double left = (kImageLeft + kImageRight) / 2 * page_.width() - total / 2;
+        const double left = ((kImageLeft + kImageRight) / 2 * page_.width()) - (total / 2);
 
         double x = left;
         for (qsizetype i = 0; i < legend.size(); ++i) {
@@ -305,23 +311,23 @@ class PageDrawer {
             if (column == 0) {
                 x = left;
             }
-            const double y =
-                kLegendY * page_.height() + static_cast<double>(i / kPerRow) * rowHeight;
+            const qsizetype row = i / kPerRow;
+            const double y = (kLegendY * page_.height()) + (static_cast<double>(row) * rowHeight);
             const QJsonObject entry = legend[i].toObject();
-            const QRectF box(x, y - swatch * 0.55, swatch, swatch * 0.55);
+            const QRectF box(x, y - (swatch * 0.55), swatch, swatch * 0.55);
             QPen outline(QColor(0x22, 0x22, 0x22));
             outline.setWidthF(0.6 * kResolutionDpi / 72);
-            painter_.setPen(outline);
-            painter_.setBrush(QColor(entry["colour"].toString()));
-            painter_.drawRect(box);
-            painter_.setBrush(Qt::NoBrush);
-            painter_.setPen(Qt::black);
-            painter_.drawText(QPointF(x + swatch + gap, y), entry["label"].toString());
+            painter_->setPen(outline);
+            painter_->setBrush(QColor(entry["colour"].toString()));
+            painter_->drawRect(box);
+            painter_->setBrush(Qt::NoBrush);
+            painter_->setPen(Qt::black);
+            painter_->drawText(QPointF(x + swatch + gap, y), entry["label"].toString());
             x += columnWidths[column] + spacing;
         }
     }
 
-    QPainter& painter_;
+    QPainter* painter_;
     QSizeF page_;
 };
 
