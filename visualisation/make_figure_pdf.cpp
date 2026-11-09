@@ -19,6 +19,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QJsonParseError>
 #include <QPageLayout>
 #include <QPageSize>
 #include <QPainter>
@@ -28,6 +29,7 @@
 #include <cmath>
 #include <iostream>
 #include <stdexcept>
+#include <string>
 #include <vector>
 
 namespace {
@@ -58,7 +60,17 @@ struct Cropped {
     QPointF centre;  //!< Centre of the uncropped image, which is the camera target.
 };
 
+/**
+ * @brief Loads a render, downsamples it and crops it to what is drawn.
+ * @param path The image file.
+ * @param supersample The factor to downsample by, at least 1.
+ * @throws std::runtime_error If the factor is invalid, or the image is unreadable or blank.
+ */
 Cropped loadCropped(const QString& path, int supersample) {
+    if (supersample < 1) {
+        throw std::runtime_error("invalid supersample " + std::to_string(supersample) + " for " +
+                                 path.toStdString());
+    }
     const QImage raw(path);
     if (raw.isNull()) {
         throw std::runtime_error("cannot read " + path.toStdString());
@@ -99,8 +111,10 @@ Cropped loadCropped(const QString& path, int supersample) {
  */
 class PageDrawer {
    public:
+    /** Draws with the given painter, on a page of the given size in device pixels. */
     PageDrawer(QPainter& painter, QSizeF page) : painter_(&painter), page_(page) {}
 
+    /** Draws everything on the page that the spec describes. */
     void draw(const QJsonObject& spec) {
         drawText(spec["title"].toString(), {0.04, 0.05}, 20, Qt::AlignLeft, true);
         drawText(spec["subtitle"].toString(), {0.04, 0.095}, 14, Qt::AlignLeft);
@@ -124,6 +138,7 @@ class PageDrawer {
     }
 
    private:
+    /** Converts a position as fractions of the page to device pixels. */
     [[nodiscard]] QPointF at(QPointF fraction) const {
         return {fraction.x() * page_.width(), fraction.y() * page_.height()};
     }
@@ -138,6 +153,7 @@ class PageDrawer {
         return target;
     }
 
+    /** Selects the figures' font at the given size. */
     void setFont(double points, bool bold = false) {
         QFont font;
         font.setFamilies({"Ubuntu", "DejaVu Sans Mono"});
@@ -146,6 +162,7 @@ class PageDrawer {
         painter_->setFont(font);
     }
 
+    /** Draws text at a position given as fractions of the page. */
     void drawText(const QString& text, QPointF fraction, double points, Qt::Alignment alignment,
                   bool bold = false, const QColor& colour = Qt::black) {
         setFont(points, bold);
@@ -165,6 +182,7 @@ class PageDrawer {
         painter_->drawText(QPointF(x, point.y()), text);
     }
 
+    /** Draws a black line of the given width in points. */
     void drawLine(QPointF from, QPointF to, double points) {
         QPen pen(Qt::black);
         pen.setWidthF(points * kResolutionDpi / 72);
@@ -175,6 +193,9 @@ class PageDrawer {
 
     /** Draws a round-numbered scale bar about a fifth of the image wide. */
     void drawScaleBar(const QRectF& target, int imageWidth, double pixelsPerMm, double scale) {
+        if (pixelsPerMm <= 0) {
+            throw std::runtime_error("invalid pixels_per_mm " + std::to_string(pixelsPerMm));
+        }
         const double wanted = imageWidth * 0.2 / pixelsPerMm;
         const double magnitude = std::pow(10.0, std::floor(std::log10(wanted)));
         double length = magnitude;
@@ -241,6 +262,7 @@ class PageDrawer {
         }
     }
 
+    /** Draws a line with a filled arrowhead at its end. */
     void drawArrow(QPointF from, QPointF to) {
         drawLine(from, to, 1.4);
         const QPointF along = to - from;
@@ -331,7 +353,14 @@ class PageDrawer {
     QSizeF page_;
 };
 
+/**
+ * @brief Writes the PDF that a spec describes.
+ * @throws std::runtime_error If the spec is invalid or the file cannot be written.
+ */
 void writePdf(const QJsonObject& spec) {
+    if (spec["output"].toString().isEmpty()) {
+        throw std::runtime_error("the spec has no output file");
+    }
     QPdfWriter writer(spec["output"].toString());
     writer.setTitle(spec["title"].toString());
     writer.setCreator("SHiP geometry make_figure_pdf");
@@ -355,8 +384,30 @@ void writePdf(const QJsonObject& spec) {
     }
 }
 
+/**
+ * @brief Reads a spec, which has to be a JSON object.
+ * @throws std::runtime_error If the file is unreadable or holds anything else.
+ */
+QJsonObject readSpec(const QString& path) {
+    QFile file(path);
+    if (!file.open(QIODevice::ReadOnly)) {
+        throw std::runtime_error("cannot read " + path.toStdString());
+    }
+    QJsonParseError parseError;
+    const QJsonDocument document = QJsonDocument::fromJson(file.readAll(), &parseError);
+    if (parseError.error != QJsonParseError::NoError) {
+        throw std::runtime_error(path.toStdString() +
+                                 " is not valid JSON: " + parseError.errorString().toStdString());
+    }
+    if (!document.isObject()) {
+        throw std::runtime_error(path.toStdString() + " is not a JSON object");
+    }
+    return document.object();
+}
+
 }  // namespace
 
+/** Writes the PDF for the spec named on the command line. */
 int main(int argc, char* argv[]) {
     qputenv("QT_QPA_PLATFORM", "offscreen");
     const QGuiApplication application(argc, argv);
@@ -365,11 +416,7 @@ int main(int argc, char* argv[]) {
         return 2;
     }
     try {
-        QFile file(QString::fromLocal8Bit(argv[1]));
-        if (!file.open(QIODevice::ReadOnly)) {
-            throw std::runtime_error(std::string("cannot read ") + argv[1]);
-        }
-        writePdf(QJsonDocument::fromJson(file.readAll()).object());
+        writePdf(readSpec(QString::fromLocal8Bit(argv[1])));
     } catch (const std::exception& error) {
         std::cerr << "make_figure_pdf: " << error.what() << "\n";
         return 1;
