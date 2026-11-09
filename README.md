@@ -229,8 +229,15 @@ geometry/
 │   └── TimingDetector/
 ├── apps/                    # build_geometry, validate_geometry
 ├── tests/                   # Unit tests
+├── visualisation/           # Standard geometry figures (fullSimLight)
 └── cmake/                   # CMake package config
 ```
+
+## Geometry Figures
+
+Standard figures of every subsystem and the full detector are rendered offscreen
+with fullSimLight by `pixi run visualisation`; see
+[visualisation/README.md](visualisation/README.md).
 
 ## Reference GDML
 
