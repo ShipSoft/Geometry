@@ -7,3 +7,5 @@ __pycache__/
 .ruff_cache/
 doxygen/html/
 doxygen/latex/
+visualisation/pdf/
+visualisation/macros/

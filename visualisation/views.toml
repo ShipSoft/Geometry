@@ -1,0 +1,202 @@
+# SPDX-License-Identifier: LGPL-3.0-or-later
+# Copyright (C) CERN for the benefit of the SHiP Collaboration
+#
+# What make_visualisations.py draws. Patterns are full-match Python regexes on
+# logical volume names, as `sqlite3 <db> "select name from LogVols"` spells them.
+
+# Never drawn: containers and fill gases, which would hide what is inside them.
+hidden_materials = ["Air", "Vacuum", "PressurisedHe90", "ArCO2_70_30"]
+
+# Rendering fails above this many drawn volumes per scene, so that growth in the
+# geometry cannot quietly make the figures too expensive to run in CI.
+max_drawn_volumes = 150000
+
+# Drawn as solids with nothing below them, because their contents are too many to
+# tessellate and too fine to see. They hold most of the geometry's placements:
+# 336000 of 340820 in the neutrino detector and 518112 of 550309 in the calorimeter.
+# An air mother needs its own label, so that it does not read as a material.
+envelopes = [
+    { pattern = "/SHiP/neutrino_detector/hcal/S\\d+/Fibre_ENV", label = "Fibre plane (envelope)", colour = "#555555" },
+    { pattern = "HPL_CasingLog" },
+]
+
+# A closest pair below this CIE76 distance warns during rendering.
+min_palette_separation = 15.0
+
+# Okabe & Ito (2008), chosen to stay distinct under the common colour-vision
+# deficiencies. Materials keep the same colour in every subsystem's figures.
+[material_colours]
+Iron = "#0072B2"
+Tungsten = "#D55E00"
+Lead = "#D55E00"
+Copper = "#E69F00"
+Steel316L = "#56B4E9"
+Aluminium = "#555555"
+Concrete = "#999999"
+PVT = "#F0E442"
+TimDetScint = "#F0E442"
+Polystyrene = "#009E73"
+LAB = "#009E73"
+Silicon = "#CC79A7"
+Mylar = "#CC79A7"
+
+# Tol's "muted" scheme, for the nine subsystems of the full detector. It does
+# not have to carry the figure alone: the side and top views label directly.
+[subsystem_colours]
+Target = { label = "Target", colour = "#CC6677" }
+MuonShield = { label = "Muon shield", colour = "#332288" }
+NeutrinoDetector = { label = "Neutrino detector", colour = "#DDCC77" }
+UpstreamTagger = { label = "Upstream tagger", colour = "#882255" }
+DecayVolume = { label = "Decay volume + SBT", colour = "#88CCEE" }
+Trackers = { label = "Trackers", colour = "#117733" }
+Magnet = { label = "Magnet", colour = "#AA4499" }
+TimingDetector = { label = "Timing detector", colour = "#999933" }
+Calorimeter = { label = "Calorimeter", colour = "#44AA99" }
+
+# Every scene gets these unless it opts out. The camera is orthographic. With a
+# y-up camera, looking along +x puts the beam (+z) left to right.
+[default_views.iso]
+label = "Isometric view from upstream"
+viewpoint = [-1.0, 0.6, -1.2]
+up = [0, 1, 0]
+
+[default_views.side]
+label = "Side view (y-z plane)"
+viewpoint = [-1, 0, 0]
+up = [0, 1, 0]
+orthographic_scale = true
+
+[default_views.top]
+label = "Top view (x-z plane)"
+viewpoint = [0, 1, 0]
+up = [1, 0, 0]
+orthographic_scale = true
+
+[default_views.front]
+label = "Front view (x-y plane), looking downstream"
+viewpoint = [0, 0, -1]
+up = [0, 1, 0]
+orthographic_scale = true
+
+[default_views.exploded]
+label = "Exploded view (not to scale)"
+viewpoint = [-1.0, 0.6, -1.2]
+up = [0, 1, 0]
+exploded = true
+
+# ---------------------------------------------------------------- scenes ----
+[scene.Target]
+title = "Target"
+segments = 64
+[scene.Target.views.interior]
+label = "Interior, shielding removed"
+viewpoint = [-1.0, 0.6, -1.2]
+up = [0, 1, 0]
+hide = ["/SHiP/target/.*_shielding", "/SHiP/target/shielding_pedestal"]
+[scene.Target.explode]
+scale = [{ parent = "/SHiP/target", scale = [1.0, 2.5, 1.0] }, { parent = "/SHiP/target/he_volume", scale = [1.0, 1.0, 4.0] }]
+
+[scene.MuonShield]
+title = "Muon Shield"
+[scene.MuonShield.explode]
+scale = [{ parent = "/SHiP/muon_shield", scale = [1.0, 1.0, 1.6] }, { parent = "/SHiP/muon_shield/magn_.*", scale = [1.8, 1.8, 1.0] }]
+
+[scene.NeutrinoDetector]
+title = "Scattering and Neutrino Detector"
+[scene.NeutrinoDetector.explode]
+scale = [{ parent = "/SHiP/neutrino_detector", scale = [1.0, 1.0, 1.8] }]
+
+[scene.UpstreamTagger]
+title = "Upstream Tagger"
+[scene.UpstreamTagger.explode]
+scale = [{ parent = "/SHiP/upstream_tagger", scale = [1.25, 1.25, 1.0] }]
+
+[scene.DecayVolume]
+title = "Decay Volume and Surround Background Tagger"
+[scene.DecayVolume.explode]
+scale = [{ parent = "/SHiP/decay_volume", scale = [1.5, 1.5, 1.0] }]
+
+[scene.Trackers]
+title = "Straw Trackers"
+[scene.Trackers.explode]
+scale = [{ parent = "/SHiP/trackers", scale = [1.0, 1.0, 1.0] }, { parent = "/SHiP/trackers/station_.*", scale = [1.0, 1.0, 8.0] }]
+
+[scene.Magnet]
+title = "Spectrometer Magnet"
+[scene.Magnet.explode]
+scale = [{ parent = "/SHiP/magnet", scale = [1.6, 1.6, 1.6] }]
+
+[scene.TimingDetector]
+title = "Timing Detector"
+[scene.TimingDetector.explode]
+scale = [{ parent = "/SHiP/timing_detector", scale = [1.3, 1.0, 12.0] }]
+
+[scene.Calorimeter]
+title = "Calorimeter (ECAL + HCAL)"
+[scene.Calorimeter.explode]
+scale = [{ parent = "/SHiP/calorimeter", scale = [1.0, 1.0, 3.0] }]
+
+# A single solid: nothing to pull apart, so the interior view stands in.
+[scene.Cavern]
+title = "Cavern"
+skip_views = ["exploded"]
+[scene.Cavern.views.interior]
+label = "Interior, cut away at x = 0"
+viewpoint = [-1.0, 0.6, -1.2]
+up = [0, 1, 0]
+cutaway_normal = [1, 0, 0]
+
+[scene.ship_geometry]
+title = "SHiP Detector"
+hide = ["/SHiP/cavern"]
+[scene.ship_geometry.views.side]
+direct_labels = true
+[scene.ship_geometry.explode]
+offset = [
+    { child = "/SHiP/neutrino_detector", offset = [0, 6000, 0] },
+    { child = "/SHiP/magnet", offset = [0, 12000, 0] },
+]
+scale = [{ parent = "cave", scale = [1.0, 1.0, 1.25] }]
+
+# Where to attach the labels on the full detector's side view: world z of each
+# subsystem's centre, y at its top. `row` staggers neighbours.
+[[direct_labels]]
+label = "Target"
+at = [0, 1000, 432]
+row = 1
+[[direct_labels]]
+label = "Muon shield"
+at = [0, 2000, 15000]
+row = 1
+[[direct_labels]]
+label = "Neutrino detector"
+at = [0, 400, 28950]
+row = 3
+[[direct_labels]]
+label = "Upstream tagger"
+at = [0, 3200, 32700]
+row = 1
+ha = "left"
+[[direct_labels]]
+label = "Decay volume + SBT"
+at = [0, 3000, 58120]
+row = 1
+[[direct_labels]]
+label = "Trackers"
+at = [0, 3400, 85000]
+row = 1
+ha = "right"
+[[direct_labels]]
+label = "Magnet"
+at = [0, 4300, 89570]
+row = 1
+[[direct_labels]]
+label = "Timing detector"
+at = [0, 3200, 95900]
+row = 2
+ha = "right"
+[[direct_labels]]
+label = "Calorimeter"
+at = [0, 3500, 98320]
+row = 3
+ha = "right"
