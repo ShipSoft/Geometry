@@ -61,6 +61,9 @@ spdlog = "*"
 # come in only transitively (through some Geant4 builds), so it is listed here
 # rather than left to whatever the host provides.
 python = ">=3.11"
+# Lays out the figure PDFs. Pinned because its language can still change between
+# minor versions, which could break visualisation/figure.typ.
+typst = "0.15.*"
 
 # Static analysis. clang-tidy lives here rather than in [feature.lint] because
 # it replays the commands in compile_commands.json and so needs the same
@@ -89,6 +92,8 @@ build = { cmd = "cmake --build build -j", depends-on = ["configure"] }
 test = { cmd = "ctest --test-dir build --output-on-failure", depends-on = ["build"] }
 geometry = { cmd = "./build/apps/build_geometry -o build/ship_geometry.db", depends-on = ["build"] }
 gdml = { cmd = "gm2gdml -g build/ship_geometry.db -o build/ship_geometry.gdml", depends-on = ["geometry"] }
+# Standard geometry figures, see visualisation/README.md.
+visualisation = { cmd = "python visualisation/make_visualisations.py", depends-on = ["build"] }
 
 # Linting / formatting toolchain. prek orchestrates the hooks; the tools come
 # from this environment so versions are tracked in pixi.lock and run identically
