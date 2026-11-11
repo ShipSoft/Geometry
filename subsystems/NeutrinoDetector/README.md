@@ -18,9 +18,9 @@ the beam (upstream -> downstream):
   The total depth of the target is 1410 mm.
 - **MGC** - a medium-granularity calorimeter: 10 layers at 20 mm pitch on a 500 x 500 mm plate,
   each a tungsten absorber plate (18.4 mm) followed by an X and a Y silicon tracking plane (0.65 mm each).
-- **HCAL (MTC)** - a hadronic calorimeter: three transverse sections (40, 50, 60 cm),
+- **HCAL (MTC)** - a hadronic calorimeter: three transverse sections (60, 60, 60 cm),
   14 layers each. Every layer is a 50 mm iron absorber, an X and a Y
-  scintillating-fibre plane, and a polystyrene tile grid (50 x 50 x 10 mm tiles).
+  scintillating-fibre plane, and a polystyrene tile grid (50 x 50 x 29 mm tiles).
 
 Like the calorimeter and straw tracker, all elements are `GeoPhysVol` with
 hierarchical `/SHiP/neutrino_detector/...` names that reuse shared `GeoLogVol`s;
@@ -32,7 +32,7 @@ Each fibre plane is an air envelope filled with individual 0.25 mm-diameter
 polystyrene fibres in two staggered sub-layers (sub-layer 1 offset by one radius
 to close the inter-fibre gaps), matching the standalone SND simulation. Fibres
 in the X plane run along X (measuring Y); fibres in the Y plane run along Y
-(measuring X). This is ~336 000 fibres in total, so the SND is by far the
+(measuring X). This is ~403 200 fibres in total, so the SND is by far the
 highest-volume subsystem; the per-plane air envelopes keep them spatially
 bounded for navigation.
 
@@ -49,11 +49,11 @@ bounded for navigation.
        |- Fe                            iron absorber
        |- FibreX, FibreY (air envelopes)
        |     \- 0.25 mm polystyrene fibres, 2 staggered sub-layers
-       \- tile_{c}_{r}                  tile grid (8x8 / 10x10 / 12x12)
+       \- tile_{c}_{r}                  tile grid (12x12 / 12x12 / 12x12)
 ```
 
-Direct container children: 21 + 363 + 30 + 4438 = 4852. Total volumes including the
-individual fibres: 340852 (336000 fibres).
+Direct container children: 21 + 363 + 30 + 6174 = 6588. Total volumes including the
+individual fibres: 409788 (403200 fibres).
 
 Position in world: z = 28 950 mm (centre of the 26.40-31.50 m WARM SND slot).
 The SND is part of the muon shield, so its box container sits within the
@@ -79,7 +79,7 @@ material was new (added alongside this subsystem); the rest already existed.
 
 `test_neutrinodetector.cpp`:
 
-- `NeutrinoDetectorChildCount` - the container has 4852 direct children.
+- `NeutrinoDetectorChildCount` - the container has 6588 direct children.
 
 ## Status
 

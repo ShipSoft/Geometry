@@ -76,12 +76,12 @@ constexpr int s_hcal_fibre_sublayers = 2;           // staggered sub-layers per 
 constexpr auto s_hcal_fibre_plane =
     s_hcal_fibre_sublayers * s_hcal_fibre_diameter;  // 0.5 mm fibre-plane thickness
 constexpr auto s_hcal_tile_xy = 50.0 * mm;
-constexpr auto s_hcal_tile_thickness = 10.0 * mm;
+constexpr auto s_hcal_tile_thickness = 29.0 * mm;  // 3 cm total gap between iron slabs
 constexpr auto s_hcal_layer =
-    s_hcal_iron + 2.0 * s_hcal_fibre_plane + s_hcal_tile_thickness;  // 61 mm
+    s_hcal_iron + 2.0 * s_hcal_fibre_plane + s_hcal_tile_thickness;  // 80 mm
 constexpr int s_hcal_n_sections = 3;
 constexpr int s_hcal_n_layers = 14;
-constexpr LengthMm s_hcal_section_xy[s_hcal_n_sections] = {400.0 * mm, 500.0 * mm, 600.0 * mm};
+constexpr LengthMm s_hcal_section_xy[s_hcal_n_sections] = {600.0 * mm, 600.0 * mm, 600.0 * mm};
 
 // Longitudinal layout (upstream → downstream), content centred in the container.
 constexpr auto s_tgt_depth = s_tgt_pitch * s_tgt_n_layers + s_tgt_n_timing_layers * s_tgt_timing;
