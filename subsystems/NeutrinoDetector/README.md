@@ -55,7 +55,7 @@ bounded for navigation.
 Direct container children: 21 + 363 + 30 + 6174 = 6588. Total volumes including the
 individual fibres: 409788 (403200 fibres).
 
-Position in world: z = 28 950 mm (centre of the 26.40-31.50 m WARM SND slot).
+Position in world: z = 25 440 mm (22.89-27.99 m: the end of muon-shield magnet M5 and the whole of M6, as in FairShip's TRY_2026 layout).
 The SND is part of the muon shield, so its box container sits within the
 downstream end of the muon-shield region; the resulting envelope overlap is
 declared in `tests/test_consistency.cpp`, analogous to the trackers/magnet

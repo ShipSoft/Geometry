@@ -43,9 +43,9 @@ class Materials;
  * `GeoSerialTransformer`, so each plane costs O(1) tree nodes regardless of
  * fibre count. The X/Y plane names are preserved for readout.
  *
- * The container is a box approximation of the SND envelope
- * (`subsystem_envelopes.csv`: z 26.40–31.50 m WARM, half-width/height up to
- * 0.40 m); placement is handled by DetectorBuilder.
+ * The container is a box of the SND envelope's cross-section
+ * (`subsystem_envelopes.csv`: half-width/height up to 0.40 m), 5.1 m long;
+ * placement is handled by DetectorBuilder.
  */
 class NeutrinoDetectorFactory {
    public:
@@ -58,15 +58,16 @@ class NeutrinoDetectorFactory {
     /**
      * @brief This subsystem's self-description (name, node, id, placement).
      *
-     * Z: 26.40 to 31.50 m (WARM muon-shield configuration), so the container is
-     * centred at z = 28.95 m. The SND sits within the downstream end of the
-     * muon-shield region, so its envelope overlaps the muon-shield container by
-     * design (see test_consistency).
+     * Z: 22.89 to 27.99 m, so the container is centred at z = 25.44 m. As in
+     * FairShip's TRY_2026 layout, the SND sits in the end of muon-shield magnet
+     * M5 and the whole of M6, which have a matching hole cut out of their iron
+     * (MuonShieldFactory, checked in Layout.h). This is 3.51 m upstream of the
+     * EDMS envelope (26.40-31.50 m), which follows the WARM shield layout.
      */
     static constexpr SubsystemDescriptor descriptor() {
         using units::gm;
         using units::m;
-        return {"NeutrinoDetector", "/SHiP/neutrino_detector", 9, 0.0, 0.0, gm(28.95 * m), false};
+        return {"NeutrinoDetector", "/SHiP/neutrino_detector", 9, 0.0, 0.0, gm(25.44 * m), false};
     }
     /// Build the SND geometry; returns the air container.
     [[nodiscard]] GeoPhysVol* build();
