@@ -134,7 +134,9 @@ git diff --unified=0 --diff-filter=d origin/main -- '*.cpp' '*.hpp' '*.cxx' '*.h
 
 [feature.lint.dependencies]
 prek = "*"
-python = ">=3.11"
+# Capped at the newest Python gersemi 0.29.2 publishes wheels for. On a newer
+# Python, pixi builds gersemi from the sdist, which needs a Rust compiler.
+python = ">=3.11,<3.15"
 clang-format = "23.*"
 codespell = "*"
 cmakelint = "*"
