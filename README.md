@@ -103,9 +103,13 @@ python3 tests/check_clashes.py build/gmclash_report.json tests/known_clashes.jso
 # List the available subsystem names
 ./build/apps/build_geometry --list
 
-# View in gmex
-gmex output_file.db
+# View in gmex, which comes with geomodel-visualization and is not part of
+# the pixi environment
+pixi exec -s geomodel-visualization gmex output_file.db
 ```
+
+`pixi run visualisation` renders the standard figures without a display; see
+[visualisation/README.md](visualisation/README.md).
 
 With no subsystem named, the complete detector is built. Naming subsystems (as
 spelled by `--list`, e.g. `Calorimeter`) assembles those into the world at their
