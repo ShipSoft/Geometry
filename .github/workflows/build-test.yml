@@ -29,11 +29,46 @@ jobs:
       runs-on: ubuntu-24.04-arm
       tasks: '["test", "geometry"]'
 
+  notify-sea-cucumber:
+    name: Notify sea-cucumber a new Geometry is available
+    runs-on: ubuntu-latest
+    needs: [all-checks]
+
+    # Only dispatch on pushes to main.
+    if: >-
+      ${{
+        github.event_name == 'push' &&
+        github.ref == 'refs/heads/main'
+      }}
+
+    steps:
+      - name: Dispatch artifact availability
+        env:
+          GH_TOKEN: ${{ secrets.SEA_CUCUMBER_DISPATCH_TOKEN }}
+          ARTIFACT_NAME: ship_geometry-${{ github.sha }}
+        run: |
+          jq -n \
+            --arg run_id "$GITHUB_RUN_ID" \
+            --arg sha "$GITHUB_SHA" \
+            --arg artifact_name "$ARTIFACT_NAME" \
+            '{
+              event_type: "geometry-artifact-ready",
+              client_payload: {
+                run_id: $run_id,
+                sha: $sha,
+                artifact_name: $artifact_name
+              }
+            }' |
+          gh api \
+            --method POST \
+            repos/ShipSoft/sea-cucumber/dispatches \
+            --input -
+
   all-checks:
     name: All checks passed
     if: always()
     runs-on: ubuntu-latest
-    needs: [build-and-test, build-linux-aarch64]
+    needs: [build-and-test, build-linux-aarch64, notify-sea-cucumber]
     steps:
       - name: Check status of all jobs
         run: |
