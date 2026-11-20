@@ -14,7 +14,7 @@ Timing_Detector (Air, 5500×6500×500 mm)
      3 columns × 110 rows; z stagger = (row%2)·12 + (col%2)·90 mm
 ```
 
-Position in world: z = 95902 mm.
+Position in world: z = 96370 mm (centre of the 96.14–96.60 m slot in integration layout 2026-0.1, EDMS 3287817 v1.1).
 
 ## Materials
 

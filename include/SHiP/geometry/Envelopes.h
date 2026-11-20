@@ -16,6 +16,11 @@
  * "SHiP preliminary infrastructure requirements, layout and integration at
  * ECN3", EDMS 3309666 rev. 0.3, tables 3 and 4. Update both files together.
  *
+ * The z ranges of the upstream background tagger, the tracker stations, the
+ * spectrometer magnet and the timing detector follow the integration layout
+ * drawing SPSXXSHIP0002 version 2026-0.1 (EDMS 3287817 v1.1) instead; their
+ * transverse sizes are still those of rev. 0.3.
+ *
  * z is measured from the target front face (the SHiP global origin). Only
  * the configurations this geometry builds (WARM muon shield, COMMON) are
  * transcribed; the HYBRID rows are omitted. Empty CSV cells (the hadron
@@ -59,7 +64,7 @@ inline constexpr std::array<Envelope, 5> kMuonShield{{
 }};
 inline constexpr Envelope kNeutrinoDetector{"Scattering and neutrino detector", 26.40 * detail::m, 31.50 * detail::m,
     0.30 * detail::m, 0.40 * detail::m, 0.30 * detail::m, 0.40 * detail::m};
-inline constexpr Envelope kUpstreamTagger{"Upstream background tagger", 32.52 * detail::m, 32.92 * detail::m,
+inline constexpr Envelope kUpstreamTagger{"Upstream background tagger", 32.67 * detail::m, 33.07 * detail::m,
     0.75 * detail::m, 0.75 * detail::m, 1.60 * detail::m, 1.60 * detail::m};
 inline constexpr Envelope kDecayVolume{"Decay volume", 32.92 * detail::m, 83.32 * detail::m,
     0.70 * detail::m, 2.20 * detail::m, 1.55 * detail::m, 3.20 * detail::m};
@@ -67,14 +72,14 @@ inline constexpr Envelope kDecayVolume{"Decay volume", 32.92 * detail::m, 83.32 
 /// half-width/height of 0.46 m).
 inline constexpr auto kSurroundTaggerThickness = 0.46 * detail::m;
 inline constexpr std::array<Envelope, 4> kTrackerStations{{
-    {"Straw Tracker station 1", 83.57 * detail::m, 84.57 * detail::m, 3.00 * detail::m, 3.00 * detail::m, 3.50 * detail::m, 3.50 * detail::m},
-    {"Straw Tracker station 2", 85.57 * detail::m, 86.57 * detail::m, 3.00 * detail::m, 3.00 * detail::m, 3.50 * detail::m, 3.50 * detail::m},
-    {"Straw Tracker station 3", 92.57 * detail::m, 93.57 * detail::m, 3.00 * detail::m, 3.00 * detail::m, 3.50 * detail::m, 3.50 * detail::m},
-    {"Straw Tracker station 4", 94.57 * detail::m, 95.57 * detail::m, 3.00 * detail::m, 3.00 * detail::m, 3.50 * detail::m, 3.50 * detail::m},
+    {"Straw Tracker station 1", 83.72 * detail::m, 84.72 * detail::m, 3.00 * detail::m, 3.00 * detail::m, 3.50 * detail::m, 3.50 * detail::m},
+    {"Straw Tracker station 2", 85.72 * detail::m, 86.72 * detail::m, 3.00 * detail::m, 3.00 * detail::m, 3.50 * detail::m, 3.50 * detail::m},
+    {"Straw Tracker station 3", 92.72 * detail::m, 93.72 * detail::m, 3.00 * detail::m, 3.00 * detail::m, 3.50 * detail::m, 3.50 * detail::m},
+    {"Straw Tracker station 4", 94.72 * detail::m, 95.72 * detail::m, 3.00 * detail::m, 3.00 * detail::m, 3.50 * detail::m, 3.50 * detail::m},
 }};
-inline constexpr Envelope kMagnet{"Main spectrometer magnet", 87.07 * detail::m, 92.07 * detail::m,
+inline constexpr Envelope kMagnet{"Main spectrometer magnet", 87.22 * detail::m, 92.22 * detail::m,
     3.25 * detail::m, 3.25 * detail::m, 4.30 * detail::m, 4.30 * detail::m};
-inline constexpr Envelope kTimingDetector{"Timing detector", 95.82 * detail::m, 96.32 * detail::m,
+inline constexpr Envelope kTimingDetector{"Timing detector", 96.14 * detail::m, 96.60 * detail::m,
     2.75 * detail::m, 2.75 * detail::m, 3.25 * detail::m, 3.25 * detail::m};
 inline constexpr std::array<Envelope, 3> kCalorimeter{{
     {"Split ECAL (front)", 96.87 * detail::m, 97.07 * detail::m, 2.25 * detail::m, 2.25 * detail::m, 3.50 * detail::m, 3.50 * detail::m},

@@ -34,12 +34,13 @@ class TimingDetectorFactory {
     /**
      * @brief This subsystem's self-description (name, node, id, placement).
      *
-     * Placed at z = 95.902 m, from the GDML reference.
+     * Integration layout 2026-0.1 (EDMS 3287817 v1.1): 0.46 m slot from 96.14
+     * to 96.60 m; placed at the slot centre, z = 96.37 m.
      */
     static constexpr SubsystemDescriptor descriptor() {
         using units::gm;
         using units::m;
-        return {"TimingDetector", "/SHiP/timing_detector", 7, 0.0, 0.0, gm(95.902 * m), false};
+        return {"TimingDetector", "/SHiP/timing_detector", 7, 0.0, 0.0, gm(96.37 * m), false};
     }
 
     /** Build the TimingDetector geometry and return the container volume. */
