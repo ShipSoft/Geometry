@@ -3,18 +3,24 @@
 # Copyright (C) CERN for the benefit of the SHiP Collaboration
 """Compare a gmclash report with the list of known clashes.
 
-Fails on a clash that is not in the list, on a known clash that got deeper,
-on a known clash that is gone (fixed: remove it from the list) and on a known
-clash without an issue number.
+Fails on a volume that clashes but is not in the list, on a known volume that
+no longer clashes (fixed: remove it from the list) and on a known clash
+without an issue number. A known clash that comes out deeper than its recorded
+bound is only a warning.
 
-Geant4 reports at most one clash per checked volume, and the distance is the
-deepest of the random points it sampled, so it is a lower bound on the real
-overlap. gmclash uses a fixed seed, so the report is reproducible for a given
-geometry and number of points.
+Geant4 reports at most one clash per checked volume, against whichever partner
+the deepest of its random points fell in, and that depth is a lower bound on
+the real overlap. gmclash uses a fixed seed, but the random sequence runs on
+from one volume to the next, so adding or removing volumes anywhere moves the
+points sampled in every volume checked later. The partner, the type of clash
+and the depth of an unchanged clash can then all change. The check therefore
+matches clashes by volume alone and does not fail on depth; the partner and
+type in the list are only for information.
 
   check_clashes.py REPORT KNOWN           check REPORT against KNOWN
   check_clashes.py REPORT KNOWN --update  rewrite KNOWN from REPORT, keeping
-                                          the issue numbers of known clashes
+                                          the issue numbers, partners and
+                                          deepest bounds of known clashes
 """
 
 import argparse
@@ -23,14 +29,10 @@ import sys
 
 CLASH_TYPES = {0: "mother", 1: "sister", 2: "encapsulated", 3: "invalid solid"}
 
-# Slack on the recorded depth, so that a rounding difference between platforms
-# does not fail the check: max(ABS_TOLERANCE_MM, REL_TOLERANCE * depth).
+# Slack on the recorded depth before a deeper clash is reported:
+# max(ABS_TOLERANCE_MM, REL_TOLERANCE * depth).
 ABS_TOLERANCE_MM = 1.0
 REL_TOLERANCE = 0.05
-
-
-def key(clash):
-    return (clash["type"], clash["volume"], clash["other"])
 
 
 def read_report(path):
@@ -44,19 +46,15 @@ def read_report(path):
             "other": c["volume2Name"],
             "distance_mm": round(c["distance[mm]"], 1),
         }
-        k = key(clash)
-        if k in clashes:
-            clashes[k]["distance_mm"] = max(
-                clashes[k]["distance_mm"], clash["distance_mm"]
-            )
-        else:
-            clashes[k] = clash
+        previous = clashes.get(clash["volume"])
+        if previous is None or clash["distance_mm"] > previous["distance_mm"]:
+            clashes[clash["volume"]] = clash
     return clashes
 
 
 def read_known(path):
     with open(path) as f:
-        return {key(c): c for c in json.load(f)}
+        return {c["volume"]: c for c in json.load(f)}
 
 
 def allowed(depth):
@@ -69,19 +67,20 @@ def describe(c):
 
 def check(found, known):
     failures = []
-    for k, c in sorted(found.items()):
-        if k not in known:
+    warnings = []
+    for volume, c in sorted(found.items()):
+        if volume not in known:
             failures.append(f"new        {describe(c)}  ({c['distance_mm']} mm)")
             continue
-        bound = known[k]["max_distance_mm"]
+        bound = known[volume]["max_distance_mm"]
         # Encapsulated clashes report a distance of -1, which is no depth.
         if bound >= 0 and c["distance_mm"] > allowed(bound):
-            failures.append(
+            warnings.append(
                 f"deeper     {describe(c)}  ({c['distance_mm']} mm, "
-                f"known {bound} mm, #{known[k]['issue']})"
+                f"known {bound} mm, #{known[volume]['issue']})"
             )
-    for k, c in sorted(known.items()):
-        if k not in found:
+    for volume, c in sorted(known.items()):
+        if volume not in found:
             failures.append(
                 f"fixed      {describe(c)}  (#{c['issue']}): "
                 "remove it from the known clashes"
@@ -89,21 +88,28 @@ def check(found, known):
         issue = c.get("issue")
         if isinstance(issue, bool) or not isinstance(issue, int) or issue <= 0:
             failures.append(f"no issue   {describe(c)}")
-    return failures
+    return failures, warnings
 
 
 def update(found, known, path):
     entries = []
-    for k, c in sorted(found.items()):
-        entries.append(
-            {
+    for volume, c in sorted(found.items()):
+        old = known.get(volume)
+        if old is None:
+            entry = {
                 "type": c["type"],
-                "volume": c["volume"],
+                "volume": volume,
                 "other": c["other"],
                 "max_distance_mm": c["distance_mm"],
-                "issue": known[k]["issue"] if k in known else None,
+                "issue": None,
             }
-        )
+        else:
+            # Keep the recorded clash and only raise its bound, so that the
+            # list does not change each time the sampling moves.
+            entry = dict(old)
+            entry["max_distance_mm"] = max(old["max_distance_mm"], c["distance_mm"])
+        entries.append(entry)
+    entries.sort(key=lambda e: (e["type"], e["volume"], e["other"]))
     with open(path, "w") as f:
         json.dump(entries, f, indent=2)
         f.write("\n")
@@ -126,8 +132,10 @@ def main():
         update(found, known, args.known)
         return 0
 
-    failures = check(found, known)
+    failures, warnings = check(found, known)
     print(f"{len(found)} clashes found, {len(known)} known")
+    for w in warnings:
+        print(f"warning: {w}")
     for f in failures:
         print(f)
     if failures:

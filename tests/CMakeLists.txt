@@ -55,7 +55,9 @@ set_tests_properties(BuildAndReadBack PROPERTIES FIXTURES_SETUP geometry_db)
 #
 # x86_64 only: the geometry is the same everywhere, but the random points
 # gmclash samples are not, so on aarch64 Geant4 reports other partners and
-# depths for the same clashing volumes and the list would not match.
+# depths for the same clashing volumes. The check matches clashes by volume
+# and only warns on depth, so this may no longer matter, but it has not been
+# tried on aarch64.
 find_program(GMCLASH_EXECUTABLE gmclash)
 find_package(Python3 COMPONENTS Interpreter)
 if(NOT CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64)$")
