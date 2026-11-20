@@ -6,10 +6,10 @@
 #include "SHiP/geometry/StaticChecks.h"
 #include "SHiP/geometry/Units.h"
 
-#include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoDefinitions.h>
 #include <GeoModelKernel/GeoLogVol.h>
 #include <GeoModelKernel/GeoPhysVol.h>
+#include <GeoModelKernel/GeoShape.h>
 #include <GeoModelKernel/GeoTube.h>
 #include <GeoModelKernel/GeoVPhysVol.h>
 
@@ -107,11 +107,23 @@ TEST_CASE("ConsistencyTest.SubsystemsPlacedAsInLayout", "[consistency]") {
         CHECK(t.y() == gm(slot.y));
         CHECK(t.z() == gm(slot.z));
 
-        const auto* box = dynamic_cast<const GeoBox*>(child->vol->getLogVol()->getShape());
-        REQUIRE(box != nullptr);
-        CHECK(box->getXHalfLength() == gm(slot.halfX));
-        CHECK(box->getYHalfLength() == gm(slot.halfY));
-        CHECK(box->getZHalfLength() == gm(slot.halfZ));
+        // Most containers are boxes; the SND's is a stepped union of boxes.
+        // Either way its bounding box is the slot's.
+        const GeoVPhysVol* vol = child.has_value() ? child->vol : nullptr;
+        REQUIRE(vol != nullptr);
+        double xmin = 0;
+        double ymin = 0;
+        double zmin = 0;
+        double xmax = 0;
+        double ymax = 0;
+        double zmax = 0;
+        vol->getLogVol()->getShape()->extent(xmin, ymin, zmin, xmax, ymax, zmax);
+        CHECK(xmin == -gm(slot.halfX));
+        CHECK(xmax == gm(slot.halfX));
+        CHECK(ymin == -gm(slot.halfY));
+        CHECK(ymax == gm(slot.halfY));
+        CHECK(zmin == -gm(slot.halfZ));
+        CHECK(zmax == gm(slot.halfZ));
     }
 }
 

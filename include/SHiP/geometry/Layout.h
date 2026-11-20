@@ -20,6 +20,7 @@
 #include "SHiP/geometry/UpstreamTagger/UpstreamTaggerFactory.h"
 
 #include <array>
+#include <cstddef>
 #include <string_view>
 
 /**
@@ -78,8 +79,9 @@ inline constexpr Slot kTarget =
 inline constexpr Slot kMuonShield = slotOf<MuonShieldFactory>(
     MuonShieldFactory::s_areaHalfX, MuonShieldFactory::s_areaHalfY, MuonShieldFactory::s_areaHalfZ);
 
-/// z 26.40-31.50 m (WARM muon-shield configuration). The SND sits within the
-/// downstream end of the muon-shield region, so the two containers overlap
+/// z 22.94-27.99 m, in the end of muon-shield magnet M5 and the whole of M6
+/// (FairShip TRY_2026). Those magnets have a cavity of the SND container's
+/// stepped shape cut out of their iron, but the two containers still overlap
 /// (known deviation #117, see kKnownOverlaps).
 inline constexpr Slot kNeutrinoDetector = slotOf<NeutrinoDetectorFactory>(
     NeutrinoDetectorFactory::s_halfX, NeutrinoDetectorFactory::s_halfY,
@@ -124,10 +126,10 @@ struct KnownOverlap {
 };
 
 inline constexpr std::array kKnownOverlaps{
-    // #117: the SND sits in the downstream end of the muon shield.
+    // #117: the SND sits in muon-shield magnets M5 and M6.
     KnownOverlap{.a = kMuonShield.path,
                  .b = kNeutrinoDetector.path,
-                 .region = checks::bounds(-400, 400, -400, 400, 26400, 31487.3)},
+                 .region = checks::bounds(-400, 400, -400, 400, 22940, 27990)},
     // #118: the trackers container spans the whole magnet along the beam.
     KnownOverlap{.a = kTrackers.path,
                  .b = kMagnet.path,
@@ -306,8 +308,6 @@ static_assert(kTarget.zSpan().hi <= envelopes::kHadronStopper.zStart,
 
 static_assert(fitsEnvelopeXY(kMuonShield, detail::kMuonShieldRegion),
               "the muon shield container is outside its EDMS envelope transversely");
-static_assert(fitsEnvelopeZ(kNeutrinoDetector, envelopes::kNeutrinoDetector),
-              "the SND container is outside its EDMS envelope along z");
 static_assert(fitsEnvelopeXY(kNeutrinoDetector, envelopes::kNeutrinoDetector),
               "the SND container is outside its EDMS envelope transversely");
 static_assert(fitsEnvelopeZ(kUpstreamTagger, envelopes::kUpstreamTagger),
@@ -334,15 +334,42 @@ static_assert(fitsEnvelopeXY(kCalorimeter, detail::kCalorimeterRegion),
 // Known deviations from the EDMS envelopes (#120). Each is bounded by its
 // current size: if one is fixed, assert the positive check above instead; if
 // one gets worse, the second assert fails.
-inline constexpr auto kMuonShieldEarlyStart = 101.0 * detail::mm;  // 100.7 mm
+inline constexpr auto kNeutrinoDetectorEarlyStart = 3460.0 * detail::mm;
 inline constexpr auto kUpstreamTaggerExcessX = 1450.0 * detail::mm;
 inline constexpr auto kUpstreamTaggerExcessY = 1600.0 * detail::mm;
 inline constexpr auto kTimingDetectorEarlyStart = 168.0 * detail::mm;
-static_assert(!fitsEnvelopeZ(kMuonShield, detail::kMuonShieldRegion),
-              "the muon shield container now fits the EDMS region: assert fitsEnvelopeZ instead");
-static_assert(fitsEnvelopeZ(kMuonShield, detail::kMuonShieldRegion, kMuonShieldEarlyStart),
-              "the muon shield container deviates from the EDMS region by more than "
-              "kMuonShieldEarlyStart");
+static_assert(fitsEnvelopeZ(kMuonShield, detail::kMuonShieldRegion),
+              "the muon shield container is outside its EDMS region along z");
+// The SND follows FairShip's TRY_2026 shield (in M5 and M6), while the EDMS
+// envelope still follows the WARM layout, 3.46 m further downstream.
+static_assert(!fitsEnvelopeZ(kNeutrinoDetector, envelopes::kNeutrinoDetector),
+              "the SND container now fits the EDMS envelope: assert fitsEnvelopeZ instead");
+static_assert(fitsEnvelopeZ(kNeutrinoDetector, envelopes::kNeutrinoDetector,
+                            kNeutrinoDetectorEarlyStart),
+              "the SND container deviates from the EDMS envelope by more than "
+              "kNeutrinoDetectorEarlyStart");
+// The SND container fills the cavity cut out of muon-shield magnets M5 and
+// M6, step by step: each container section, placed in the world, is the
+// matching cavity step.
+static_assert(
+    [] {
+        using MSF = MuonShieldFactory;
+        using NDF = NeutrinoDetectorFactory;
+        if (MSF::k_sndCavity.size() != NDF::k_sections.size()) {
+            return false;
+        }
+        const auto origin = kNeutrinoDetector.z;
+        for (std::size_t i = 0; i < NDF::k_sections.size(); ++i) {
+            const auto& snd = NDF::k_sections.at(i);
+            const auto& cavity = MSF::k_sndCavity.at(i);
+            if (origin + snd.zStart != cavity.zStart || origin + snd.zEnd != cavity.zEnd ||
+                snd.halfX != cavity.halfX || snd.halfY != cavity.halfY) {
+                return false;
+            }
+        }
+        return kNeutrinoDetector.x == detail::zero && kNeutrinoDetector.y == detail::zero;
+    }(),
+    "the SND container sections do not match the cavity in muon-shield magnets M5 and M6");
 static_assert(!fitsEnvelopeXY(kUpstreamTagger, envelopes::kUpstreamTagger),
               "the UBT container now fits the EDMS envelope: assert fitsEnvelopeXY instead");
 static_assert(fitsEnvelopeXY(kUpstreamTagger, envelopes::kUpstreamTagger, kUpstreamTaggerExcessX,

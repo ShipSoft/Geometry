@@ -7,27 +7,6 @@
     "issue": 117
   },
   {
-    "type": "encapsulated",
-    "volume": "/SHiP/muon_shield/magn_3/mag_ret_r",
-    "other": "/SHiP/muon_shield/magn_3/mag_top_right",
-    "max_distance_mm": -1.0,
-    "issue": 125
-  },
-  {
-    "type": "mother",
-    "volume": "/SHiP/muon_shield/magn_5/mag_ret_l",
-    "other": "/SHiP/muon_shield/magn_5",
-    "max_distance_mm": 0.1,
-    "issue": 120
-  },
-  {
-    "type": "mother",
-    "volume": "/SHiP/muon_shield/magn_5/mag_ret_r",
-    "other": "/SHiP/muon_shield/magn_5",
-    "max_distance_mm": 0.1,
-    "issue": 120
-  },
-  {
     "type": "sister",
     "volume": "/SHiP/calorimeter",
     "other": "/SHiP/cavern",
@@ -38,35 +17,35 @@
     "type": "sister",
     "volume": "/SHiP/magnet",
     "other": "/SHiP/trackers",
-    "max_distance_mm": 2348.5,
+    "max_distance_mm": 2978.0,
     "issue": 118
   },
   {
     "type": "sister",
     "volume": "/SHiP/magnet/coil_1",
     "other": "/SHiP/magnet/yoke",
-    "max_distance_mm": 383.1,
+    "max_distance_mm": 395.7,
     "issue": 119
   },
   {
     "type": "sister",
     "volume": "/SHiP/magnet/coil_2",
     "other": "/SHiP/magnet/yoke",
-    "max_distance_mm": 388.2,
+    "max_distance_mm": 393.5,
     "issue": 119
   },
   {
     "type": "sister",
     "volume": "/SHiP/magnet/coil_3",
     "other": "/SHiP/magnet/yoke",
-    "max_distance_mm": 385.3,
+    "max_distance_mm": 393.3,
     "issue": 119
   },
   {
     "type": "sister",
     "volume": "/SHiP/magnet/coil_4",
     "other": "/SHiP/magnet/yoke",
-    "max_distance_mm": 379.9,
+    "max_distance_mm": 398.4,
     "issue": 119
   },
   {
@@ -80,344 +59,29 @@
     "type": "sister",
     "volume": "/SHiP/magnet/connector_2",
     "other": "/SHiP/magnet/coil_2",
-    "max_distance_mm": 156.8,
+    "max_distance_mm": 250.3,
     "issue": 119
   },
   {
     "type": "sister",
     "volume": "/SHiP/magnet/connector_3",
     "other": "/SHiP/magnet/coil_1",
-    "max_distance_mm": 55.5,
+    "max_distance_mm": 260.0,
     "issue": 119
   },
   {
     "type": "sister",
     "volume": "/SHiP/magnet/connector_4",
     "other": "/SHiP/magnet/coil_2",
-    "max_distance_mm": 200.9,
+    "max_distance_mm": 260.0,
     "issue": 119
   },
   {
     "type": "sister",
     "volume": "/SHiP/magnet/yoke",
     "other": "/SHiP/magnet/coil_1",
-    "max_distance_mm": 260.0,
+    "max_distance_mm": 373.5,
     "issue": 119
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_1/mag_bot_left",
-    "other": "/SHiP/muon_shield/magn_1/middle_mag_l",
-    "max_distance_mm": 387.1,
-    "issue": 125
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_1/mag_bot_right",
-    "other": "/SHiP/muon_shield/magn_1/middle_mag_r",
-    "max_distance_mm": 268.7,
-    "issue": 125
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_1/mag_ret_l",
-    "other": "/SHiP/muon_shield/magn_1/middle_mag_l",
-    "max_distance_mm": 78.2,
-    "issue": 125
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_1/mag_ret_r",
-    "other": "/SHiP/muon_shield/magn_1/middle_mag_r",
-    "max_distance_mm": 78.2,
-    "issue": 125
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_1/mag_top_left",
-    "other": "/SHiP/muon_shield/magn_1/middle_mag_l",
-    "max_distance_mm": 349.6,
-    "issue": 125
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_1/mag_top_right",
-    "other": "/SHiP/muon_shield/magn_1/middle_mag_r",
-    "max_distance_mm": 358.8,
-    "issue": 125
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_1/middle_mag_l",
-    "other": "/SHiP/muon_shield/magn_1/mag_ret_l",
-    "max_distance_mm": 78.2,
-    "issue": 125
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_1/middle_mag_r",
-    "other": "/SHiP/muon_shield/magn_1/mag_ret_r",
-    "max_distance_mm": 78.2,
-    "issue": 125
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_2/mag_bot_left",
-    "other": "/SHiP/muon_shield/magn_2/middle_mag_l",
-    "max_distance_mm": 250.0,
-    "issue": 125
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_2/mag_bot_right",
-    "other": "/SHiP/muon_shield/magn_2/middle_mag_r",
-    "max_distance_mm": 212.9,
-    "issue": 125
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_2/mag_ret_l",
-    "other": "/SHiP/muon_shield/magn_2/mag_top_left",
-    "max_distance_mm": 300.0,
-    "issue": 125
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_2/mag_ret_r",
-    "other": "/SHiP/muon_shield/magn_2/mag_top_right",
-    "max_distance_mm": 290.8,
-    "issue": 125
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_2/mag_top_left",
-    "other": "/SHiP/muon_shield/magn_2/middle_mag_l",
-    "max_distance_mm": 259.6,
-    "issue": 125
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_2/mag_top_right",
-    "other": "/SHiP/muon_shield/magn_2/middle_mag_r",
-    "max_distance_mm": 261.9,
-    "issue": 125
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_2/middle_mag_l",
-    "other": "/SHiP/muon_shield/magn_2/mag_top_left",
-    "max_distance_mm": 312.6,
-    "issue": 125
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_2/middle_mag_r",
-    "other": "/SHiP/muon_shield/magn_2/mag_top_right",
-    "max_distance_mm": 259.1,
-    "issue": 125
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_3/mag_bot_left",
-    "other": "/SHiP/muon_shield/magn_3/middle_mag_l",
-    "max_distance_mm": 13.7,
-    "issue": 125
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_3/mag_bot_right",
-    "other": "/SHiP/muon_shield/magn_3/mag_ret_r",
-    "max_distance_mm": 36.8,
-    "issue": 125
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_3/mag_ret_l",
-    "other": "/SHiP/muon_shield/magn_3/mag_top_left",
-    "max_distance_mm": 0.1,
-    "issue": 125
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_3/mag_top_left",
-    "other": "/SHiP/muon_shield/magn_3/middle_mag_l",
-    "max_distance_mm": 13.4,
-    "issue": 125
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_3/mag_top_right",
-    "other": "/SHiP/muon_shield/magn_3/middle_mag_r",
-    "max_distance_mm": 3.3,
-    "issue": 125
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_3/middle_mag_l",
-    "other": "/SHiP/muon_shield/magn_3/mag_top_left",
-    "max_distance_mm": 1.0,
-    "issue": 125
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_3/middle_mag_r",
-    "other": "/SHiP/muon_shield/magn_3/mag_top_right",
-    "max_distance_mm": 1.0,
-    "issue": 125
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_4/mag_bot_left",
-    "other": "/SHiP/muon_shield/magn_4/middle_mag_l",
-    "max_distance_mm": 371.3,
-    "issue": 125
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_4/mag_bot_right",
-    "other": "/SHiP/muon_shield/magn_4/middle_mag_r",
-    "max_distance_mm": 457.6,
-    "issue": 125
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_4/mag_ret_l",
-    "other": "/SHiP/muon_shield/magn_4/middle_mag_l",
-    "max_distance_mm": 370.0,
-    "issue": 125
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_4/mag_ret_r",
-    "other": "/SHiP/muon_shield/magn_4/middle_mag_r",
-    "max_distance_mm": 370.0,
-    "issue": 125
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_4/mag_top_left",
-    "other": "/SHiP/muon_shield/magn_4/middle_mag_l",
-    "max_distance_mm": 394.3,
-    "issue": 125
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_4/mag_top_right",
-    "other": "/SHiP/muon_shield/magn_4/middle_mag_r",
-    "max_distance_mm": 520.2,
-    "issue": 125
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_4/middle_mag_l",
-    "other": "/SHiP/muon_shield/magn_4/mag_ret_l",
-    "max_distance_mm": 701.2,
-    "issue": 125
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_4/middle_mag_r",
-    "other": "/SHiP/muon_shield/magn_4/mag_ret_r",
-    "max_distance_mm": 690.1,
-    "issue": 125
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_5/mag_bot_left",
-    "other": "/SHiP/muon_shield/magn_5/middle_mag_l",
-    "max_distance_mm": 193.0,
-    "issue": 125
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_5/mag_bot_right",
-    "other": "/SHiP/muon_shield/magn_5/middle_mag_r",
-    "max_distance_mm": 183.9,
-    "issue": 125
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_5/mag_top_left",
-    "other": "/SHiP/muon_shield/magn_5/middle_mag_l",
-    "max_distance_mm": 199.3,
-    "issue": 125
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_5/mag_top_right",
-    "other": "/SHiP/muon_shield/magn_5/middle_mag_r",
-    "max_distance_mm": 168.5,
-    "issue": 125
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_5/middle_mag_l",
-    "other": "/SHiP/muon_shield/magn_5/mag_ret_l",
-    "max_distance_mm": 49.7,
-    "issue": 125
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_5/middle_mag_r",
-    "other": "/SHiP/muon_shield/magn_5/mag_ret_r",
-    "max_distance_mm": 49.7,
-    "issue": 125
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_absorb/mag_bot_left",
-    "other": "/SHiP/muon_shield/magn_absorb/middle_mag_l",
-    "max_distance_mm": 247.2,
-    "issue": 125
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_absorb/mag_bot_right",
-    "other": "/SHiP/muon_shield/magn_absorb/middle_mag_r",
-    "max_distance_mm": 231.4,
-    "issue": 125
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_absorb/mag_ret_l",
-    "other": "/SHiP/muon_shield/magn_absorb/mag_top_left",
-    "max_distance_mm": 201.2,
-    "issue": 125
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_absorb/mag_ret_r",
-    "other": "/SHiP/muon_shield/magn_absorb/mag_top_right",
-    "max_distance_mm": 210.0,
-    "issue": 125
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_absorb/mag_top_left",
-    "other": "/SHiP/muon_shield/magn_absorb/middle_mag_l",
-    "max_distance_mm": 231.7,
-    "issue": 125
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_absorb/mag_top_right",
-    "other": "/SHiP/muon_shield/magn_absorb/middle_mag_r",
-    "max_distance_mm": 231.7,
-    "issue": 125
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_absorb/middle_mag_l",
-    "other": "/SHiP/muon_shield/magn_absorb/mag_top_left",
-    "max_distance_mm": 233.3,
-    "issue": 125
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/muon_shield/magn_absorb/middle_mag_r",
-    "other": "/SHiP/muon_shield/magn_absorb/mag_top_right",
-    "max_distance_mm": 209.0,
-    "issue": 125
   },
   {
     "type": "sister",
