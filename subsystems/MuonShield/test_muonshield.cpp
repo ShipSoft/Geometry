@@ -10,7 +10,9 @@
 #include <GeoModelKernel/GeoPhysVol.h>
 #include <GeoModelKernel/GeoShapeSubtraction.h>
 
+#include <algorithm>
 #include <catch2/catch_test_macros.hpp>
+#include <cstddef>
 #include <string>
 
 using SHiP::geometry::Materials;
@@ -36,13 +38,19 @@ TEST_CASE("MuonShieldMagnetsMatchTable", "[muonshield]") {
         CHECK(ms->getXToChildVol(i).translation().z() ==
               gm(magnet.zStart + magnet.halfZ - MuonShieldFactory::s_centreZ));
 
-        // Magnets with the SND hole are a box minus the hole; the others are boxes.
+        // Magnets with the SND cavity are a box minus one cut per cavity step
+        // inside them; the others are boxes.
         const GeoShape* shape = child->getLogVol()->getShape();
-        if (MuonShieldFactory::hasSndHole(magnet)) {
-            const auto* cut = dynamic_cast<const GeoShapeSubtraction*>(shape);
-            REQUIRE(cut != nullptr);
+        std::size_t nCuts = 0;
+        while (const auto* cut = dynamic_cast<const GeoShapeSubtraction*>(shape)) {
             shape = cut->getOpA();
+            ++nCuts;
         }
+        CHECK(nCuts == static_cast<std::size_t>(std::ranges::count_if(
+                           MuonShieldFactory::k_sndCavity,
+                           [&magnet](const MuonShieldFactory::CavitySection& section) {
+                               return MuonShieldFactory::cuts(section, magnet);
+                           })));
         const auto* box = dynamic_cast<const GeoBox*>(shape);
         REQUIRE(box != nullptr);
         CHECK(box->getXHalfLength() == gm(magnet.halfX));
@@ -57,4 +65,19 @@ TEST_CASE("MuonShieldSndHoleInM5AndM6", "[muonshield]") {
         INFO("magnet " << name);
         CHECK(MuonShieldFactory::hasSndHole(magnet) == (name == "magn_5" || name == "magn_6"));
     }
+}
+
+// M5 holds the veto, target and MGC steps of the cavity, M6 only the HCAL
+// step, which spans it face to face.
+TEST_CASE("MuonShieldCavityStepsPerMagnet", "[muonshield]") {
+    const auto& m5 = MuonShieldFactory::k_magnets.at(4);
+    const auto& m6 = MuonShieldFactory::k_magnets.at(5);
+    const auto& cavity = MuonShieldFactory::k_sndCavity;
+    for (std::size_t i = 0; i < cavity.size(); ++i) {
+        INFO("cavity step " << i);
+        CHECK(MuonShieldFactory::cuts(cavity.at(i), m5) == (i < 3));
+        CHECK(MuonShieldFactory::cuts(cavity.at(i), m6) == (i == 3));
+    }
+    CHECK(cavity.back().zStart == m6.zStart);
+    CHECK(cavity.back().zEnd == m6.zStart + 2 * m6.halfZ);
 }

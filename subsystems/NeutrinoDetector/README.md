@@ -39,7 +39,7 @@ bounded for navigation.
 ## Geometry tree
 
 ```text
-/SHiP/neutrino_detector (Air, 800 x 800 x 5100 mm box)
+/SHiP/neutrino_detector (Air, stepped union of 4 boxes, 602.5 x 602.5 x 5050 mm bounding box)
  |- veto/P{0..2}_B{0..6}                21 PVT bars (3 planes x 7)
  |- target/
        |- L{0..119}/{W,Si_X,Si_Y}      120 W + 120 Si-X + 120 Si-Y
@@ -55,8 +55,15 @@ bounded for navigation.
 Direct container children: 21 + 363 + 30 + 6174 = 6588. Total volumes including the
 individual fibres: 409788 (403200 fibres).
 
-Position in world: z = 25 440 mm (22.89-27.99 m: the end of muon-shield magnet M5 and the whole of M6, as in FairShip's TRY_2026 layout).
-The SND is part of the muon shield, so its box container sits within the
+Position in world: z = 25 465 mm (22.94-27.99 m: the end of muon-shield magnet M5 and the whole of M6, as in FairShip's TRY_2026 layout).
+The container is exactly as long as its content (5.05 m), so the HCAL
+(24.63-27.99 m) fills M6 exactly and nothing but air gaps between the
+sub-detectors is left in it. The container is not a single box but the
+union of four boxes, one per sub-detector, each 1 mm wider than it
+(`NeutrinoDetectorFactory::k_sections`): veto 211 x 220 mm, target 201 x 201,
+MGC 251 x 251 and HCAL 301.25 x 301.25 (half-sizes). The muon-shield iron is
+cut to the same steps.
+The SND is part of the muon shield, so its container sits within the
 downstream end of the muon-shield region; the resulting envelope overlap is
 declared in `tests/test_consistency.cpp`, analogous to the trackers/magnet
 overlap.
@@ -85,7 +92,7 @@ material was new (added alongside this subsystem); the rest already existed.
 
 - [x] C++ implementation (veto + target + HCAL)
 - [x] Individual scintillating fibres
-- [x] Box container (part of the muon shield)
+- [x] Stepped container following the sub-detectors (part of the muon shield)
 - [ ] HYBRID muon-shield placement variant (currently WARM)
 - [ ] Per-channel sensitive-detector readout
 - [ ] Verification against the standalone SND reference

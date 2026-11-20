@@ -19,6 +19,7 @@
 #include <GeoModelKernel/GeoTransform.h>
 
 #include <algorithm>
+#include <cstddef>
 #include <string>
 #include <string_view>
 
@@ -44,14 +45,13 @@ constexpr checks::Box areaBox() {
                        MSF::s_areaHalfZ);
 }
 
-constexpr checks::Box sndHoleBox() {
-    return checks::box(kZero, kZero, 0.5 * (MSF::s_sndHoleZStart + MSF::s_sndHoleZEnd),
-                       MSF::s_sndHoleHalfX, MSF::s_sndHoleHalfY,
-                       0.5 * (MSF::s_sndHoleZEnd - MSF::s_sndHoleZStart));
+constexpr checks::Box cavityBox(const MSF::CavitySection& section) {
+    return checks::box(kZero, kZero, 0.5 * (section.zStart + section.zEnd), section.halfX,
+                       section.halfY, 0.5 * (section.zEnd - section.zStart));
 }
 
-/// Only M5 and M6 carry the SND, and the hole stays inside their iron
-/// transversely, so each keeps an iron frame around it.
+/// Only M5 and M6 carry the SND, and every cavity step stays inside the iron
+/// of the magnets it cuts transversely, so each keeps an iron frame around it.
 constexpr bool sndHoleInM5AndM6() {
     return std::ranges::all_of(MSF::k_magnets, [](const MSF::MagnetData& magnet) {
         const std::string_view name = magnet.name;
@@ -59,9 +59,20 @@ constexpr bool sndHoleInM5AndM6() {
         if (MSF::hasSndHole(magnet) != expected) {
             return false;
         }
-        return !expected ||
-               (MSF::s_sndHoleHalfX < magnet.halfX && MSF::s_sndHoleHalfY < magnet.halfY);
+        return std::ranges::all_of(MSF::k_sndCavity, [&magnet](const MSF::CavitySection& s) {
+            return !MSF::cuts(s, magnet) || (s.halfX < magnet.halfX && s.halfY < magnet.halfY);
+        });
     });
+}
+
+/// The cavity steps follow one another along z without gaps.
+constexpr bool cavityIsContiguous() {
+    for (std::size_t i = 1; i < MSF::k_sndCavity.size(); ++i) {
+        if (MSF::k_sndCavity.at(i).zStart != MSF::k_sndCavity.at(i - 1).zEnd) {
+            return false;
+        }
+    }
+    return true;
 }
 
 }  // namespace
@@ -81,10 +92,17 @@ static_assert(MSF::k_magnets.front().zStart == MSF::s_zStart &&
               "the MuonShieldArea container must span M1's upstream to M7's downstream face");
 static_assert(sndHoleInM5AndM6(),
               "the SND hole must cut M5 and M6 only, and leave iron around it transversely");
-static_assert(checks::contains(areaBox(), sndHoleBox()),
-              "the SND hole sticks out of the MuonShieldArea container");
-static_assert(MSF::s_sndHoleZEnd == MSF::k_magnets[5].zStart + 2 * MSF::k_magnets[5].halfZ,
-              "the SND hole must end at M6's downstream face");
+static_assert(cavityIsContiguous(), "the SND cavity steps must follow one another along z");
+static_assert(std::ranges::all_of(MSF::k_sndCavity,
+                                  [](const MSF::CavitySection& s) {
+                                      return checks::contains(areaBox(), cavityBox(s));
+                                  }),
+              "the SND cavity sticks out of the MuonShieldArea container");
+static_assert(MSF::k_sndCavity.back().zEnd ==
+                  MSF::k_magnets[5].zStart + 2 * MSF::k_magnets[5].halfZ,
+              "the SND cavity must end at M6's downstream face");
+static_assert(MSF::k_sndCavity.back().zStart == MSF::k_magnets[5].zStart,
+              "the HCAL step of the SND cavity must start at M6's upstream face");
 
 // ---------------------------------------------------------------------------
 
@@ -104,15 +122,37 @@ GeoPhysVol* MuonShieldFactory::build() {
         const auto zCentre = magnet.zStart + magnet.halfZ;
 
         const GeoShape* shape = new GeoBox(gm(magnet.halfX), gm(magnet.halfY), gm(magnet.halfZ));
-        if (hasSndHole(magnet)) {
-            // The cut runs over the part of the hole inside this magnet. Where
-            // it reaches a magnet face it is extended a little past it, so the
-            // subtraction leaves no zero-thickness iron skin.
-            constexpr auto eps = 1.0 * mm;
-            const auto cutLo = s_sndHoleZStart > zLo ? s_sndHoleZStart : zLo - eps;
-            const auto cutHi = s_sndHoleZEnd < zHi ? s_sndHoleZEnd : zHi + eps;
+        // Cut each cavity step over the part of it inside this magnet. Where a
+        // cut reaches a magnet face, or a wider step of the cavity, it is
+        // extended a little past it, so the subtraction leaves no
+        // zero-thickness iron skin.
+        constexpr auto eps = 1.0 * mm;
+        const auto wider = [](std::size_t i, const CavitySection& s) {
+            if (i >= k_sndCavity.size()) {
+                return false;
+            }
+            const auto& n = k_sndCavity.at(i);
+            return n.halfX >= s.halfX && n.halfY >= s.halfY;
+        };
+        for (std::size_t i = 0; i < k_sndCavity.size(); ++i) {
+            const CavitySection& section = k_sndCavity.at(i);
+            if (!cuts(section, magnet)) {
+                continue;
+            }
+            auto cutLo = section.zStart;
+            if (cutLo <= zLo) {
+                cutLo = zLo - eps;
+            } else if (i > 0 && wider(i - 1, section)) {
+                cutLo -= eps;
+            }
+            auto cutHi = section.zEnd;
+            if (cutHi >= zHi) {
+                cutHi = zHi + eps;
+            } else if (wider(i + 1, section)) {
+                cutHi += eps;
+            }
             auto const* cut =
-                new GeoBox(gm(s_sndHoleHalfX), gm(s_sndHoleHalfY), gm(0.5 * (cutHi - cutLo)));
+                new GeoBox(gm(section.halfX), gm(section.halfY), gm(0.5 * (cutHi - cutLo)));
             GeoTrf::Translate3D const cutTrf(0.0, 0.0, gm(0.5 * (cutLo + cutHi) - zCentre));
             shape = &shape->subtract(*cut << cutTrf);
         }

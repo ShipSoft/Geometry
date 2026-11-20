@@ -17,7 +17,7 @@
     "type": "sister",
     "volume": "/SHiP/magnet",
     "other": "/SHiP/trackers",
-    "max_distance_mm": 2348.5,
+    "max_distance_mm": 2978.0,
     "issue": 118
   },
   {
@@ -45,7 +45,7 @@
     "type": "sister",
     "volume": "/SHiP/magnet/coil_4",
     "other": "/SHiP/magnet/yoke",
-    "max_distance_mm": 395.9,
+    "max_distance_mm": 398.4,
     "issue": 119
   },
   {
@@ -66,7 +66,7 @@
     "type": "sister",
     "volume": "/SHiP/magnet/connector_3",
     "other": "/SHiP/magnet/coil_1",
-    "max_distance_mm": 248.7,
+    "max_distance_mm": 260.0,
     "issue": 119
   },
   {
@@ -80,7 +80,7 @@
     "type": "sister",
     "volume": "/SHiP/magnet/yoke",
     "other": "/SHiP/magnet/coil_1",
-    "max_distance_mm": 310.2,
+    "max_distance_mm": 373.5,
     "issue": 119
   },
   {

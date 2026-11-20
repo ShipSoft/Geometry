@@ -24,8 +24,10 @@ class Materials;
  * (FairShip row 0) belongs to the Target subsystem.
  *
  * The scattering and neutrino detector sits in the end of M5 and the whole of
- * M6, as in FairShip, so those two magnets have the SND box (s_sndHole*) cut
- * out of their iron. Layout.h checks that the SND container fills that hole.
+ * M6, as in FairShip, so those two magnets have a cavity for it cut out of
+ * their iron (k_sndCavity). The cavity steps with the SND's sub-detectors, so
+ * the iron comes up to each of them; Layout.h checks that it matches the SND
+ * container section by section.
  */
 class MuonShieldFactory {
    public:
@@ -63,12 +65,23 @@ class MuonShieldFactory {
     static constexpr auto s_areaHalfZ = 0.5 * (s_zEnd - s_zStart);
     static constexpr auto s_centreZ = 0.5 * (s_zStart + s_zEnd);
 
-    /// Hole for the SND, in the world frame: it ends at M6's downstream face
-    /// and is as long as the SND container (5.1 m), so it starts in M5.
-    static constexpr auto s_sndHoleHalfX = 400.0 * units::mm;
-    static constexpr auto s_sndHoleHalfY = 400.0 * units::mm;
-    static constexpr auto s_sndHoleZEnd = 27990.0 * units::mm;
-    static constexpr auto s_sndHoleZStart = s_sndHoleZEnd - 5100.0 * units::mm;
+    /// One step of the SND cavity, in the world frame: a box on the beam axis
+    /// from @c zStart to @c zEnd.
+    struct CavitySection {
+        units::LengthMm zStart, zEnd;
+        units::LengthMm halfX, halfY;
+    };
+
+    /// Cavity for the SND (veto, target, MGC, HCAL), the same boxes as the SND
+    /// container's sections (NeutrinoDetectorFactory::k_sections, checked in
+    /// Layout.h). It ends at M6's downstream face, and the HCAL step is
+    /// exactly M6, so M6 keeps iron right around the HCAL.
+    static constexpr std::array<CavitySection, 4> k_sndCavity{{
+        {22940.0 * units::mm, 22980.0 * units::mm, 211.0 * units::mm, 220.0 * units::mm},
+        {22980.0 * units::mm, 24420.0 * units::mm, 201.0 * units::mm, 201.0 * units::mm},
+        {24420.0 * units::mm, 24630.0 * units::mm, 251.0 * units::mm, 251.0 * units::mm},
+        {24630.0 * units::mm, 27990.0 * units::mm, 301.25 * units::mm, 301.25 * units::mm},
+    }};
 
     /**
      * @brief This subsystem's self-description (name, node, id, placement).
@@ -81,9 +94,20 @@ class MuonShieldFactory {
         return {"MuonShield", "/SHiP/muon_shield", 2, 0.0, 0.0, gm(s_centreZ), false};
     }
 
-    /// The magnet's iron overlaps the SND hole along z, so the hole is cut out.
+    /// The cavity section overlaps the magnet's iron along z.
+    [[nodiscard]] static constexpr bool cuts(const CavitySection& section,
+                                             const MagnetData& magnet) {
+        return magnet.zStart < section.zEnd && section.zStart < magnet.zStart + 2 * magnet.halfZ;
+    }
+
+    /// Some of the SND cavity lies in this magnet, so it is cut out.
     [[nodiscard]] static constexpr bool hasSndHole(const MagnetData& magnet) {
-        return magnet.zStart < s_sndHoleZEnd && s_sndHoleZStart < magnet.zStart + 2 * magnet.halfZ;
+        for (const auto& section : k_sndCavity) {
+            if (cuts(section, magnet)) {
+                return true;
+            }
+        }
+        return false;
     }
 
    private:

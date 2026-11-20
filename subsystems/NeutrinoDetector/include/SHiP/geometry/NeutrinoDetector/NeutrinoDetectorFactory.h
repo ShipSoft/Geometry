@@ -6,6 +6,8 @@
 #include "SHiP/geometry/SubsystemDescriptor.h"
 #include "SHiP/geometry/Units.h"
 
+#include <array>
+
 class GeoPhysVol;
 
 namespace SHiP::geometry {
@@ -43,8 +45,10 @@ class Materials;
  * `GeoSerialTransformer`, so each plane costs O(1) tree nodes regardless of
  * fibre count. The X/Y plane names are preserved for readout.
  *
- * The container is a box of the SND envelope's cross-section
- * (`subsystem_envelopes.csv`: half-width/height up to 0.40 m), 5.1 m long;
+ * The container follows the sub-detectors in four transverse steps (veto,
+ * target, MGC, HCAL; see k_sections) within the SND envelope
+ * (`subsystem_envelopes.csv`: half-width/height up to 0.40 m), and exactly
+ * as long as its content, 5.05 m;
  * placement is handled by DetectorBuilder.
  */
 class NeutrinoDetectorFactory {
@@ -58,26 +62,49 @@ class NeutrinoDetectorFactory {
     /**
      * @brief This subsystem's self-description (name, node, id, placement).
      *
-     * Z: 22.89 to 27.99 m, so the container is centred at z = 25.44 m. As in
+     * Z: 22.94 to 27.99 m, so the container is centred at z = 25.465 m. As in
      * FairShip's TRY_2026 layout, the SND sits in the end of muon-shield magnet
-     * M5 and the whole of M6, which have a matching hole cut out of their iron
-     * (MuonShieldFactory, checked in Layout.h). This is 3.51 m upstream of the
-     * EDMS envelope (26.40-31.50 m), which follows the WARM shield layout.
+     * M5 and the whole of M6, which have a matching cavity cut out of their
+     * iron (MuonShieldFactory, checked in Layout.h). This is 3.46 m upstream of
+     * the EDMS envelope (26.40-31.50 m), which follows the WARM shield layout.
      */
     static constexpr SubsystemDescriptor descriptor() {
         using units::gm;
-        using units::m;
-        return {"NeutrinoDetector", "/SHiP/neutrino_detector", 9, 0.0, 0.0, gm(25.44 * m), false};
+        using units::mm;
+        return {
+            "NeutrinoDetector", "/SHiP/neutrino_detector", 9, 0.0, 0.0, gm(25465.0 * mm), false};
     }
     /// Build the SND geometry; returns the air container.
     [[nodiscard]] GeoPhysVol* build();
 
     // ── Container envelope ──────────────────────────────────────────────
-    // Box approximation of the frustum SND envelope, sized to the largest
-    // (downstream) half-width/height and the full 5.10 m length.
-    static constexpr auto s_halfX = 400.0 * units::mm;
-    static constexpr auto s_halfY = 400.0 * units::mm;
-    static constexpr auto s_halfZ = 2550.0 * units::mm;
+    /// One step of the container along the beam, in the container frame: a
+    /// box from @c zStart to @c zEnd holding one sub-detector, 1 mm wider
+    /// than it on every side.
+    struct Section {
+        const char* name;
+        units::LengthMm zStart, zEnd;
+        units::LengthMm halfX, halfY;
+    };
+
+    /// The container is the union of these boxes, so it follows the
+    /// sub-detectors and the muon-shield iron can come up to each of them
+    /// (MuonShieldFactory::k_sndCavity, checked in Layout.h). The content is
+    /// exactly as long as the content, so the HCAL fills M6 exactly and the
+    /// veto section is the veto. The gaps between sub-detectors go to the
+    /// narrower section beside them.
+    static constexpr std::array<Section, 4> k_sections{{
+        {"veto", -2525.0 * units::mm, -2485.0 * units::mm, 211.0 * units::mm, 220.0 * units::mm},
+        {"target", -2485.0 * units::mm, -1045.0 * units::mm, 201.0 * units::mm, 201.0 * units::mm},
+        {"mgc", -1045.0 * units::mm, -835.0 * units::mm, 251.0 * units::mm, 251.0 * units::mm},
+        {"hcal", -835.0 * units::mm, 2525.0 * units::mm, 301.25 * units::mm, 301.25 * units::mm},
+    }};
+
+    /// Bounding box of the sections: the HCAL's cross-section and the full
+    /// 5.05 m length.
+    static constexpr auto s_halfX = 301.25 * units::mm;
+    static constexpr auto s_halfY = 301.25 * units::mm;
+    static constexpr auto s_halfZ = 2525.0 * units::mm;
 
    private:
     Materials& m_materials;
