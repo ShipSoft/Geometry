@@ -6,7 +6,7 @@
 Fails on a volume that clashes but is not in the list, on a known volume that
 no longer clashes (fixed: remove it from the list) and on a known clash
 without an issue number. A known clash that comes out deeper than its recorded
-bound is only a warning.
+bound is only a warning. Each volume may appear only once in the list.
 
 Geant4 reports at most one clash per checked volume, against whichever partner
 the deepest of its random points fell in, and that depth is a lower bound on
@@ -54,7 +54,17 @@ def read_report(path):
 
 def read_known(path):
     with open(path) as f:
-        return {c["volume"]: c for c in json.load(f)}
+        entries = json.load(f)
+    known = {}
+    duplicates = set()
+    for c in entries:
+        if c["volume"] in known:
+            duplicates.add(c["volume"])
+        known[c["volume"]] = c
+    if duplicates:
+        # Clashes are matched by volume, so a second entry would be dropped.
+        sys.exit(f"duplicate volumes in {path}: {', '.join(sorted(duplicates))}")
+    return known
 
 
 def allowed(depth):
