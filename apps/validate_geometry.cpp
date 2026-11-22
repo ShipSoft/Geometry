@@ -15,7 +15,7 @@ class GeometryValidator {
     explicit GeometryValidator(const std::string& dbFile) : m_db(nullptr) {
         int rc = sqlite3_open(dbFile.c_str(), &m_db);
         if (rc) {
-            std::cerr << "Can't open database: " << sqlite3_errmsg(m_db) << std::endl;
+            std::cerr << "Can't open database: " << sqlite3_errmsg(m_db) << '\n';
             sqlite3_close(m_db);
             m_db = nullptr;
         }
@@ -31,12 +31,12 @@ class GeometryValidator {
 
     void validateGeometry() {
         if (!isValid()) {
-            std::cerr << "Database not available" << std::endl;
+            std::cerr << "Database not available" << '\n';
             return;
         }
 
-        std::cout << "=== SHiP Geometry Validation Report ===" << std::endl;
-        std::cout << std::endl;
+        std::cout << "=== SHiP Geometry Validation Report ===" << '\n';
+        std::cout << '\n';
 
         // Check database structure
         checkDatabaseStructure();
@@ -46,13 +46,13 @@ class GeometryValidator {
         extractMaterialInformation();
         extractPositionInformation();
 
-        std::cout << std::endl;
-        std::cout << "=== Validation Summary ===" << std::endl;
-        std::cout << "Database structure: OK" << std::endl;
-        std::cout << "For detailed GDML comparison, use external tools like:" << std::endl;
-        std::cout << "- ROOT's TGeoManager::Export() method" << std::endl;
-        std::cout << "- Geant4's GDML export functionality" << std::endl;
-        std::cout << "- Custom GDML writer based on database content" << std::endl;
+        std::cout << '\n';
+        std::cout << "=== Validation Summary ===" << '\n';
+        std::cout << "Database structure: OK" << '\n';
+        std::cout << "For detailed GDML comparison, use external tools like:" << '\n';
+        std::cout << "- ROOT's TGeoManager::Export() method" << '\n';
+        std::cout << "- Geant4's GDML export functionality" << '\n';
+        std::cout << "- Custom GDML writer based on database content" << '\n';
     }
 
    private:
@@ -86,7 +86,7 @@ class GeometryValidator {
     }
 
     void checkDatabaseStructure() {
-        std::cout << "--- Database Structure Check ---" << std::endl;
+        std::cout << "--- Database Structure Check ---" << '\n';
 
         // Check essential tables exist
         std::string requiredTables[] = {"LogVols",           "PhysVols",   "Materials",
@@ -95,27 +95,27 @@ class GeometryValidator {
 
         for (const auto& table : requiredTables) {
             if (tableExists(table)) {
-                std::cout << "✓ Table " << table << " exists" << std::endl;
+                std::cout << "✓ Table " << table << " exists" << '\n';
             } else {
-                std::cout << "✗ Table " << table << " missing" << std::endl;
+                std::cout << "✗ Table " << table << " missing" << '\n';
             }
         }
     }
 
     void extractVolumeInformation() {
-        std::cout << std::endl << "--- Volume Information ---" << std::endl;
+        std::cout << '\n' << "--- Volume Information ---" << '\n';
 
         int logvolCount = countRecords("LogVols");
         int physvolCount = countRecords("PhysVols");
 
-        std::cout << "Total logical volumes: " << logvolCount << std::endl;
-        std::cout << "Total physical volumes: " << physvolCount << std::endl;
+        std::cout << "Total logical volumes: " << logvolCount << '\n';
+        std::cout << "Total physical volumes: " << physvolCount << '\n';
 
         // Show first few volumes as examples
-        std::cout << std::endl << "Sample logical volumes:" << std::endl;
+        std::cout << '\n' << "Sample logical volumes:" << '\n';
         std::cout << std::setw(20) << "Name" << std::setw(15) << "Shape Type" << std::setw(15)
-                  << "Material ID" << std::endl;
-        std::cout << std::string(50, '-') << std::endl;
+                  << "Material ID" << '\n';
+        std::cout << std::string(50, '-') << '\n';
 
         std::string sql = "SELECT id, name, shapeId, shapeType, materialId FROM LogVols LIMIT 10";
         sqlite3_stmt* stmt;
@@ -128,25 +128,25 @@ class GeometryValidator {
 
                 std::cout << std::setw(20) << (name ? name : "NULL") << std::setw(15)
                           << (shapeType ? shapeType : "NULL") << std::setw(15) << materialId
-                          << std::endl;
+                          << '\n';
             }
         }
         sqlite3_finalize(stmt);
     }
 
     void extractMaterialInformation() {
-        std::cout << std::endl << "--- Material Information ---" << std::endl;
+        std::cout << '\n' << "--- Material Information ---" << '\n';
 
         int materialCount = countRecords("Materials");
         int elementCount = countRecords("Elements");
 
-        std::cout << "Total materials: " << materialCount << std::endl;
-        std::cout << "Total elements: " << elementCount << std::endl;
+        std::cout << "Total materials: " << materialCount << '\n';
+        std::cout << "Total elements: " << elementCount << '\n';
 
         // Show materials
-        std::cout << std::endl << "Materials:" << std::endl;
-        std::cout << std::setw(20) << "Name" << std::setw(15) << "Density" << std::endl;
-        std::cout << std::string(35, '-') << std::endl;
+        std::cout << '\n' << "Materials:" << '\n';
+        std::cout << std::setw(20) << "Name" << std::setw(15) << "Density" << '\n';
+        std::cout << std::string(35, '-') << '\n';
 
         std::string sql = "SELECT id, name, density FROM Materials";
         sqlite3_stmt* stmt;
@@ -157,26 +157,26 @@ class GeometryValidator {
                 double density = sqlite3_column_double(stmt, 2);
 
                 std::cout << std::setw(20) << (name ? name : "NULL") << std::setw(15) << density
-                          << std::endl;
+                          << '\n';
             }
         }
         sqlite3_finalize(stmt);
     }
 
     void extractPositionInformation() {
-        std::cout << std::endl << "--- Position Information ---" << std::endl;
+        std::cout << '\n' << "--- Position Information ---" << '\n';
 
         int positionCount = countRecords("ChildrenPositions");
         int transformCount = countRecords("Transforms");
 
-        std::cout << "Total position records: " << positionCount << std::endl;
-        std::cout << "Total transforms: " << transformCount << std::endl;
+        std::cout << "Total position records: " << positionCount << '\n';
+        std::cout << "Total transforms: " << transformCount << '\n';
 
         // Show some position data
-        std::cout << std::endl << "Sample positions (first 5):" << std::endl;
+        std::cout << '\n' << "Sample positions (first 5):" << '\n';
         std::cout << std::setw(15) << "Parent ID" << std::setw(15) << "Child ID" << std::setw(15)
-                  << "Child Type" << std::endl;
-        std::cout << std::string(45, '-') << std::endl;
+                  << "Child Type" << '\n';
+        std::cout << std::string(45, '-') << '\n';
 
         std::string sql =
             "SELECT parentId, parentType, childId, parentCopyNumber, childPos, childType FROM "
@@ -190,7 +190,7 @@ class GeometryValidator {
                 const char* childType = (const char*)sqlite3_column_text(stmt, 5);
 
                 std::cout << std::setw(15) << parentId << std::setw(15) << childId << std::setw(15)
-                          << (childType ? childType : "NULL") << std::endl;
+                          << (childType ? childType : "NULL") << '\n';
             }
         }
         sqlite3_finalize(stmt);
@@ -207,12 +207,12 @@ int main(int argc, char* argv[]) {
         GeometryValidator validator(dbFile);
         validator.validateGeometry();
 
-        std::cout << std::endl;
-        std::cout << "Note: For full GDML export, consider implementing a custom" << std::endl;
-        std::cout << "GDML writer that traverses the database and generates XML." << std::endl;
-        std::cout << "The database contains all necessary geometric information." << std::endl;
+        std::cout << '\n';
+        std::cout << "Note: For full GDML export, consider implementing a custom" << '\n';
+        std::cout << "GDML writer that traverses the database and generates XML." << '\n';
+        std::cout << "The database contains all necessary geometric information." << '\n';
     } catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
+        std::cerr << "Error: " << e.what() << '\n';
         return 1;
     }
 
