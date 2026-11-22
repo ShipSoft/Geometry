@@ -94,8 +94,9 @@ int main(int argc, char* argv[]) {
         const std::string arg = argv[i];
         if (arg == "--list") {
             // Program output, not a log line: plain stdout so it stays pipeable.
-            for (const auto& n : SHiP::geometry::subsystemNames())
+            for (const auto& n : SHiP::geometry::subsystemNames()) {
                 std::cout << n << "\n";
+            }
             return 0;
         }
         if (arg == "-h" || arg == "--help") {
@@ -150,15 +151,17 @@ int main(int argc, char* argv[]) {
             // rather than at its position in the detector.
             geometry = SHiP::geometry::buildSubsystem(names[0]);
             label = names[0] + " (standalone)";
-            if (outputFile.empty())
+            if (outputFile.empty()) {
                 outputFile = names[0] + ".db";
+            }
         } else if (names.empty()) {
             // Default: the complete detector.
             SHiP::geometry::DetectorBuilder builder;
             geometry = builder.build();
             label = "full SHiP geometry";
-            if (outputFile.empty())
+            if (outputFile.empty()) {
                 outputFile = "ship_geometry.db";
+            }
         } else {
             // A selection, assembled into the world at the placements the
             // subsystems declare (the world/cavern is always included).
@@ -166,8 +169,9 @@ int main(int argc, char* argv[]) {
             label = names.size() == 1
                         ? names[0] + " (in the world)"
                         : "selection (" + std::to_string(names.size()) + " subsystems)";
-            if (outputFile.empty())
+            if (outputFile.empty()) {
                 outputFile = "ship_selection.db";
+            }
         }
     } catch (const SHiP::geometry::UnknownSubsystem& e) {
         // A mis-spelled name: offer the names that would have worked.
@@ -177,8 +181,9 @@ int main(int argc, char* argv[]) {
             spdlog::info("Did you mean '-o {}'?", e.name());
         }
         spdlog::info("Available subsystems:");
-        for (const auto& n : SHiP::geometry::subsystemNames())
+        for (const auto& n : SHiP::geometry::subsystemNames()) {
             spdlog::info("  {}", n);
+        }
         return 1;
     } catch (const std::exception& e) {
         spdlog::error("{}", e.what());

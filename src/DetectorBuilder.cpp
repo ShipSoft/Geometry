@@ -58,15 +58,17 @@ GeoPhysVol* assembleGeometry(const std::vector<std::string>& only) {
     std::vector<const SubsystemInfo*> placed;
     for (auto& entry : reg) {
         const SubsystemInfo& info = entry.second;
-        if (info.desc.isWorld)
+        if (info.desc.isWorld) {
             continue;
+        }
         if (only.empty() || std::find(only.begin(), only.end(), entry.first) != only.end()) {
             placed.push_back(&info);
         }
     }
     std::sort(placed.begin(), placed.end(), [](const SubsystemInfo* a, const SubsystemInfo* b) {
-        if (a->desc.z_mm != b->desc.z_mm)
+        if (a->desc.z_mm != b->desc.z_mm) {
             return a->desc.z_mm < b->desc.z_mm;
+        }
         return a->desc.id < b->desc.id;
     });
     // Everything that can be checked without building has passed, so only now
@@ -113,8 +115,9 @@ GeoVPhysVol* buildSubsystem(const std::string& name) {
 std::vector<std::string> subsystemNames() {
     detail::linkSubsystems();
     std::vector<std::string> names;
-    for (auto& entry : registry())
+    for (auto& entry : registry()) {
         names.push_back(entry.first);
+    }
     return names;
 }
 // ── Backwards-compatible builder: unchanged interface, delegates to registry ──
