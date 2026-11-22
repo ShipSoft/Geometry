@@ -32,13 +32,13 @@ CalorimeterFactory::CalorimeterFactory(Materials& materials) : m_materials(mater
 // ── build ────────────────────────────────────────────────────────────────────
 
 GeoPhysVol* CalorimeterFactory::build() {
-    GeoMaterial* air = m_materials.requireMaterial("Air");
+    const GeoMaterial* air = m_materials.requireMaterial("Air");
 
     // Fixed-size container — must match the SHiP subsystem envelope so that
     // the geometry consistency tests and the overlap check pass.
     auto const* containerBox =
         new GeoBox(gm(calo::kContainerHalfX), gm(calo::kContainerHalfY), gm(calo::kContainerHalfZ));
-    auto* containerLog = new GeoLogVol("/SHiP/calorimeter", containerBox, air);
+    const auto* containerLog = new GeoLogVol("/SHiP/calorimeter", containerBox, air);
     auto* containerPhys = new GeoPhysVol(containerLog);
 
     const double x0 = -0.5 * (calo::kModuleNX - 1) * gm(calo::kModulePitchX);
@@ -60,9 +60,9 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, int moduleX, int modu
                                     double offsetY) const {
     using calo::LayerCode;
 
-    GeoMaterial* leadMat = m_materials.requireMaterial("Lead");
-    GeoMaterial* ironMat = m_materials.requireMaterial("Iron");
-    GeoMaterial* pvtMat = m_materials.requireMaterial("PVT");
+    const GeoMaterial* leadMat = m_materials.requireMaterial("Lead");
+    const GeoMaterial* ironMat = m_materials.requireMaterial("Iron");
+    const GeoMaterial* pvtMat = m_materials.requireMaterial("PVT");
     GeoMaterial* psMat = m_materials.requireMaterial("Polystyrene");
     GeoMaterial* alMat = m_materials.requireMaterial("Aluminium");
     GeoMaterial* airMat = m_materials.requireMaterial("Air");
@@ -100,8 +100,8 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, int moduleX, int modu
 
     // Lambda: wrap a layer in a named air-box envelope inside the container
     auto makeEnv = [&](const std::string& name, double halfZ, double zCenter) -> GeoPhysVol* {
-        auto* envShape = new GeoBox(0.5 * plateXY, 0.5 * plateXY, halfZ);
-        auto* envLog = new GeoLogVol(name + "_env", envShape, airMat);
+        const auto* envShape = new GeoBox(0.5 * plateXY, 0.5 * plateXY, halfZ);
+        const auto* envLog = new GeoLogVol(name + "_env", envShape, airMat);
         auto* envPhys = new GeoPhysVol(envLog);
         container->add(new GeoNameTag(name.c_str()));
         container->add(new GeoIdentifierTag(layerId++));
@@ -126,7 +126,7 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, int moduleX, int modu
         bool incrementGlobalOnAirGap;  // ECAL: false, HCAL: true
     };
 
-    auto processSection = [&](const SectionDescriptor& sec) {
+    const auto processSection = [&](const SectionDescriptor& sec) {
         int globalLayerIdx = 0;
         int scintLayerIdx = 0;
         int absorberIdx = 0;

@@ -21,7 +21,7 @@ Materials::Materials() {
 }
 
 GeoMaterial* Materials::getMaterial(std::string_view name) const {
-    auto it = m_materials.find(name);
+    const auto it = m_materials.find(name);
     return (it != m_materials.end()) ? it->second : nullptr;
 }
 

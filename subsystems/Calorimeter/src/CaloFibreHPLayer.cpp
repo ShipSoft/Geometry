@@ -20,8 +20,8 @@ namespace SHiP::geometry {
 
 using units::gm;
 
-void calo_fibre_hp::buildLayer(GeoVPhysVol* mother, GeoMaterial* aluminiumMat,
-                               GeoMaterial* fibreMat, const std::string& layerTag,
+void calo_fibre_hp::buildLayer(GeoVPhysVol* mother, const GeoMaterial* aluminiumMat,
+                               const GeoMaterial* fibreMat, const std::string& layerTag,
                                units::LengthMm zCenter, int layerIndex, units::LengthMm casingXYIn,
                                units::LengthMm casingZIn, units::LengthMm fiberDiam,
                                units::LengthMm fiberCoreDiam, bool fibresAlongY,
@@ -30,8 +30,8 @@ void calo_fibre_hp::buildLayer(GeoVPhysVol* mother, GeoMaterial* aluminiumMat,
     const double casingZ = gm(casingZIn);
 
     // ── aluminium casing ──────────────────────────────────────────────────
-    auto* casingShape = new GeoBox(0.5 * casingXY, 0.5 * casingXY, 0.5 * casingZ);
-    auto* casingLog = new GeoLogVol("HPL_CasingLog", casingShape, aluminiumMat);
+    const auto* casingShape = new GeoBox(0.5 * casingXY, 0.5 * casingXY, 0.5 * casingZ);
+    const auto* casingLog = new GeoLogVol("HPL_CasingLog", casingShape, aluminiumMat);
     auto* casingPhys = new GeoPhysVol(casingLog);
 
     mother->add(new GeoNameTag((layerTag + "_HPL_Casing" + nameSuffix).c_str()));
@@ -50,14 +50,14 @@ void calo_fibre_hp::buildLayer(GeoVPhysVol* mother, GeoMaterial* aluminiumMat,
 
     // GeoTube axis is Z; rotate so fibres run along Y or X
     const double halfLen = 0.5 * casingXY;
-    GeoTrf::Transform3D rotAxis =
+    const GeoTrf::Transform3D rotAxis =
         fibresAlongY ? GeoTrf::Transform3D(GeoTrf::RotateX3D(gm(90.0 * units::deg)))    // Z → Y
                      : GeoTrf::Transform3D(GeoTrf::RotateY3D(gm(-90.0 * units::deg)));  // Z → X
 
-    auto* cladShape = new GeoTube(0.0, rOuter, halfLen);
-    auto* coreShape = new GeoTube(0.0, rCore, halfLen);
-    auto* cladLog = new GeoLogVol("HPL_CladLog", cladShape, fibreMat);
-    auto* coreLog = new GeoLogVol("HPL_FiberCoreLog", coreShape, fibreMat);
+    const auto* cladShape = new GeoTube(0.0, rOuter, halfLen);
+    const auto* coreShape = new GeoTube(0.0, rCore, halfLen);
+    const auto* cladLog = new GeoLogVol("HPL_CladLog", cladShape, fibreMat);
+    const auto* coreLog = new GeoLogVol("HPL_FiberCoreLog", coreShape, fibreMat);
 
     // ── fibre tiling: three staggered sublayers ───────────────────────────
     const double pitch = 2.0 * rOuter;  // tight packing

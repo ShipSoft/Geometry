@@ -22,7 +22,7 @@ using SHiP::geometry::units::gm;
 
 static const GeoVPhysVol* findChild(const GeoVPhysVol* parent, const std::string& name) {
     for (unsigned int i = 0; i < parent->getNChildVols(); ++i) {
-        PVConstLink child = parent->getChildVol(i);
+        const PVConstLink child = parent->getChildVol(i);
         if (child->getLogVol()->getName() == name) {
             return &*child;
         }

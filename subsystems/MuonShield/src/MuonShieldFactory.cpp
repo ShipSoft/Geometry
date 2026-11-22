@@ -453,15 +453,16 @@ GeoPhysVol* MuonShieldFactory::buildStation(const StationData& station) {
     // Air container that spans all 8 pieces of this station
     auto const* stationBox = new GeoBox(gm(station.containerHalfX), gm(station.containerHalfY),
                                         gm(station.containerHalfZ));
-    std::string containerName = "/SHiP/muon_shield/" + std::string(station.name);
-    auto* stationLog = new GeoLogVol(containerName, stationBox, air);
+    const std::string containerName = "/SHiP/muon_shield/" + std::string(station.name);
+    const auto* stationLog = new GeoLogVol(containerName, stationBox, air);
     auto* stationPhys = new GeoPhysVol(stationLog);
 
     // Place 8 Iron bounding-box approximations
     for (const PieceData& piece : station.pieces) {
         auto const* pieceBox = new GeoBox(gm(piece.halfX), gm(piece.halfY), gm(piece.halfZ));
-        std::string pieceName = "/SHiP/muon_shield/" + std::string(station.name) + "/" + piece.name;
-        auto* pieceLog = new GeoLogVol(pieceName, pieceBox, iron);
+        const std::string pieceName =
+            "/SHiP/muon_shield/" + std::string(station.name) + "/" + piece.name;
+        const auto* pieceLog = new GeoLogVol(pieceName, pieceBox, iron);
         auto* piecePhys = new GeoPhysVol(pieceLog);
 
         GeoTrf::Transform3D const trf = GeoTrf::Translate3D(gm(piece.centX), gm(piece.centY), 0.0);
@@ -479,13 +480,13 @@ GeoPhysVol* MuonShieldFactory::build() {
 
     // Overall MuonShieldArea container (Air)
     auto const* areaBox = new GeoBox(gm(s_areaHalfX), gm(s_areaHalfY), gm(s_areaHalfZ));
-    auto* areaLog = new GeoLogVol("/SHiP/muon_shield", areaBox, air);
+    const auto* areaLog = new GeoLogVol("/SHiP/muon_shield", areaBox, air);
     auto* areaPhys = new GeoPhysVol(areaLog);
 
     // Build and place 6 stations
     for (const StationData& station : k_stations) {
         GeoPhysVol* stationPhys = buildStation(station);
-        std::string stationName = "/SHiP/muon_shield/" + std::string(station.name);
+        const std::string stationName = "/SHiP/muon_shield/" + std::string(station.name);
         GeoTrf::Transform3D const trf = GeoTrf::Translate3D(0.0, 0.0, gm(station.stationZ));
         areaPhys->add(new GeoNameTag(stationName));
         areaPhys->add(new GeoIdentifierTag(static_cast<int>(&station - &k_stations[0])));

@@ -25,12 +25,12 @@ CavernFactory::CavernFactory(Materials& materials) : m_materials(materials) {}
 
 GeoPhysVol* CavernFactory::build() {
     // Get materials from central manager with null checking
-    auto* air = m_materials.requireMaterial("Air");
-    auto* concrete = m_materials.requireMaterial("Concrete");
+    const auto* air = m_materials.requireMaterial("Air");
+    const auto* concrete = m_materials.requireMaterial("Concrete");
 
     // Create world volume (cave)
     auto const* worldBox = new GeoBox(gm(s_worldHalfX), gm(s_worldHalfY), gm(s_worldHalfZ));
-    auto* worldLog = new GeoLogVol("cave", worldBox, air);
+    const auto* worldLog = new GeoLogVol("cave", worldBox, air);
     m_world = new GeoPhysVol(worldLog);
 
     // Create rock block
@@ -48,12 +48,12 @@ GeoPhysVol* CavernFactory::build() {
 
     // Build the cavern shape by successive subtractions
     // First subtract muon shield cavern
-    GeoTrf::Transform3D muonCavernTrf =
+    const GeoTrf::Transform3D muonCavernTrf =
         GeoTrf::Translate3D(gm(s_muonCavernPosX), gm(s_muonCavernPosY), gm(s_muonCavernPosZ));
     const GeoShape* shape1 = &rockBox->subtract((*muonCavern) << muonCavernTrf);
 
     // Subtract experiment cavern
-    GeoTrf::Transform3D expCavernTrf =
+    const GeoTrf::Transform3D expCavernTrf =
         GeoTrf::Translate3D(gm(s_expCavernPosX), gm(s_expCavernPosY), gm(s_expCavernPosZ));
     const GeoShape* shape2 = &shape1->subtract((*expCavern) << expCavernTrf);
 
@@ -63,17 +63,17 @@ GeoPhysVol* CavernFactory::build() {
     const GeoShape* shape3 = &shape2->subtract((*stairStep) << stairTrf);
 
     // Subtract yoke pit
-    GeoTrf::Transform3D yokePitTrf =
+    const GeoTrf::Transform3D yokePitTrf =
         GeoTrf::Translate3D(gm(s_yokePitPosX), gm(s_yokePitPosY), gm(s_yokePitPosZ));
     const GeoShape* shape4 = &shape3->subtract((*yokePit) << yokePitTrf);
 
     // Subtract target pit
-    GeoTrf::Transform3D targetPitTrf =
+    const GeoTrf::Transform3D targetPitTrf =
         GeoTrf::Translate3D(gm(s_targetPitPosX), gm(s_targetPitPosY), gm(s_targetPitPosZ));
     const GeoShape* cavernShape = &shape4->subtract((*targetPit) << targetPitTrf);
 
     // Create cavern logical and physical volumes
-    auto* cavernLog = new GeoLogVol("/SHiP/cavern", cavernShape, concrete);
+    const auto* cavernLog = new GeoLogVol("/SHiP/cavern", cavernShape, concrete);
     m_cavern = new GeoPhysVol(cavernLog);
 
     // Place cavern in world with name tag

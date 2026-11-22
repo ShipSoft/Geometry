@@ -56,7 +56,7 @@ GeoPhysVol* assembleGeometry(const std::vector<std::string>& only) {
     // Gather the selected non-world subsystems (all, if none requested), then
     // order them deterministically by (z, id) — independent of registration order.
     std::vector<const SubsystemInfo*> placed;
-    for (auto& entry : reg) {
+    for (const auto& entry : reg) {
         const SubsystemInfo& info = entry.second;
         if (info.desc.isWorld) {
             continue;
@@ -105,7 +105,7 @@ GeoPhysVol* assembleGeometry(const std::vector<std::string>& only) {
 GeoVPhysVol* buildSubsystem(const std::string& name) {
     detail::linkSubsystems();
     auto& reg = registry();
-    auto it = reg.find(name);
+    const auto it = reg.find(name);
     if (it == reg.end()) {
         throw UnknownSubsystem(name);
     }
@@ -115,7 +115,7 @@ GeoVPhysVol* buildSubsystem(const std::string& name) {
 std::vector<std::string> subsystemNames() {
     detail::linkSubsystems();
     std::vector<std::string> names;
-    for (auto& entry : registry()) {
+    for (const auto& entry : registry()) {
         names.push_back(entry.first);
     }
     return names;

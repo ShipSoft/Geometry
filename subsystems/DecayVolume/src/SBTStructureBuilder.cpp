@@ -57,8 +57,8 @@ constexpr double s_beam_end_standoff_mm = 12.0;
 // placeBox — add a single GeoBox as a physical-volume child of `parent`.
 void placeBox(GeoVPhysVol* parent, const GeoMaterial* mat, const std::string& name, double hx,
               double hy, double hz, const GeoTrf::Transform3D& trf) {
-    auto* shape = new GeoBox(hx, hy, hz);
-    auto* lv = new GeoLogVol(name, shape, mat);
+    const auto* shape = new GeoBox(hx, hy, hz);
+    const auto* lv = new GeoLogVol(name, shape, mat);
     auto* pv = new GeoPhysVol(lv);
     parent->add(new GeoNameTag(name));
     parent->add(new GeoTransform(trf));
@@ -176,14 +176,14 @@ void placeHBeamInclined(GeoVPhysVol* parent, const GeoMaterial* mat, const std::
     rotMat.col(1) = Eigen::Vector3d(nx, ny, nz);  // local Y -> n
     rotMat.col(2) = Eigen::Vector3d(ux, uy, uz);  // local Z -> d (beam axis)
 
-    auto placePiece = [&](const std::string& pname, double hxp, double hyp, double localDY) {
+    const auto placePiece = [&](const std::string& pname, double hxp, double hyp, double localDY) {
         const double px = xcm + (nx * localDY);
         const double py = ycm + (ny * localDY);
         const double pz = zcm + (nz * localDY);
         const GeoTrf::Transform3D trf =
             GeoTrf::Translate3D(px, py, pz) * GeoTrf::Transform3D(rotMat);
-        auto* shape = new GeoBox(hxp, hyp, halfLen);
-        auto* lv = new GeoLogVol(pname, shape, mat);
+        const auto* shape = new GeoBox(hxp, hyp, halfLen);
+        const auto* lv = new GeoLogVol(pname, shape, mat);
         auto* pv = new GeoPhysVol(lv);
         parent->add(new GeoNameTag(pname));
         parent->add(new GeoTransform(trf));
@@ -305,8 +305,8 @@ void SBTStructureBuilder::build(GeoVPhysVol* mother, const GeoMaterial* steel,
             const double yHi_mm = (face == 0) ? yTop_Hi : yBot_Hi;
             const std::string fTag = sTag + (face == 0 ? "_Top" : "_Bot");
 
-            auto placeLongBeam = [&](const std::string& bname, double x0, double y0, double z0,
-                                     double x1, double y1, double z1) {
+            const auto placeLongBeam = [&](const std::string& bname, double x0, double y0,
+                                           double z0, double x1, double y1, double z1) {
                 const double dx = x1 - x0;
                 const double dy = y1 - y0;
                 const double dz_b = z1 - z0;
@@ -347,7 +347,7 @@ void SBTStructureBuilder::build(GeoVPhysVol* mother, const GeoMaterial* steel,
                 const double hyF = 0.5 * hBeamTf;
                 const double yOff = gm(sbt::hbeamFlangeOffset(params));
 
-                auto makeTrf = [&](double localDY) {
+                const auto makeTrf = [&](double localDY) {
                     const double px = xcm + (nx * localDY);
                     const double py = ycm + (ny * localDY);
                     const double pz = zcm + (nz * localDY);
@@ -356,8 +356,8 @@ void SBTStructureBuilder::build(GeoVPhysVol* mother, const GeoMaterial* steel,
 
                 // TF (outside sensor Y range, no clash)
                 {
-                    auto* sh = new GeoBox(hxF, hyF, halfLen);
-                    auto* lv = new GeoLogVol(bname + "_TF", sh, steel);
+                    const auto* sh = new GeoBox(hxF, hyF, halfLen);
+                    const auto* lv = new GeoLogVol(bname + "_TF", sh, steel);
                     auto* pv = new GeoPhysVol(lv);
                     mother->add(new GeoNameTag(bname + "_TF"));
                     mother->add(new GeoTransform(makeTrf(+yOff)));
@@ -365,8 +365,8 @@ void SBTStructureBuilder::build(GeoVPhysVol* mother, const GeoMaterial* steel,
                 }
                 // BF (outside sensor after centroid shift, no clash)
                 {
-                    auto* sh = new GeoBox(hxF, hyF, halfLen);
-                    auto* lv = new GeoLogVol(bname + "_BF", sh, steel);
+                    const auto* sh = new GeoBox(hxF, hyF, halfLen);
+                    const auto* lv = new GeoLogVol(bname + "_BF", sh, steel);
                     auto* pv = new GeoPhysVol(lv);
                     mother->add(new GeoNameTag(bname + "_BF"));
                     mother->add(new GeoTransform(makeTrf(-yOff)));

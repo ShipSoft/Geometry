@@ -168,9 +168,9 @@ std::array<Vec, 8> boxVertices(const GeoBox& b) {
     const double hz = b.getZHalfLength();
     std::array<Vec, 8> v;
     int i = 0;
-    for (int sz : {-1, 1}) {
-        for (int sy : {-1, 1}) {
-            for (int sx : {-1, 1}) {
+    for (const int sz : {-1, 1}) {
+        for (const int sy : {-1, 1}) {
+            for (const int sx : {-1, 1}) {
                 v[i++] = Vec(sx * hx, sy * hy, sz * hz);
             }
         }
@@ -227,7 +227,7 @@ std::array<Vec, 8> trapVertices(const GeoTrap& t) {
 double separation(const Hexa& a, const Hexa& b) {
     double best = -std::numeric_limits<double>::infinity();
 
-    auto probe = [&](const Vec& n) {
+    const auto probe = [&](const Vec& n) {
         const double nn = n.norm();
         if (nn < 1e-9) {
             return;
@@ -330,7 +330,7 @@ Built buildFromParams(const sbt::SBTParams& params, const std::string& tag) {
     const GeoMaterial* helium = materials.requireMaterial(sbt::kHeliumMaterial);
 
     // Generous container: this test cares about helium-vs-SBT, not the envelope.
-    auto* boxShape = new GeoBox(10000.0, 10000.0, 40000.0);
+    const auto* boxShape = new GeoBox(10000.0, 10000.0, 40000.0);
     auto* container = new GeoPhysVol(new GeoLogVol("/SHiP/test_container", boxShape, air));
 
     SHiP::geometry::SBTStructureBuilder::build(container, steel, tag + "/structure", params);

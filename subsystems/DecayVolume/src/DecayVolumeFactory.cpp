@@ -33,9 +33,9 @@ GeoPhysVol* DecayVolumeFactory::build() {
     // The container is the experiment's fixed envelope allocation for the
     // decay region. Static_asserts in SBTConstants.h guarantee the SBT
     // structure cannot outgrow it.
-    auto* containerBox =
+    const auto* containerBox =
         new GeoBox(gm(sbt::kEnvelopeHalfX), gm(sbt::kEnvelopeHalfY), gm(sbt::kEnvelopeHalfZ));
-    auto* containerLog = new GeoLogVol("/SHiP/decay_volume", containerBox, air);
+    const auto* containerLog = new GeoLogVol("/SHiP/decay_volume", containerBox, air);
     auto* container = new GeoPhysVol(containerLog);
 
     // ── SBT steel structure + LAB sensors ────────────────────────────────

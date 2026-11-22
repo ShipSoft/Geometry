@@ -22,12 +22,12 @@ using units::gm;
 MagnetFactory::MagnetFactory(Materials& materials) : m_materials(materials) {}
 
 GeoPhysVol* MagnetFactory::build() {
-    auto* air = m_materials.requireMaterial("Air");
+    const auto* air = m_materials.requireMaterial("Air");
 
     // Create container
     auto const* containerBox =
         new GeoBox(gm(s_containerHalfX), gm(s_containerHalfY), gm(s_containerHalfZ));
-    auto* containerLog = new GeoLogVol("/SHiP/magnet", containerBox, air);
+    const auto* containerLog = new GeoLogVol("/SHiP/magnet", containerBox, air);
     auto* containerPhys = new GeoPhysVol(containerLog);
 
     // Create and place yoke
@@ -99,7 +99,7 @@ GeoPhysVol* MagnetFactory::build() {
 }
 
 GeoPhysVol* MagnetFactory::createYoke() {
-    auto* iron = m_materials.requireMaterial("Iron");
+    const auto* iron = m_materials.requireMaterial("Iron");
 
     // Outer box
     auto const* outerBox =
@@ -110,24 +110,24 @@ GeoPhysVol* MagnetFactory::createYoke() {
     // Subtract to create yoke shape
     const GeoShape* yokeShape = &outerBox->subtract(*innerBox);
 
-    auto* yokeLog = new GeoLogVol("/SHiP/magnet/yoke", yokeShape, iron);
+    const auto* yokeLog = new GeoLogVol("/SHiP/magnet/yoke", yokeShape, iron);
     return new GeoPhysVol(yokeLog);
 }
 
 GeoPhysVol* MagnetFactory::createCoil(const std::string& name) {
-    auto* aluminium = m_materials.requireMaterial("Aluminium");
+    const auto* aluminium = m_materials.requireMaterial("Aluminium");
 
     auto const* coilBox = new GeoBox(gm(s_coilHalfX), gm(s_coilHalfY), gm(s_coilHalfZ));
-    auto* coilLog = new GeoLogVol(name, coilBox, aluminium);
+    const auto* coilLog = new GeoLogVol(name, coilBox, aluminium);
     return new GeoPhysVol(coilLog);
 }
 
 GeoPhysVol* MagnetFactory::createVerticalConnector(const std::string& name) {
-    auto* aluminium = m_materials.requireMaterial("Aluminium");
+    const auto* aluminium = m_materials.requireMaterial("Aluminium");
 
     auto const* connectorBox =
         new GeoBox(gm(s_connectorHalfX), gm(s_connectorHalfY), gm(s_connectorHalfZ));
-    auto* connectorLog = new GeoLogVol(name, connectorBox, aluminium);
+    const auto* connectorLog = new GeoLogVol(name, connectorBox, aluminium);
     return new GeoPhysVol(connectorLog);
 }
 

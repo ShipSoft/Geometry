@@ -48,7 +48,7 @@ TEST_CASE("Target2026HeVolume", "[target]") {
 
     // Children: proximity, top, bottom, pedestal, he_volume, cover_plate
     REQUIRE(target->getNChildVols() == 6u);
-    PVConstLink heVolume = target->getChildVol(4);
+    const PVConstLink heVolume = target->getChildVol(4);
     REQUIRE(heVolume->getLogVol()->getName() == "/SHiP/target/he_volume");
 
     const auto* heTube = dynamic_cast<const GeoTube*>(heVolume->getLogVol()->getShape());
@@ -90,12 +90,12 @@ TEST_CASE("Target2026HeVolume", "[target]") {
 TEST_CASE("Target2026UpstreamClosure", "[target]") {
     Materials materials;
     SHiP::geometry::TargetFactory factory(materials);
-    GeoPhysVol* target = factory.build();
-    PVConstLink heVolume = target->getChildVol(4);
+    const GeoPhysVol* target = factory.build();
+    const PVConstLink heVolume = target->getChildVol(4);
 
     // Child 36 is the beam window: flat disc preserving 8 mm of steel on the
     // beam axis, z -33.5..-25.5 mm
-    PVConstLink window = heVolume->getChildVol(36);
+    const PVConstLink window = heVolume->getChildVol(36);
     REQUIRE(window->getLogVol()->getName() == "/SHiP/target/front_window");
     CHECK(window->getLogVol()->getMaterial()->getName() ==  // NOLINT(readability/check)
           "Steel316L");
@@ -108,7 +108,7 @@ TEST_CASE("Target2026UpstreamClosure", "[target]") {
 
     // Child 5 of the vacuum box is the cover plate (box minus hole), centred
     // 75 mm below the beam axis
-    PVConstLink cover = target->getChildVol(5);
+    const PVConstLink cover = target->getChildVol(5);
     REQUIRE(cover->getLogVol()->getName() == "/SHiP/target/cover_plate");
     const auto* coverShape =
         dynamic_cast<const GeoShapeSubtraction*>(cover->getLogVol()->getShape());
@@ -135,12 +135,12 @@ TEST_CASE("Target2026UpstreamClosure", "[target]") {
 TEST_CASE("Target2026Disks", "[target]") {
     Materials materials;
     SHiP::geometry::TargetFactory factory(materials);
-    GeoPhysVol* target = factory.build();
-    PVConstLink heVolume = target->getChildVol(4);
+    const GeoPhysVol* target = factory.build();
+    const PVConstLink heVolume = target->getChildVol(4);
 
     // Disk 1: 30 mm thick, front face at target z = 0
     {
-        PVConstLink disk = heVolume->getChildVol(0);
+        const PVConstLink disk = heVolume->getChildVol(0);
         const auto* tube = dynamic_cast<const GeoTube*>(disk->getLogVol()->getShape());
         REQUIRE(tube != nullptr);
         CHECK(tube->getRMax() == Approx(125.0 * mm));
@@ -151,7 +151,7 @@ TEST_CASE("Target2026Disks", "[target]") {
 
     // Disk 33 (rear block): larger radius, spans 1005-1460 mm
     {
-        PVConstLink disk = heVolume->getChildVol(32);
+        const PVConstLink disk = heVolume->getChildVol(32);
         const auto* tube = dynamic_cast<const GeoTube*>(disk->getLogVol()->getShape());
         REQUIRE(tube != nullptr);
         CHECK(tube->getRMax() == Approx(157.0 * mm));
@@ -164,12 +164,12 @@ TEST_CASE("Target2026Disks", "[target]") {
 TEST_CASE("Target2026SteelCore", "[target]") {
     Materials materials;
     SHiP::geometry::TargetFactory factory(materials);
-    GeoPhysVol* target = factory.build();
-    PVConstLink heVolume = target->getChildVol(4);
+    const GeoPhysVol* target = factory.build();
+    const PVConstLink heVolume = target->getChildVol(4);
 
     // Child 33 is the steel core: a polycone with the He cooling grooves
     // subtracted
-    PVConstLink core = heVolume->getChildVol(33);
+    const PVConstLink core = heVolume->getChildVol(33);
     CHECK(core->getLogVol()->getName() == "/SHiP/target/core_steel");   // NOLINT(readability/check)
     CHECK(core->getLogVol()->getMaterial()->getName() == "Steel316L");  // NOLINT(readability/check)
     const auto* subtraction =
