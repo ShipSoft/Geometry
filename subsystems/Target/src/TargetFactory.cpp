@@ -92,7 +92,7 @@ GeoPhysVol* TargetFactory::build() {
     auto const* coverHole = new GeoTube(0.0, gm(s_heRadius), gm(s_coverPlateHalfZ + 1.0 * mm));
     GeoTrf::Transform3D const coverHoleTrf =
         GeoTrf::Translate3D(0.0, gm(-s_coverPlateOffsetY), 0.0);
-    const GeoShape* coverShape = &(coverBox->subtract((*coverHole) << coverHoleTrf));
+    const GeoShape* coverShape = &coverBox->subtract((*coverHole) << coverHoleTrf);
     auto* coverLog = new GeoLogVol("/SHiP/target/cover_plate", coverShape, steel316L);
     const auto coverCentreZ = 0.5 * (s_heZMin + s_coverZMax);
     GeoTrf::Transform3D const coverTrf = GeoTrf::Translate3D(
@@ -118,12 +118,12 @@ GeoPhysVol* TargetFactory::createProximityShielding() {
 
     // First subtraction: envelope - inner
     GeoTrf::Transform3D const innerTrf = GeoTrf::Translate3D(0.0, 0.0, gm(s_proxInnerOffsetZ));
-    const GeoShape* shape1 = &(envelope->subtract((*inner) << innerTrf));
+    const GeoShape* shape1 = &envelope->subtract((*inner) << innerTrf);
 
     // Second subtraction: shape1 - hole
     GeoTrf::Transform3D const holeTrf =
         GeoTrf::Translate3D(0.0, gm(s_proxHoleOffsetY), gm(s_proxHoleOffsetZ));
-    const GeoShape* proxShape = &(shape1->subtract((*hole) << holeTrf));
+    const GeoShape* proxShape = &shape1->subtract((*hole) << holeTrf);
 
     auto* proxLog = new GeoLogVol("/SHiP/target/proximity_shielding", proxShape, copper);
     return new GeoPhysVol(proxLog);
@@ -176,8 +176,7 @@ const GeoShape* TargetFactory::createSteelCoreShape() {
     auto subtractGroove = [&coreShape](double rmin, double rmax, double z0, double z1,
                                        double phiStart, double phiWidth) {
         auto* tubs = new GeoTubs(rmin, rmax, 0.5 * (z1 - z0), phiStart, phiWidth);
-        coreShape =
-            &(coreShape->subtract((*tubs) << GeoTrf::Translate3D(0.0, 0.0, 0.5 * (z0 + z1))));
+        coreShape = &coreShape->subtract((*tubs) << GeoTrf::Translate3D(0.0, 0.0, 0.5 * (z0 + z1)));
     };
     for (const auto& seg : s_groovesTop) {
         subtractGroove(gm(s_grooveRmin), gm(s_grooveRmax), gm(seg[0]), gm(seg[1]),
