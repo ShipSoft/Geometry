@@ -32,7 +32,7 @@ TEST_CASE("TargetBuilds", "[target]") {
     SHiP::geometry::TargetFactory factory(materials);
     GeoPhysVol* target = factory.build();
     REQUIRE(target != nullptr);
-    auto* box = dynamic_cast<const GeoBox*>(target->getLogVol()->getShape());
+    const auto* box = dynamic_cast<const GeoBox*>(target->getLogVol()->getShape());
     REQUIRE(box != nullptr);
     // Vacuum box: 80×113.55×150 cm (half-sizes)
     CHECK(box->getXHalfLength() == 800.0);
@@ -51,7 +51,7 @@ TEST_CASE("Target2026HeVolume", "[target]") {
     PVConstLink heVolume = target->getChildVol(4);
     REQUIRE(heVolume->getLogVol()->getName() == "/SHiP/target/he_volume");
 
-    auto* heTube = dynamic_cast<const GeoTube*>(heVolume->getLogVol()->getShape());
+    const auto* heTube = dynamic_cast<const GeoTube*>(heVolume->getLogVol()->getShape());
     REQUIRE(heTube != nullptr);
     CHECK(heTube->getRMax() == Approx(237.0 * mm));
     CHECK(heTube->getZHalfLength() == Approx(0.5 * (1509.7 * mm + 37.8 * mm)));
@@ -61,26 +61,26 @@ TEST_CASE("Target2026HeVolume", "[target]") {
     REQUIRE(heVolume->getNChildVols() == 42u);
 
     // Jacket tube (child 34): He annulus wall, r 217..225 mm
-    auto* jacketTube =
+    const auto* jacketTube =
         dynamic_cast<const GeoTube*>(heVolume->getChildVol(34)->getLogVol()->getShape());
     REQUIRE(jacketTube != nullptr);
     CHECK(jacketTube->getRMin() == Approx(217.0 * mm));
     CHECK(jacketTube->getRMax() == Approx(225.0 * mm));
 
     // Front flange (child 35): spans z -23.8..55.2 mm -> half length 39.5 mm
-    auto* flangeFrontTube =
+    const auto* flangeFrontTube =
         dynamic_cast<const GeoTube*>(heVolume->getChildVol(35)->getLogVol()->getShape());
     REQUIRE(flangeFrontTube != nullptr);
     CHECK(flangeFrontTube->getZHalfLength() == Approx(39.5 * mm));
 
     // Rear flange (child 40): spans z 1198.7..1263.7 mm -> half length 32.5 mm
-    auto* flangeBackTube =
+    const auto* flangeBackTube =
         dynamic_cast<const GeoTube*>(heVolume->getChildVol(40)->getLogVol()->getShape());
     REQUIRE(flangeBackTube != nullptr);
     CHECK(flangeBackTube->getZHalfLength() == Approx(32.5 * mm));
 
     // Rear endcap (child 41): polycone with 6 planes, apex at z 1509.7 mm
-    auto* endcapPcon =
+    const auto* endcapPcon =
         dynamic_cast<const GeoPcon*>(heVolume->getChildVol(41)->getLogVol()->getShape());
     REQUIRE(endcapPcon != nullptr);
     CHECK(endcapPcon->getNPlanes() == 6u);  // NOLINT(readability/check)
@@ -99,7 +99,7 @@ TEST_CASE("Target2026UpstreamClosure", "[target]") {
     REQUIRE(window->getLogVol()->getName() == "/SHiP/target/front_window");
     CHECK(window->getLogVol()->getMaterial()->getName() ==  // NOLINT(readability/check)
           "Steel316L");
-    auto* windowTube = dynamic_cast<const GeoTube*>(window->getLogVol()->getShape());
+    const auto* windowTube = dynamic_cast<const GeoTube*>(window->getLogVol()->getShape());
     REQUIRE(windowTube != nullptr);
     CHECK(windowTube->getRMax() == Approx(141.0 * mm));
     CHECK(2.0 * windowTube->getZHalfLength() == Approx(8.0 * mm));
@@ -110,20 +110,21 @@ TEST_CASE("Target2026UpstreamClosure", "[target]") {
     // 75 mm below the beam axis
     PVConstLink cover = target->getChildVol(5);
     REQUIRE(cover->getLogVol()->getName() == "/SHiP/target/cover_plate");
-    auto* coverShape = dynamic_cast<const GeoShapeSubtraction*>(cover->getLogVol()->getShape());
+    const auto* coverShape =
+        dynamic_cast<const GeoShapeSubtraction*>(cover->getLogVol()->getShape());
     REQUIRE(coverShape != nullptr);
 
     // Outer plate: 600×650×20 mm box (half-lengths 300/325/10 mm)
-    auto* coverBox = dynamic_cast<const GeoBox*>(coverShape->getOpA());
+    const auto* coverBox = dynamic_cast<const GeoBox*>(coverShape->getOpA());
     REQUIRE(coverBox != nullptr);
     CHECK(coverBox->getXHalfLength() == Approx(300.0 * mm));
     CHECK(coverBox->getYHalfLength() == Approx(325.0 * mm));
     CHECK(coverBox->getZHalfLength() == Approx(10.0 * mm));
 
     // Subtracted hole: tube covering the He-container radius (r 237 mm)
-    auto* coverHoleShift = dynamic_cast<const GeoShapeShift*>(coverShape->getOpB());
+    const auto* coverHoleShift = dynamic_cast<const GeoShapeShift*>(coverShape->getOpB());
     REQUIRE(coverHoleShift != nullptr);
-    auto* coverHole = dynamic_cast<const GeoTube*>(coverHoleShift->getOp());
+    const auto* coverHole = dynamic_cast<const GeoTube*>(coverHoleShift->getOp());
     REQUIRE(coverHole != nullptr);
     CHECK(coverHole->getRMax() == Approx(237.0 * mm));
     // Note: the cover-plate placement (75 mm below the beam axis) is not
@@ -140,7 +141,7 @@ TEST_CASE("Target2026Disks", "[target]") {
     // Disk 1: 30 mm thick, front face at target z = 0
     {
         PVConstLink disk = heVolume->getChildVol(0);
-        auto* tube = dynamic_cast<const GeoTube*>(disk->getLogVol()->getShape());
+        const auto* tube = dynamic_cast<const GeoTube*>(disk->getLogVol()->getShape());
         REQUIRE(tube != nullptr);
         CHECK(tube->getRMax() == Approx(125.0 * mm));
         CHECK(tube->getZHalfLength() == Approx(15.0 * mm));
@@ -151,7 +152,7 @@ TEST_CASE("Target2026Disks", "[target]") {
     // Disk 33 (rear block): larger radius, spans 1005-1460 mm
     {
         PVConstLink disk = heVolume->getChildVol(32);
-        auto* tube = dynamic_cast<const GeoTube*>(disk->getLogVol()->getShape());
+        const auto* tube = dynamic_cast<const GeoTube*>(disk->getLogVol()->getShape());
         REQUIRE(tube != nullptr);
         CHECK(tube->getRMax() == Approx(157.0 * mm));
         const double zCentre = heVolume->getXToChildVol(32).translation().z() + heCentreZ;
@@ -171,6 +172,7 @@ TEST_CASE("Target2026SteelCore", "[target]") {
     PVConstLink core = heVolume->getChildVol(33);
     CHECK(core->getLogVol()->getName() == "/SHiP/target/core_steel");   // NOLINT(readability/check)
     CHECK(core->getLogVol()->getMaterial()->getName() == "Steel316L");  // NOLINT(readability/check)
-    auto* subtraction = dynamic_cast<const GeoShapeSubtraction*>(core->getLogVol()->getShape());
+    const auto* subtraction =
+        dynamic_cast<const GeoShapeSubtraction*>(core->getLogVol()->getShape());
     REQUIRE(subtraction != nullptr);
 }

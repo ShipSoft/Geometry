@@ -32,7 +32,7 @@ TEST_CASE("MuonShieldStationsMatchTable", "[muonshield]") {
         const GeoVPhysVol* child = &*ms->getChildVol(i);
         CHECK(child->getLogVol()->getName() == "/SHiP/muon_shield/" + std::string(station.name));
         CHECK(ms->getXToChildVol(i).translation().z() == gm(station.stationZ));
-        auto* box = dynamic_cast<const GeoBox*>(child->getLogVol()->getShape());
+        const auto* box = dynamic_cast<const GeoBox*>(child->getLogVol()->getShape());
         REQUIRE(box != nullptr);
         CHECK(box->getXHalfLength() == gm(station.containerHalfX));
         CHECK(box->getYHalfLength() == gm(station.containerHalfY));

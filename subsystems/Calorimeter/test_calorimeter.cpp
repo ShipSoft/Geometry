@@ -19,7 +19,7 @@ TEST_CASE("CalorimeterBuilds", "[calorimeter]") {
     CalorimeterFactory factory(materials);
     GeoPhysVol* calo = factory.build();
     REQUIRE(calo != nullptr);
-    auto* box = dynamic_cast<const GeoBox*>(calo->getLogVol()->getShape());
+    const auto* box = dynamic_cast<const GeoBox*>(calo->getLogVol()->getShape());
     REQUIRE(box != nullptr);
     // Fixed envelope: 3.00 × 3.50 × 1.45 m half-sizes
     CHECK(box->getXHalfLength() == 3000.0);

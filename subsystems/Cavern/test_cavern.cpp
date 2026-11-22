@@ -20,7 +20,7 @@ TEST_CASE("CavernWorldVolume", "[cavern]") {
     SHiP::geometry::CavernFactory factory(materials);
     GeoPhysVol* world = factory.build();
     REQUIRE(world != nullptr);
-    auto* box = dynamic_cast<const GeoBox*>(world->getLogVol()->getShape());
+    const auto* box = dynamic_cast<const GeoBox*>(world->getLogVol()->getShape());
     REQUIRE(box != nullptr);
     CHECK(box->getXHalfLength() == 200000.0);
     CHECK(box->getYHalfLength() == 200000.0);
