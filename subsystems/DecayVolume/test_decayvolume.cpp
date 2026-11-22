@@ -163,7 +163,9 @@ constexpr std::array<std::array<int, 2>, 12> kEdges = {{{0, 1},
                                                         {3, 7}}};
 
 std::array<Vec, 8> boxVertices(const GeoBox& b) {
-    const double hx = b.getXHalfLength(), hy = b.getYHalfLength(), hz = b.getZHalfLength();
+    const double hx = b.getXHalfLength();
+    const double hy = b.getYHalfLength();
+    const double hz = b.getZHalfLength();
     std::array<Vec, 8> v;
     int i = 0;
     for (int sz : {-1, 1}) {
@@ -207,7 +209,9 @@ std::array<Vec, 8> trapVertices(const GeoTrap& t) {
     int i = 0;
     for (int f = 0; f < 2; ++f) {
         const double s = (f == 0) ? -1.0 : +1.0;
-        const double ox = s * dz * cx, oy = s * dz * cy, oz = s * dz;
+        const double ox = s * dz * cx;
+        const double oy = s * dz * cy;
+        const double oz = s * dz;
         const double ta = std::tan(alp[f]);
         v[i++] = Vec(ox - (dy[f] * ta) - dxn[f], oy - dy[f], oz);
         v[i++] = Vec(ox - (dy[f] * ta) + dxn[f], oy - dy[f], oz);
@@ -229,8 +233,10 @@ double separation(const Hexa& a, const Hexa& b) {
             return;
         }
         const Vec u = n / nn;
-        double amin = std::numeric_limits<double>::infinity(), amax = -amin;
-        double bmin = amin, bmax = amax;
+        double amin = std::numeric_limits<double>::infinity();
+        double amax = -amin;
+        double bmin = amin;
+        double bmax = amax;
         for (const Vec& p : a.v) {
             const double d = p.dot(u);
             amin = std::min(amin, d);
@@ -362,7 +368,8 @@ constexpr double kHeliumClearanceMm = asMm(sbt::kSBT.heliumClearance);
 // atan(sqrt(gx^2 + gy^2)) with the axis, not atan(max(gx, gy)). The two-axis
 // combination is the rigorous lower bound; max() alone overestimates the gap.
 double minExpectedSeparation(const sbt::SBTParams& params = sbt::kSBT) {
-    const double gx = sbt::xGrowth(params), gy = sbt::yGrowth(params);
+    const double gx = sbt::xGrowth(params);
+    const double gy = sbt::yGrowth(params);
     return asMm(params.heliumClearance) / std::sqrt(1.0 + (gx * gx) + (gy * gy));
 }
 
@@ -371,13 +378,15 @@ double minExpectedSeparation(const sbt::SBTParams& params = sbt::kSBT) {
 double closestApproach(const Built& b, std::string* culprit = nullptr) {
     double worst = std::numeric_limits<double>::infinity();
     for (const Hexa& he : b.helium) {
-        double zlo = std::numeric_limits<double>::infinity(), zhi = -zlo;
+        double zlo = std::numeric_limits<double>::infinity();
+        double zhi = -zlo;
         for (const Vec& p : he.v) {
             zlo = std::min(zlo, p.z());
             zhi = std::max(zhi, p.z());
         }
         for (const Hexa& o : b.sbt) {
-            double ozlo = std::numeric_limits<double>::infinity(), ozhi = -ozlo;
+            double ozlo = std::numeric_limits<double>::infinity();
+            double ozhi = -ozlo;
             for (const Vec& p : o.v) {
                 ozlo = std::min(ozlo, p.z());
                 ozhi = std::max(ozhi, p.z());

@@ -110,7 +110,11 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, int moduleX, int modu
         return envPhys;
     };
 
-    int iWideH = 0, iWideV = 0, iThinH = 0, iThinV = 0, iHPL = 0;
+    int iWideH = 0;
+    int iWideV = 0;
+    int iThinH = 0;
+    int iThinV = 0;
+    int iHPL = 0;
 
     // Describes one calorimeter section (ECAL or HCAL)
     struct SectionDescriptor {
@@ -123,7 +127,8 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, int moduleX, int modu
     };
 
     auto processSection = [&](const SectionDescriptor& sec) {
-        int globalLayerIdx = 0, scintLayerIdx = 0;
+        int globalLayerIdx = 0;
+        int scintLayerIdx = 0;
         int absorberIdx = 0;
 
         for (LayerCode code : sec.layerCodes) {

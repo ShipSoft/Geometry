@@ -297,7 +297,10 @@ void SBTSensorBuilder::build(GeoVPhysVol* mother, const GeoMaterial* alMat,
                 Eigen::AngleAxisd(rotAngle, Eigen::Vector3d::UnitZ()).toRotationMatrix();
 
             for (int ci = 0; ci < nCont; ++ci) {
-                double localY_lo1, localY_hi1, localY_lo2, localY_hi2;
+                double localY_lo1;
+                double localY_hi1;
+                double localY_lo2;
+                double localY_hi2;
                 if (nCont == 2) {
                     if (ci == 0) {
                         localY_lo1 = -xAvailLo;
@@ -311,7 +314,8 @@ void SBTSensorBuilder::build(GeoVPhysVol* mother, const GeoMaterial* alMat,
                         localY_hi2 = +xAvailHi;
                     }
                 } else {
-                    const double t1 = xAvailLo / 3.0, t2 = xAvailHi / 3.0;
+                    const double t1 = xAvailLo / 3.0;
+                    const double t2 = xAvailHi / 3.0;
                     if (ci == 0) {
                         localY_lo1 = -xAvailLo;
                         localY_hi1 = -t1;
@@ -359,7 +363,8 @@ void SBTSensorBuilder::build(GeoVPhysVol* mother, const GeoMaterial* alMat,
                     const double lyCtrMid = 0.5 * (lyCtr1 + lyCtr_sp);
                     const double yFCtrMid = 0.5 * (yFaceCtr1 + yFCtr_sp);
 
-                    double theta1, phi1;
+                    double theta1;
+                    double phi1;
                     shearAngles(rotZ, /*worldXdrift=*/0.0,
                                 /*worldYdrift=*/yFCtr_sp - yFaceCtr1, dz1, theta1, phi1);
 
@@ -383,7 +388,8 @@ void SBTSensorBuilder::build(GeoVPhysVol* mother, const GeoMaterial* alMat,
                     const double dX_loc2 = yFaceCtr2 - yFCtr_sp;  // face Y-drift
                     const double dY_loc2 = lyCtr2 - lyCtr_sp;     // container X-drift
 
-                    double theta2, phi2;
+                    double theta2;
+                    double phi2;
                     shearAngles(rotZ, /*worldXdrift=*/dY_loc2, /*worldYdrift=*/dX_loc2, dz2, theta2,
                                 phi2);
 

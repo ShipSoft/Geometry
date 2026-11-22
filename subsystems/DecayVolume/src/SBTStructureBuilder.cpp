@@ -136,7 +136,9 @@ void placeHBeamInclined(GeoVPhysVol* parent, const GeoMaterial* mat, const std::
     const double uz = dz / L;
 
     // "Height" direction of the H cross-section: flanges face ±X.
-    double nx, ny, nz;
+    double nx;
+    double ny;
+    double nz;
     {
         nx = 0.0;
         ny = -uz;
@@ -305,15 +307,21 @@ void SBTStructureBuilder::build(GeoVPhysVol* mother, const GeoMaterial* steel,
 
             auto placeLongBeam = [&](const std::string& bname, double x0, double y0, double z0,
                                      double x1, double y1, double z1) {
-                const double dx = x1 - x0, dy = y1 - y0, dz_b = z1 - z0;
+                const double dx = x1 - x0;
+                const double dy = y1 - y0;
+                const double dz_b = z1 - z0;
                 const double L = std::sqrt((dx * dx) + (dy * dy) + (dz_b * dz_b));
                 if (L < 1e-6) {
                     return;
                 }
                 const double halfLen = 0.5 * L;
-                const double ux = dx / L, uy = dy / L, uz = dz_b / L;
+                const double ux = dx / L;
+                const double uy = dy / L;
+                const double uz = dz_b / L;
 
-                double nx = 0., ny = -uz, nz = uy;
+                double nx = 0.;
+                double ny = -uz;
+                double nz = uy;
                 double nmag = std::sqrt((nx * nx) + (ny * ny) + (nz * nz));
                 if (nmag < 1e-9) {
                     nx = uz;
@@ -331,15 +339,18 @@ void SBTStructureBuilder::build(GeoVPhysVol* mother, const GeoMaterial* steel,
                 rotMat.col(1) = Eigen::Vector3d(nx, ny, nz);
                 rotMat.col(2) = Eigen::Vector3d(ux, uy, uz);
 
-                const double xcm = 0.5 * (x0 + x1), ycm = 0.5 * (y0 + y1), zcm = 0.5 * (z0 + z1);
+                const double xcm = 0.5 * (x0 + x1);
+                const double ycm = 0.5 * (y0 + y1);
+                const double zcm = 0.5 * (z0 + z1);
 
                 const double hxF = 0.5 * hBeamW;
                 const double hyF = 0.5 * hBeamTf;
                 const double yOff = gm(sbt::hbeamFlangeOffset(params));
 
                 auto makeTrf = [&](double localDY) {
-                    const double px = xcm + (nx * localDY), py = ycm + (ny * localDY),
-                                 pz = zcm + (nz * localDY);
+                    const double px = xcm + (nx * localDY);
+                    const double py = ycm + (ny * localDY);
+                    const double pz = zcm + (nz * localDY);
                     return GeoTrf::Translate3D(px, py, pz) * GeoTrf::Transform3D(rotMat);
                 };
 
