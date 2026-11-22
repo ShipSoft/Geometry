@@ -62,19 +62,19 @@ void calo_fibre_hp::buildLayer(GeoVPhysVol* mother, GeoMaterial* aluminiumMat,
     // ── fibre tiling: three staggered sublayers ───────────────────────────
     const double pitch = 2.0 * rOuter;  // tight packing
     const double dxMax = 0.5 * pitch;   // middle-sublayer shift
-    const double usable = casingXY - 2.0 * rOuter - dxMax;
+    const double usable = casingXY - (2.0 * rOuter) - dxMax;
     const int nFib = std::max(1, static_cast<int>(std::floor(usable / pitch)) + 1);
-    const double x0 = -0.5 * ((nFib - 1) * pitch + dxMax);
+    const double x0 = -0.5 * (((nFib - 1) * pitch) + dxMax);
 
     const double dx[3] = {0.0, 0.5 * pitch, 0.0};
-    const double dz = std::max(0.0, 0.5 * casingZ - rOuter);
+    const double dz = std::max(0.0, (0.5 * casingZ) - rOuter);
     const double zLocal[3] = {-dz, 0.0, +dz};
 
     const std::string orient = fibresAlongY ? "V_L" : "H_L";
 
     for (int sublayer = 0; sublayer < 3; ++sublayer) {
         for (int i = 0; i < nFib; ++i) {
-            const double fibrePosition = x0 + i * pitch + dx[sublayer];
+            const double fibrePosition = x0 + (i * pitch) + dx[sublayer];
             const double sublayerZ = zLocal[sublayer];
 
             const auto baseName = std::format("{}_HPL_{}{}_S{}_F{}{}", layerTag, orient, layerIndex,

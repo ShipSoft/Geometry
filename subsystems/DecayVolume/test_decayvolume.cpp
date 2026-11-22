@@ -209,10 +209,10 @@ std::array<Vec, 8> trapVertices(const GeoTrap& t) {
         const double s = (f == 0) ? -1.0 : +1.0;
         const double ox = s * dz * cx, oy = s * dz * cy, oz = s * dz;
         const double ta = std::tan(alp[f]);
-        v[i++] = Vec(ox - dy[f] * ta - dxn[f], oy - dy[f], oz);
-        v[i++] = Vec(ox - dy[f] * ta + dxn[f], oy - dy[f], oz);
-        v[i++] = Vec(ox + dy[f] * ta - dxp[f], oy + dy[f], oz);
-        v[i++] = Vec(ox + dy[f] * ta + dxp[f], oy + dy[f], oz);
+        v[i++] = Vec(ox - (dy[f] * ta) - dxn[f], oy - dy[f], oz);
+        v[i++] = Vec(ox - (dy[f] * ta) + dxn[f], oy - dy[f], oz);
+        v[i++] = Vec(ox + (dy[f] * ta) - dxp[f], oy + dy[f], oz);
+        v[i++] = Vec(ox + (dy[f] * ta) + dxp[f], oy + dy[f], oz);
     }
     return v;
 }
@@ -493,7 +493,7 @@ TEST_CASE("HeliumSlabsAreUnchanged", "[decayvolume][envelope]") {
 // constant so that the comparison cannot be skewed by FMA contraction.
 TEST_CASE("LongBeamTaperMatchesStdSqrt", "[decayvolume][envelope]") {
     constexpr double g = sbt::yGrowth();
-    constexpr double arg = 1.0 + g * g;
+    constexpr double arg = 1.0 + (g * g);
     CHECK(sbt::detail::longBeamTaper() == std::sqrt(arg));  // NOLINT(readability/check)
 }
 

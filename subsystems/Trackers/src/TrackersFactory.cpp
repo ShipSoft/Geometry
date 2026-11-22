@@ -261,7 +261,7 @@ GeoPhysVol* TrackersFactory::buildSubLayer(int stationIndex, int viewIndex, bool
     // straw keeps a unique id across the whole subsystem (station, view,
     // sub-layer, straw).
     const int subLayerOrdinal =
-        ((stationIndex * s_nViews) + viewIndex) * s_nSubLayers + (shifted ? 1 : 0);
+        (((stationIndex * s_nViews) + viewIndex) * s_nSubLayers) + (shifted ? 1 : 0);
     const int strawUid = subLayerOrdinal * s_nStraws;
 
     const auto yStart = -(s_nStraws - 1) * 0.5 * pitch;

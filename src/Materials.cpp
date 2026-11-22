@@ -184,7 +184,7 @@ void Materials::createMaterials() {
     {
         const double awC = 12.011;
         const double awH = 1.008;
-        const double mw = 9.0 * awC + 10.0 * awH;
+        const double mw = (9.0 * awC) + (10.0 * awH);
         auto* pvt = new GeoMaterial("PVT", gm(1.032 * units::g / units::cm3));
         pvt->add(m_elements["Carbon"], 9.0 * awC / mw);
         pvt->add(m_elements["Hydrogen"], 10.0 * awH / mw);
@@ -197,7 +197,7 @@ void Materials::createMaterials() {
     {
         const double awC = 12.011;
         const double awH = 1.008;
-        const double mw = 8.0 * awC + 8.0 * awH;
+        const double mw = (8.0 * awC) + (8.0 * awH);
         auto* polystyrene = new GeoMaterial("Polystyrene", gm(1.05 * units::g / units::cm3));
         polystyrene->add(m_elements["Carbon"], 8.0 * awC / mw);
         polystyrene->add(m_elements["Hydrogen"], 8.0 * awH / mw);
@@ -211,7 +211,7 @@ void Materials::createMaterials() {
         const double awC = 12.011;
         const double awH = 1.008;
         const double awO = 15.999;
-        const double mw = 10.0 * awC + 8.0 * awH + 4.0 * awO;
+        const double mw = (10.0 * awC) + (8.0 * awH) + (4.0 * awO);
         auto* mylar = new GeoMaterial("Mylar", gm(1.39 * units::g / units::cm3));
         mylar->add(m_elements["Carbon"], 10.0 * awC / mw);
         mylar->add(m_elements["Hydrogen"], 8.0 * awH / mw);

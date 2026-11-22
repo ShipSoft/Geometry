@@ -78,10 +78,10 @@ void placeSideContainer(GeoVPhysVol* mother, const GeoMaterial* alMat, const Geo
         const double zMid1 = 0.5 * (zLo_mm + z_split_mm);
         const double frac1 = (z_split_mm - zLo_mm) / (zHi_mm - zLo_mm);
 
-        const double dy_split = dy1 + (dy2 - dy1) * frac1;
+        const double dy_split = dy1 + ((dy2 - dy1) * frac1);
 
         const double yC1 = yCtr1;
-        const double yC2 = yCtr1 + (yCtr2 - yCtr1) * frac1;
+        const double yC2 = yCtr1 + ((yCtr2 - yCtr1) * frac1);
 
         const double xCtr_flat = sgnX * gm(sbt::sideContainerCentreX(xHalf_lo * units::mm, params));
 
@@ -102,18 +102,18 @@ void placeSideContainer(GeoVPhysVol* mother, const GeoMaterial* alMat, const Geo
         const double zMid2 = 0.5 * (z_split_mm + zHi_mm);
         const double frac1 = (z_split_mm - zLo_mm) / (zHi_mm - zLo_mm);
 
-        const double dy_split = dy1 + (dy2 - dy1) * frac1;
-        const double yC1 = yCtr1 + (yCtr2 - yCtr1) * frac1;
+        const double dy_split = dy1 + ((dy2 - dy1) * frac1);
+        const double yC1 = yCtr1 + ((yCtr2 - yCtr1) * frac1);
         const double yC2 = yCtr2;
 
-        const double xHalf_split = xHalf_lo + (xHalf_hi - xHalf_lo) * frac1;
+        const double xHalf_split = xHalf_lo + ((xHalf_hi - xHalf_lo) * frac1);
         const double xCtr1_p2 =
             sgnX * gm(sbt::sideContainerCentreX(xHalf_split * units::mm, params));
         const double xCtr2_p2 = sgnX * gm(sbt::sideContainerCentreX(xHalf_hi * units::mm, params));
 
         const double dX2 = xCtr2_p2 - xCtr1_p2;
         const double dY2 = yC2 - yC1;
-        const double shear2 = std::sqrt(dX2 * dX2 + dY2 * dY2);
+        const double shear2 = std::sqrt((dX2 * dX2) + (dY2 * dY2));
         const double theta2 = std::atan2(shear2, 2.0 * dz2);
         const double phi2 = std::atan2(dY2, dX2);
 
@@ -145,7 +145,7 @@ void placeContainerAndCells(GeoVPhysVol* mother, const GeoMaterial* alMat,
 
     const double step = wallT + cellZ;
 
-    auto dyAt = [&](double z_local) { return dy1 + (dy2 - dy1) * (z_local + dz) / (2.0 * dz); };
+    auto dyAt = [&](double z_local) { return dy1 + ((dy2 - dy1) * (z_local + dz) / (2.0 * dz)); };
 
     const double tanTheta = std::tan(theta);
     auto shearOffset = [&](double z_ctr) {
@@ -155,7 +155,7 @@ void placeContainerAndCells(GeoVPhysVol* mother, const GeoMaterial* alMat,
 
     // ---- 7 aluminium walls -------------------------------------------------
     for (int w = 0; w < nWalls; ++w) {
-        const double z_lo = -dz + w * step;
+        const double z_lo = -dz + (w * step);
         const double z_hi = z_lo + wallT;
         const double z_ctr = 0.5 * (z_lo + z_hi);
 
@@ -233,8 +233,8 @@ void SBTSensorBuilder::build(GeoVPhysVol* mother, const GeoMaterial* alMat,
 
     //  (A)  SIDE CONTAINERS  (±X faces) — 4 containers per side, split by Y=0.
     for (int s = 0; s < nSub; ++s) {
-        const double zLo_mm = zEntrance_mm + s * subLen;
-        const double zHi_mm = zEntrance_mm + (s + 1) * subLen;
+        const double zLo_mm = zEntrance_mm + (s * subLen);
+        const double zHi_mm = zEntrance_mm + ((s + 1) * subLen);
 
         const double availLo = (yHalfAtZ(zLo_mm) - hBeamH);
         const double availHi = (yHalfAtZ(zHi_mm) - hBeamH);
@@ -267,8 +267,8 @@ void SBTSensorBuilder::build(GeoVPhysVol* mother, const GeoMaterial* alMat,
     //  column front-flange outer edge like the side containers.
     const int threshold = nSub / 2;
     for (int s = 0; s < nSub; ++s) {
-        const double zLo_mm = zEntrance_mm + s * subLen;
-        const double zHi_mm = zEntrance_mm + (s + 1) * subLen;
+        const double zLo_mm = zEntrance_mm + (s * subLen);
+        const double zHi_mm = zEntrance_mm + ((s + 1) * subLen);
 
         const double xAvailLo = gm(sbt::topBottomAvailX(xHalfAtZ(zLo_mm) * units::mm, params));
         const double xAvailHi = gm(sbt::topBottomAvailX(xHalfAtZ(zHi_mm) * units::mm, params));
@@ -341,10 +341,10 @@ void SBTSensorBuilder::build(GeoVPhysVol* mother, const GeoMaterial* alMat,
                 const double lyCtr1 = 0.5 * (localY_lo1 + localY_hi1);
                 const double lyCtr2 = 0.5 * (localY_lo2 + localY_hi2);
 
-                const double lyCtr_sp = lyCtr1 + (lyCtr2 - lyCtr1) * frac_split;
-                const double localY_lo_sp = localY_lo1 + (localY_lo2 - localY_lo1) * frac_split;
-                const double localY_hi_sp = localY_hi1 + (localY_hi2 - localY_hi1) * frac_split;
-                const double yFCtr_sp = yFaceCtr1 + (yFaceCtr2 - yFaceCtr1) * frac_split;
+                const double lyCtr_sp = lyCtr1 + ((lyCtr2 - lyCtr1) * frac_split);
+                const double localY_lo_sp = localY_lo1 + ((localY_lo2 - localY_lo1) * frac_split);
+                const double localY_hi_sp = localY_hi1 + ((localY_hi2 - localY_hi1) * frac_split);
+                const double yFCtr_sp = yFaceCtr1 + ((yFaceCtr2 - yFaceCtr1) * frac_split);
 
                 const std::string cname = tag + "_TB_S" + std::to_string(s) + "_" +
                                           (face == 0 ? "Top" : "Bot") + "_C" + std::to_string(ci);

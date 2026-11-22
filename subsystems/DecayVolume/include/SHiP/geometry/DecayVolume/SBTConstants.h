@@ -244,7 +244,7 @@ constexpr double sqrtConst(double v) {
     double prev = 0.0;
     for (int i = 0; i < 200 && x != prev; ++i) {
         prev = x;
-        x = 0.5 * (x + v / x);
+        x = 0.5 * (x + (v / x));
     }
     return x;
 }
@@ -252,7 +252,7 @@ constexpr double sqrtConst(double v) {
 /// Taper factor of a top/bottom longitudinal beam, 1/cos(atan(yGrowth)).
 constexpr double longBeamTaper(const SBTParams& params = kSBT) {
     const double g = yGrowth(params);
-    return sqrtConst(1.0 + g * g);
+    return sqrtConst(1.0 + (g * g));
 }
 
 }  // namespace detail
