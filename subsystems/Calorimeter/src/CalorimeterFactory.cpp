@@ -157,7 +157,7 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, int moduleX, int modu
                 case LayerCode::WidePVT_H: {
                     const auto volumeName =
                         std::format("{}_sl{}_wide_pvt_h{}", basePath, scintLayerIdx, moduleTag);
-                    auto* env = makeEnv(volumeName, 0.5 * scintZ, zCursor + 0.5 * scintZ);
+                    auto* env = makeEnv(volumeName, 0.5 * scintZ, zCursor + (0.5 * scintZ));
                     calo_bar::placeLayer(env, wideHLog, calo::kWidePVTBarPitch,
                                          calo::kWidePVTBarCount, 0.0 * units::mm, volumeName,
                                          iWideH, BarAxis::AlongY, moduleTag);
@@ -170,7 +170,7 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, int moduleX, int modu
                 case LayerCode::WidePVT_V: {
                     const auto volumeName =
                         std::format("{}_sl{}_wide_pvt_v{}", basePath, scintLayerIdx, moduleTag);
-                    auto* env = makeEnv(volumeName, 0.5 * scintZ, zCursor + 0.5 * scintZ);
+                    auto* env = makeEnv(volumeName, 0.5 * scintZ, zCursor + (0.5 * scintZ));
                     calo_bar::placeLayer(env, wideVLog, calo::kWidePVTBarPitch,
                                          calo::kWidePVTBarCount, 0.0 * units::mm, volumeName,
                                          iWideV, BarAxis::AlongX, moduleTag);
@@ -183,7 +183,7 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, int moduleX, int modu
                 case LayerCode::ThinPS_H: {
                     const auto volumeName =
                         std::format("{}_sl{}_thin_ps_h{}", basePath, scintLayerIdx, moduleTag);
-                    auto* env = makeEnv(volumeName, 0.5 * scintZ, zCursor + 0.5 * scintZ);
+                    auto* env = makeEnv(volumeName, 0.5 * scintZ, zCursor + (0.5 * scintZ));
                     calo_bar::placeLayer(env, thinHLog, calo::kThinPSBarPitch,
                                          calo::kThinPSBarCount, 0.0 * units::mm, volumeName, iThinH,
                                          BarAxis::AlongY, moduleTag);
@@ -196,7 +196,7 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, int moduleX, int modu
                 case LayerCode::ThinPS_V: {
                     const auto volumeName =
                         std::format("{}_sl{}_thin_ps_v{}", basePath, scintLayerIdx, moduleTag);
-                    auto* env = makeEnv(volumeName, 0.5 * scintZ, zCursor + 0.5 * scintZ);
+                    auto* env = makeEnv(volumeName, 0.5 * scintZ, zCursor + (0.5 * scintZ));
                     calo_bar::placeLayer(env, thinVLog, calo::kThinPSBarPitch,
                                          calo::kThinPSBarCount, 0.0 * units::mm, volumeName, iThinV,
                                          BarAxis::AlongX, moduleTag);
@@ -209,7 +209,7 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, int moduleX, int modu
                 case LayerCode::FibreHPL_Y: {
                     const auto volumeName =
                         std::format("{}_sl{}_hpl_y{}", basePath, scintLayerIdx, moduleTag);
-                    auto* env = makeEnv(volumeName, 0.5 * hplZ, zCursor + 0.5 * hplZ);
+                    auto* env = makeEnv(volumeName, 0.5 * hplZ, zCursor + (0.5 * hplZ));
                     calo_fibre_hp::buildLayer(env, alMat, psMat, volumeName, 0.0 * units::mm, iHPL,
                                               calo::kPlateXY, calo::kHplThickness,
                                               calo::kFiberDiameter, calo::kFiberCoreDiameter, true,
@@ -223,7 +223,7 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, int moduleX, int modu
                 case LayerCode::FibreHPL_X: {
                     const auto volumeName =
                         std::format("{}_sl{}_hpl_x{}", basePath, scintLayerIdx, moduleTag);
-                    auto* env = makeEnv(volumeName, 0.5 * hplZ, zCursor + 0.5 * hplZ);
+                    auto* env = makeEnv(volumeName, 0.5 * hplZ, zCursor + (0.5 * hplZ));
                     calo_fibre_hp::buildLayer(env, alMat, psMat, volumeName, 0.0 * units::mm, iHPL,
                                               calo::kPlateXY, calo::kHplThickness,
                                               calo::kFiberDiameter, calo::kFiberCoreDiameter, false,

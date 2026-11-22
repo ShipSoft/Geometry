@@ -24,7 +24,7 @@ namespace {
 constexpr double mm = GeoModelKernelUnits::mm;
 // Target frame: z = 0 at the front face of the first disk; the HeVolume tube
 // is centred on the middle of its target-frame span [-37.8, 1509.7] mm
-constexpr double heCentreZ = 0.5 * (-37.8 * mm + 1509.7 * mm);
+constexpr double heCentreZ = 0.5 * ((-37.8 * mm) + (1509.7 * mm));
 }  // namespace
 
 TEST_CASE("TargetBuilds", "[target]") {

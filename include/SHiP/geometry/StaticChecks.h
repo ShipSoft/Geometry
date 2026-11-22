@@ -150,7 +150,7 @@ template <typename Range, typename Pred>
 template <std::size_t N>
 [[nodiscard]] constexpr bool coveredBy(const Box& inner, const std::array<Box, N>& outers) {
     struct Cuts {
-        std::array<LengthMm, 2 * N + 2> at{};
+        std::array<LengthMm, ((2 * N)) + 2> at{};
         std::size_t n = 0;
     };
     const auto cuts = [&](Span Box::* axis) {

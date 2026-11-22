@@ -142,7 +142,7 @@ void buildVeto(GeoVPhysVol* mother, const GeoMaterial* pvt, LengthMm zDownstream
             const LengthMm y = vertical ? 0.0 * mm : stack + yShift[p];
             const std::string name =
                 std::string(kBase) + "/veto/P" + std::to_string(p) + "_B" + std::to_string(b);
-            placeChild(mother, vertical ? vertLog : horizLog, name, p * 10 + b, x, y, zc[p]);
+            placeChild(mother, vertical ? vertLog : horizLog, name, (p * 10) + b, x, y, zc[p]);
         }
     }
 }

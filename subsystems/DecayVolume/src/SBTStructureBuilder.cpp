@@ -124,7 +124,7 @@ void placeHBeamInclined(GeoVPhysVol* parent, const GeoMaterial* mat, const std::
     const double dx = x1 - x0;
     const double dy = y1 - y0;
     const double dz = z1 - z0;
-    const double L = std::sqrt(dx * dx + dy * dy + dz * dz);
+    const double L = std::sqrt((dx * dx) + (dy * dy) + (dz * dz));
     const double halfLen = 0.5 * L;
 
     if (L < 1e-6) {
@@ -141,13 +141,13 @@ void placeHBeamInclined(GeoVPhysVol* parent, const GeoMaterial* mat, const std::
         nx = 0.0;
         ny = -uz;
         nz = uy;
-        double nmag = std::sqrt(nx * nx + ny * ny + nz * nz);
+        double nmag = std::sqrt((nx * nx) + (ny * ny) + (nz * nz));
         if (nmag < 1e-9) {
             // d is parallel to X -> use Y x d instead
             nx = uz;
             ny = 0.0;
             nz = -ux;
-            nmag = std::sqrt(nx * nx + ny * ny + nz * nz);
+            nmag = std::sqrt((nx * nx) + (ny * ny) + (nz * nz));
         }
         nx /= nmag;
         ny /= nmag;
@@ -155,9 +155,9 @@ void placeHBeamInclined(GeoVPhysVol* parent, const GeoMaterial* mat, const std::
     }
 
     // Third axis: b = n x d  (completes right-handed frame with columns (b, n, d))
-    const double bx = ny * uz - nz * uy;
-    const double by = nz * ux - nx * uz;
-    const double bz = nx * uy - ny * ux;
+    const double bx = (ny * uz) - (nz * uy);
+    const double by = (nz * ux) - (nx * uz);
+    const double bz = (nx * uy) - (ny * ux);
 
     const double xcm = 0.5 * (x0 + x1);
     const double ycm = 0.5 * (y0 + y1);
@@ -175,9 +175,9 @@ void placeHBeamInclined(GeoVPhysVol* parent, const GeoMaterial* mat, const std::
     rotMat.col(2) = Eigen::Vector3d(ux, uy, uz);  // local Z -> d (beam axis)
 
     auto placePiece = [&](const std::string& pname, double hxp, double hyp, double localDY) {
-        const double px = xcm + nx * localDY;
-        const double py = ycm + ny * localDY;
-        const double pz = zcm + nz * localDY;
+        const double px = xcm + (nx * localDY);
+        const double py = ycm + (ny * localDY);
+        const double pz = zcm + (nz * localDY);
         const GeoTrf::Transform3D trf =
             GeoTrf::Translate3D(px, py, pz) * GeoTrf::Transform3D(rotMat);
         auto* shape = new GeoBox(hxp, hyp, halfLen);
@@ -221,7 +221,7 @@ void SBTStructureBuilder::build(GeoVPhysVol* mother, const GeoMaterial* steel,
 
     //  (A)  VERTICAL COLUMNS — 11 rows x 2 sides, frustum top -> floor.
     for (int row = 0; row <= nSubFrustrum; ++row) {
-        const double z_mm = zEntrance_mm + row * subLength;
+        const double z_mm = zEntrance_mm + (row * subLength);
         const double z_G = z_mm;
 
         const double xEdge_mm = xHalfAtZ(z_mm);
@@ -255,11 +255,11 @@ void SBTStructureBuilder::build(GeoVPhysVol* mother, const GeoMaterial* steel,
         const double sy = corners[ci].second;
 
         const double cbShift = sy * 0.5 * hBeamTf;  // outward Tf/2 shift
-        const double cbEndGap = 0.5 * hBeamH + s_beam_end_standoff_mm;
+        const double cbEndGap = (0.5 * hBeamH) + s_beam_end_standoff_mm;
 
         for (int s = 0; s < nSubFrustrum; ++s) {
-            const double zA_mm = zEntrance_mm + s * subLength + cbEndGap;
-            const double zB_mm = zEntrance_mm + (s + 1) * subLength - cbEndGap;
+            const double zA_mm = zEntrance_mm + (s * subLength) + cbEndGap;
+            const double zB_mm = zEntrance_mm + ((s + 1) * subLength) - cbEndGap;
 
             const double xA = xHalfAtZ(zA_mm);
             const double xB = xHalfAtZ(zB_mm);
@@ -280,8 +280,8 @@ void SBTStructureBuilder::build(GeoVPhysVol* mother, const GeoMaterial* steel,
     //  the configured sub-frustum count instead of assuming 10.
     const int mid = nSubFrustrum / 2;
     for (int s = 0; s < nSubFrustrum; ++s) {
-        const double zLo_mm = zEntrance_mm + s * subLength;
-        const double zHi_mm = zEntrance_mm + (s + 1) * subLength;
+        const double zLo_mm = zEntrance_mm + (s * subLength);
+        const double zHi_mm = zEntrance_mm + ((s + 1) * subLength);
 
         const double xLo = xHalfAtZ(zLo_mm);
         const double xHi = xHalfAtZ(zHi_mm);
@@ -306,7 +306,7 @@ void SBTStructureBuilder::build(GeoVPhysVol* mother, const GeoMaterial* steel,
             auto placeLongBeam = [&](const std::string& bname, double x0, double y0, double z0,
                                      double x1, double y1, double z1) {
                 const double dx = x1 - x0, dy = y1 - y0, dz_b = z1 - z0;
-                const double L = std::sqrt(dx * dx + dy * dy + dz_b * dz_b);
+                const double L = std::sqrt((dx * dx) + (dy * dy) + (dz_b * dz_b));
                 if (L < 1e-6) {
                     return;
                 }
@@ -314,20 +314,20 @@ void SBTStructureBuilder::build(GeoVPhysVol* mother, const GeoMaterial* steel,
                 const double ux = dx / L, uy = dy / L, uz = dz_b / L;
 
                 double nx = 0., ny = -uz, nz = uy;
-                double nmag = std::sqrt(nx * nx + ny * ny + nz * nz);
+                double nmag = std::sqrt((nx * nx) + (ny * ny) + (nz * nz));
                 if (nmag < 1e-9) {
                     nx = uz;
                     ny = 0.;
                     nz = -ux;
-                    nmag = std::sqrt(nx * nx + nz * nz);
+                    nmag = std::sqrt((nx * nx) + (nz * nz));
                 }
                 nx /= nmag;
                 ny /= nmag;
                 nz /= nmag;
 
                 GeoTrf::RotationMatrix3D rotMat;
-                rotMat.col(0) =
-                    Eigen::Vector3d(ny * uz - nz * uy, nz * ux - nx * uz, nx * uy - ny * ux);
+                rotMat.col(0) = Eigen::Vector3d((ny * uz) - (nz * uy), (nz * ux) - (nx * uz),
+                                                (nx * uy) - (ny * ux));
                 rotMat.col(1) = Eigen::Vector3d(nx, ny, nz);
                 rotMat.col(2) = Eigen::Vector3d(ux, uy, uz);
 
@@ -338,8 +338,8 @@ void SBTStructureBuilder::build(GeoVPhysVol* mother, const GeoMaterial* steel,
                 const double yOff = gm(sbt::hbeamFlangeOffset(params));
 
                 auto makeTrf = [&](double localDY) {
-                    const double px = xcm + nx * localDY, py = ycm + ny * localDY,
-                                 pz = zcm + nz * localDY;
+                    const double px = xcm + (nx * localDY), py = ycm + (ny * localDY),
+                                 pz = zcm + (nz * localDY);
                     return GeoTrf::Translate3D(px, py, pz) * GeoTrf::Transform3D(rotMat);
                 };
 
@@ -363,15 +363,15 @@ void SBTStructureBuilder::build(GeoVPhysVol* mother, const GeoMaterial* steel,
                 }
             };
 
-            const double lbEndGap = 0.5 * hBeamW + s_beam_end_standoff_mm;
+            const double lbEndGap = (0.5 * hBeamW) + s_beam_end_standoff_mm;
             const double zb0_mm = zLo_mm + lbEndGap;
             const double zb1_mm = zHi_mm - lbEndGap;
             const double fr0 = (zb0_mm - zLo_mm) / (zHi_mm - zLo_mm);
             const double fr1 = (zb1_mm - zLo_mm) / (zHi_mm - zLo_mm);
-            const double yb0 = yLo_mm + (yHi_mm - yLo_mm) * fr0;
-            const double yb1 = yLo_mm + (yHi_mm - yLo_mm) * fr1;
-            const double xL0 = xLo + (xHi - xLo) * fr0;
-            const double xL1 = xLo + (xHi - xLo) * fr1;
+            const double yb0 = yLo_mm + ((yHi_mm - yLo_mm) * fr0);
+            const double yb1 = yLo_mm + ((yHi_mm - yLo_mm) * fr1);
+            const double xL0 = xLo + ((xHi - xLo) * fr0);
+            const double xL1 = xLo + ((xHi - xLo) * fr1);
 
             if (s < mid) {
                 placeLongBeam(fTag + "_C0", 0.0, yb0, zb0_mm, 0.0, yb1, zb1_mm);
@@ -386,7 +386,7 @@ void SBTStructureBuilder::build(GeoVPhysVol* mother, const GeoMaterial* steel,
 
     //  (D)  TOP/BOTTOM CROSS-BEAMS — 11 rows x 2 faces, along X.
     for (int row = 0; row <= nSubFrustrum; ++row) {
-        const double z_mm = zEntrance_mm + row * subLength;
+        const double z_mm = zEntrance_mm + (row * subLength);
         const double z_G = z_mm;
 
         const double xEdge_mm = xHalfAtZ(z_mm);
