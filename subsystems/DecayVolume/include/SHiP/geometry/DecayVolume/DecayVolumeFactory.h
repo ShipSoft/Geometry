@@ -39,7 +39,13 @@ class DecayVolumeFactory {
     static constexpr SubsystemDescriptor descriptor() {
         using units::gm;
         using units::m;
-        return {"DecayVolume", "/SHiP/decay_volume", 4, 0.0, 0.0, gm(58.12 * m), false};
+        return {.name = "DecayVolume",
+                .node = "/SHiP/decay_volume",
+                .id = 4,
+                .x_mm = 0.0,
+                .y_mm = 0.0,
+                .z_mm = gm(58.12 * m),
+                .isWorld = false};
     }
     /// Build the DecayVolume geometry; returns the air container.
     [[nodiscard]] GeoPhysVol* build();

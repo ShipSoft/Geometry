@@ -524,23 +524,32 @@ struct Variation {
 
 // NOLINTBEGIN(readability/braces)
 constexpr std::array<Variation, 14> kVariations{{
-    {"baseline", sbt::kSBT},
-    {"steeper X taper", vary([](sbt::SBTParams& p) { p.xHalfExit = 3000.0 * mm; })},
-    {"steeper Y taper", vary([](sbt::SBTParams& p) { p.yHalfExit = 4500.0 * mm; })},
-    {"no taper at all", vary([](sbt::SBTParams& p) {
-         p.xHalfExit = p.xHalfEntrance;
-         p.yHalfExit = p.yHalfEntrance;
-     })},
-    {"wider flange", vary([](sbt::SBTParams& p) { p.hbeamFlangeWidth = 400.0 * mm; })},
-    {"taller beam", vary([](sbt::SBTParams& p) { p.hbeamHeight = 400.0 * mm; })},
-    {"thicker flange", vary([](sbt::SBTParams& p) { p.hbeamFlangeThickness = 30.0 * mm; })},
-    {"thinner containers", vary([](sbt::SBTParams& p) { p.containerThickness = 120.0 * mm; })},
-    {"thicker containers", vary([](sbt::SBTParams& p) { p.containerThickness = 300.0 * mm; })},
-    {"more sub-frusta", vary([](sbt::SBTParams& p) { p.nSubFrustum = 20; })},
-    {"fewer sub-frusta", vary([](sbt::SBTParams& p) { p.nSubFrustum = 5; })},
-    {"bigger sensor clearance", vary([](sbt::SBTParams& p) { p.sensorClearance = 5.0 * mm; })},
-    {"non-zero helium clearance", vary([](sbt::SBTParams& p) { p.heliumClearance = 10.0 * mm; })},
-    {"shorter SBT", vary([](sbt::SBTParams& p) { p.totalLength = 20000.0 * mm; })},
+    {.what = "baseline", .params = sbt::kSBT},
+    {.what = "steeper X taper",
+     .params = vary([](sbt::SBTParams& p) { p.xHalfExit = 3000.0 * mm; })},
+    {.what = "steeper Y taper",
+     .params = vary([](sbt::SBTParams& p) { p.yHalfExit = 4500.0 * mm; })},
+    {.what = "no taper at all", .params = vary([](sbt::SBTParams& p) {
+                                    p.xHalfExit = p.xHalfEntrance;
+                                    p.yHalfExit = p.yHalfEntrance;
+                                })},
+    {.what = "wider flange",
+     .params = vary([](sbt::SBTParams& p) { p.hbeamFlangeWidth = 400.0 * mm; })},
+    {.what = "taller beam", .params = vary([](sbt::SBTParams& p) { p.hbeamHeight = 400.0 * mm; })},
+    {.what = "thicker flange",
+     .params = vary([](sbt::SBTParams& p) { p.hbeamFlangeThickness = 30.0 * mm; })},
+    {.what = "thinner containers",
+     .params = vary([](sbt::SBTParams& p) { p.containerThickness = 120.0 * mm; })},
+    {.what = "thicker containers",
+     .params = vary([](sbt::SBTParams& p) { p.containerThickness = 300.0 * mm; })},
+    {.what = "more sub-frusta", .params = vary([](sbt::SBTParams& p) { p.nSubFrustum = 20; })},
+    {.what = "fewer sub-frusta", .params = vary([](sbt::SBTParams& p) { p.nSubFrustum = 5; })},
+    {.what = "bigger sensor clearance",
+     .params = vary([](sbt::SBTParams& p) { p.sensorClearance = 5.0 * mm; })},
+    {.what = "non-zero helium clearance",
+     .params = vary([](sbt::SBTParams& p) { p.heliumClearance = 10.0 * mm; })},
+    {.what = "shorter SBT",
+     .params = vary([](sbt::SBTParams& p) { p.totalLength = 20000.0 * mm; })},
 }};
 // NOLINTEND(readability/braces)
 }  // namespace

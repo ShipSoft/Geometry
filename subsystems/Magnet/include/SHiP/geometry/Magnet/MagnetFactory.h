@@ -36,7 +36,13 @@ class MagnetFactory {
     static constexpr SubsystemDescriptor descriptor() {
         using units::gm;
         using units::m;
-        return {"Magnet", "/SHiP/magnet", 6, 0.0, 0.0, gm(89.57 * m), false};
+        return {.name = "Magnet",
+                .node = "/SHiP/magnet",
+                .id = 6,
+                .x_mm = 0.0,
+                .y_mm = 0.0,
+                .z_mm = gm(89.57 * m),
+                .isWorld = false};
     }
     /**
      * @brief Build the Magnet geometry

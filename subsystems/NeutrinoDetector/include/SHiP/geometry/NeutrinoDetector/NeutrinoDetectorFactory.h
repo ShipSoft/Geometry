@@ -63,7 +63,13 @@ class NeutrinoDetectorFactory {
     static constexpr SubsystemDescriptor descriptor() {
         using units::gm;
         using units::m;
-        return {"NeutrinoDetector", "/SHiP/neutrino_detector", 9, 0.0, 0.0, gm(28.95 * m), false};
+        return {.name = "NeutrinoDetector",
+                .node = "/SHiP/neutrino_detector",
+                .id = 9,
+                .x_mm = 0.0,
+                .y_mm = 0.0,
+                .z_mm = gm(28.95 * m),
+                .isWorld = false};
     }
     /// Build the SND geometry; returns the air container.
     [[nodiscard]] GeoPhysVol* build();

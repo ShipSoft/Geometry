@@ -39,7 +39,13 @@ class TimingDetectorFactory {
     static constexpr SubsystemDescriptor descriptor() {
         using units::gm;
         using units::m;
-        return {"TimingDetector", "/SHiP/timing_detector", 7, 0.0, 0.0, gm(95.902 * m), false};
+        return {.name = "TimingDetector",
+                .node = "/SHiP/timing_detector",
+                .id = 7,
+                .x_mm = 0.0,
+                .y_mm = 0.0,
+                .z_mm = gm(95.902 * m),
+                .isWorld = false};
     }
 
     /** Build the TimingDetector geometry and return the container volume. */
@@ -76,8 +82,9 @@ class TimingDetectorFactory {
     ///   y = y0 + ir * step            → -3220 … +3220 mm (step 6440/109)
     ///   z = (ir%2)*12 + (ic%2)*90     → 4 stagger levels: 0, 12, 90, 102 mm
     static constexpr BarCentre barCentre(int ic, int ir) {
-        return {(ic - 1) * s_columnPitchX, s_rowY0 + ir * s_rowStepY,
-                (ir % 2) * s_zStaggerRow + (ic % 2) * s_zStaggerCol};
+        return {.x = (ic - 1) * s_columnPitchX,
+                .y = s_rowY0 + ir * s_rowStepY,
+                .z = (ir % 2) * s_zStaggerRow + (ic % 2) * s_zStaggerCol};
     }
 
     static constexpr checks::Box barBox(int ic, int ir) {

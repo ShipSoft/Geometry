@@ -34,7 +34,7 @@ struct Envelope {
     LengthMm halfHeightUp;
     LengthMm halfHeightDown;
 
-    [[nodiscard]] constexpr checks::Span z() const { return {zStart, zEnd}; }
+    [[nodiscard]] constexpr checks::Span z() const { return {.lo = zStart, .hi = zEnd}; }
     [[nodiscard]] constexpr LengthMm maxHalfWidth() const {
         return halfWidthUp < halfWidthDown ? halfWidthDown : halfWidthUp;
     }
@@ -48,38 +48,38 @@ inline constexpr auto m = units::m;
 }  // namespace detail
 
 // clang-format off
-inline constexpr Envelope kHadronStopper{"Magnetised hadron stopper", 2.14 * detail::m, 4.44 * detail::m,
-    0.0 * detail::m, 0.0 * detail::m, 0.0 * detail::m, 0.0 * detail::m};
+inline constexpr Envelope kHadronStopper{.name="Magnetised hadron stopper", .zStart=2.14 * detail::m, .zEnd=4.44 * detail::m,
+    .halfWidthUp=0.0 * detail::m, .halfWidthDown=0.0 * detail::m, .halfHeightUp=0.0 * detail::m, .halfHeightDown=0.0 * detail::m};
 inline constexpr std::array<Envelope, 5> kMuonShield{{
-    {"Muon shield 1 (NC)",  4.74 * detail::m, 12.14 * detail::m, 2.10 * detail::m, 2.00 * detail::m, 1.60 * detail::m, 1.60 * detail::m},
-    {"Muon shield 2 (NC)", 12.24 * detail::m, 19.24 * detail::m, 0.35 * detail::m, 1.15 * detail::m, 0.35 * detail::m, 1.55 * detail::m},
-    {"Muon shield 3 (NC)", 19.34 * detail::m, 24.34 * detail::m, 0.10 * detail::m, 1.65 * detail::m, 1.95 * detail::m, 2.30 * detail::m},
-    {"Muon shield 4 (NC)", 24.44 * detail::m, 26.12 * detail::m, 0.10 * detail::m, 1.65 * detail::m, 1.95 * detail::m, 2.30 * detail::m},
-    {"Muon shield 5 (NC)", 26.22 * detail::m, 32.22 * detail::m, 0.50 * detail::m, 1.60 * detail::m, 0.10 * detail::m, 2.15 * detail::m},
+    {.name="Muon shield 1 (NC)",  .zStart=4.74 * detail::m, .zEnd=12.14 * detail::m, .halfWidthUp=2.10 * detail::m, .halfWidthDown=2.00 * detail::m, .halfHeightUp=1.60 * detail::m, .halfHeightDown=1.60 * detail::m},
+    {.name="Muon shield 2 (NC)", .zStart=12.24 * detail::m, .zEnd=19.24 * detail::m, .halfWidthUp=0.35 * detail::m, .halfWidthDown=1.15 * detail::m, .halfHeightUp=0.35 * detail::m, .halfHeightDown=1.55 * detail::m},
+    {.name="Muon shield 3 (NC)", .zStart=19.34 * detail::m, .zEnd=24.34 * detail::m, .halfWidthUp=0.10 * detail::m, .halfWidthDown=1.65 * detail::m, .halfHeightUp=1.95 * detail::m, .halfHeightDown=2.30 * detail::m},
+    {.name="Muon shield 4 (NC)", .zStart=24.44 * detail::m, .zEnd=26.12 * detail::m, .halfWidthUp=0.10 * detail::m, .halfWidthDown=1.65 * detail::m, .halfHeightUp=1.95 * detail::m, .halfHeightDown=2.30 * detail::m},
+    {.name="Muon shield 5 (NC)", .zStart=26.22 * detail::m, .zEnd=32.22 * detail::m, .halfWidthUp=0.50 * detail::m, .halfWidthDown=1.60 * detail::m, .halfHeightUp=0.10 * detail::m, .halfHeightDown=2.15 * detail::m},
 }};
-inline constexpr Envelope kNeutrinoDetector{"Scattering and neutrino detector", 26.40 * detail::m, 31.50 * detail::m,
-    0.30 * detail::m, 0.40 * detail::m, 0.30 * detail::m, 0.40 * detail::m};
-inline constexpr Envelope kUpstreamTagger{"Upstream background tagger", 32.52 * detail::m, 32.92 * detail::m,
-    0.75 * detail::m, 0.75 * detail::m, 1.60 * detail::m, 1.60 * detail::m};
-inline constexpr Envelope kDecayVolume{"Decay volume", 32.92 * detail::m, 83.32 * detail::m,
-    0.70 * detail::m, 2.20 * detail::m, 1.55 * detail::m, 3.20 * detail::m};
+inline constexpr Envelope kNeutrinoDetector{.name="Scattering and neutrino detector", .zStart=26.40 * detail::m, .zEnd=31.50 * detail::m,
+    .halfWidthUp=0.30 * detail::m, .halfWidthDown=0.40 * detail::m, .halfHeightUp=0.30 * detail::m, .halfHeightDown=0.40 * detail::m};
+inline constexpr Envelope kUpstreamTagger{.name="Upstream background tagger", .zStart=32.52 * detail::m, .zEnd=32.92 * detail::m,
+    .halfWidthUp=0.75 * detail::m, .halfWidthDown=0.75 * detail::m, .halfHeightUp=1.60 * detail::m, .halfHeightDown=1.60 * detail::m};
+inline constexpr Envelope kDecayVolume{.name="Decay volume", .zStart=32.92 * detail::m, .zEnd=83.32 * detail::m,
+    .halfWidthUp=0.70 * detail::m, .halfWidthDown=2.20 * detail::m, .halfHeightUp=1.55 * detail::m, .halfHeightDown=3.20 * detail::m};
 /// Thickness of the SBT shell around the decay volume (the CSV lists it as a
 /// half-width/height of 0.46 m).
 inline constexpr auto kSurroundTaggerThickness = 0.46 * detail::m;
 inline constexpr std::array<Envelope, 4> kTrackerStations{{
-    {"Straw Tracker station 1", 83.57 * detail::m, 84.57 * detail::m, 3.00 * detail::m, 3.00 * detail::m, 3.50 * detail::m, 3.50 * detail::m},
-    {"Straw Tracker station 2", 85.57 * detail::m, 86.57 * detail::m, 3.00 * detail::m, 3.00 * detail::m, 3.50 * detail::m, 3.50 * detail::m},
-    {"Straw Tracker station 3", 92.57 * detail::m, 93.57 * detail::m, 3.00 * detail::m, 3.00 * detail::m, 3.50 * detail::m, 3.50 * detail::m},
-    {"Straw Tracker station 4", 94.57 * detail::m, 95.57 * detail::m, 3.00 * detail::m, 3.00 * detail::m, 3.50 * detail::m, 3.50 * detail::m},
+    {.name="Straw Tracker station 1", .zStart=83.57 * detail::m, .zEnd=84.57 * detail::m, .halfWidthUp=3.00 * detail::m, .halfWidthDown=3.00 * detail::m, .halfHeightUp=3.50 * detail::m, .halfHeightDown=3.50 * detail::m},
+    {.name="Straw Tracker station 2", .zStart=85.57 * detail::m, .zEnd=86.57 * detail::m, .halfWidthUp=3.00 * detail::m, .halfWidthDown=3.00 * detail::m, .halfHeightUp=3.50 * detail::m, .halfHeightDown=3.50 * detail::m},
+    {.name="Straw Tracker station 3", .zStart=92.57 * detail::m, .zEnd=93.57 * detail::m, .halfWidthUp=3.00 * detail::m, .halfWidthDown=3.00 * detail::m, .halfHeightUp=3.50 * detail::m, .halfHeightDown=3.50 * detail::m},
+    {.name="Straw Tracker station 4", .zStart=94.57 * detail::m, .zEnd=95.57 * detail::m, .halfWidthUp=3.00 * detail::m, .halfWidthDown=3.00 * detail::m, .halfHeightUp=3.50 * detail::m, .halfHeightDown=3.50 * detail::m},
 }};
-inline constexpr Envelope kMagnet{"Main spectrometer magnet", 87.07 * detail::m, 92.07 * detail::m,
-    3.25 * detail::m, 3.25 * detail::m, 4.30 * detail::m, 4.30 * detail::m};
-inline constexpr Envelope kTimingDetector{"Timing detector", 95.82 * detail::m, 96.32 * detail::m,
-    2.75 * detail::m, 2.75 * detail::m, 3.25 * detail::m, 3.25 * detail::m};
+inline constexpr Envelope kMagnet{.name="Main spectrometer magnet", .zStart=87.07 * detail::m, .zEnd=92.07 * detail::m,
+    .halfWidthUp=3.25 * detail::m, .halfWidthDown=3.25 * detail::m, .halfHeightUp=4.30 * detail::m, .halfHeightDown=4.30 * detail::m};
+inline constexpr Envelope kTimingDetector{.name="Timing detector", .zStart=95.82 * detail::m, .zEnd=96.32 * detail::m,
+    .halfWidthUp=2.75 * detail::m, .halfWidthDown=2.75 * detail::m, .halfHeightUp=3.25 * detail::m, .halfHeightDown=3.25 * detail::m};
 inline constexpr std::array<Envelope, 3> kCalorimeter{{
-    {"Split ECAL (front)", 96.87 * detail::m, 97.07 * detail::m, 2.25 * detail::m, 2.25 * detail::m, 3.50 * detail::m, 3.50 * detail::m},
-    {"Split ECAL (back)",  98.07 * detail::m, 98.67 * detail::m, 2.75 * detail::m, 2.75 * detail::m, 3.50 * detail::m, 3.50 * detail::m},
-    {"HCAL",               98.77 * detail::m, 99.77 * detail::m, 3.00 * detail::m, 3.00 * detail::m, 3.50 * detail::m, 3.50 * detail::m},
+    {.name="Split ECAL (front)", .zStart=96.87 * detail::m, .zEnd=97.07 * detail::m, .halfWidthUp=2.25 * detail::m, .halfWidthDown=2.25 * detail::m, .halfHeightUp=3.50 * detail::m, .halfHeightDown=3.50 * detail::m},
+    {.name="Split ECAL (back)",  .zStart=98.07 * detail::m, .zEnd=98.67 * detail::m, .halfWidthUp=2.75 * detail::m, .halfWidthDown=2.75 * detail::m, .halfHeightUp=3.50 * detail::m, .halfHeightDown=3.50 * detail::m},
+    {.name="HCAL",               .zStart=98.77 * detail::m, .zEnd=99.77 * detail::m, .halfWidthUp=3.00 * detail::m, .halfWidthDown=3.00 * detail::m, .halfHeightUp=3.50 * detail::m, .halfHeightDown=3.50 * detail::m},
 }};
 // clang-format on
 

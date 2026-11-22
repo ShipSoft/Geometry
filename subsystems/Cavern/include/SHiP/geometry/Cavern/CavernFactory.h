@@ -22,7 +22,13 @@ class CavernFactory {
 
     /// This subsystem's self-description (name, node, id, placement).
     static constexpr SubsystemDescriptor descriptor() {
-        return {"Cavern", "/SHiP/cavern", 0, 0.0, 0.0, 0.0, true};
+        return {.name = "Cavern",
+                .node = "/SHiP/cavern",
+                .id = 0,
+                .x_mm = 0.0,
+                .y_mm = 0.0,
+                .z_mm = 0.0,
+                .isWorld = true};
     }
     /**
      * @brief Build the Cavern geometry

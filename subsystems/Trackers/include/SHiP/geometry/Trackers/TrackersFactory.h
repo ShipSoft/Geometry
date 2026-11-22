@@ -51,7 +51,13 @@ class TrackersFactory {
      * SubsystemDescriptor uses.
      */
     static constexpr SubsystemDescriptor descriptor() {
-        return {"Trackers", "/SHiP/trackers", 5, 0.0, 0.0, units::gm(s_containerCentreZ), false};
+        return {.name = "Trackers",
+                .node = "/SHiP/trackers",
+                .id = 5,
+                .x_mm = 0.0,
+                .y_mm = 0.0,
+                .z_mm = units::gm(s_containerCentreZ),
+                .isWorld = false};
     }
     /**
      * @brief Build the Trackers geometry.

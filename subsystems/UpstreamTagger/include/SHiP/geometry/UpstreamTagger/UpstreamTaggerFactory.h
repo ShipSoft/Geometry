@@ -64,7 +64,13 @@ class UpstreamTaggerFactory {
     static constexpr SubsystemDescriptor descriptor() {
         using units::gm;
         using units::m;
-        return {"UpstreamTagger", "/SHiP/upstream_tagger", 3, 0.0, 0.0, gm(32.72 * m), false};
+        return {.name = "UpstreamTagger",
+                .node = "/SHiP/upstream_tagger",
+                .id = 3,
+                .x_mm = 0.0,
+                .y_mm = 0.0,
+                .z_mm = gm(32.72 * m),
+                .isWorld = false};
     }
     /**
      * @brief Build the UpstreamTagger geometry.

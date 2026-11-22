@@ -49,7 +49,7 @@ std::optional<FoundChild> findChild(const GeoPhysVol* parent, std::string_view n
     for (unsigned int i = 0; i < parent->getNChildVols(); ++i) {
         const GeoVPhysVol* child = &*parent->getChildVol(i);
         if (child->getLogVol()->getName() == name) {
-            return FoundChild{child, i};
+            return FoundChild{.vol = child, .index = i};
         }
     }
     return std::nullopt;
@@ -148,8 +148,8 @@ static_assert(!layout::fitsEnvelopeZ(Slot{.z = layout::kDecayVolume.z + 1.0 * un
                                           .halfZ = layout::kDecayVolume.halfZ},
                                      SHiP::geometry::envelopes::kDecayVolume));
 static_assert(!SHiP::geometry::checks::overlaps(
-                  SHiP::geometry::checks::Span{0.0 * units::mm, 1.0 * units::mm},
-                  SHiP::geometry::checks::Span{1.0 * units::mm, 2.0 * units::mm}),
+                  SHiP::geometry::checks::Span{.lo = 0.0 * units::mm, .hi = 1.0 * units::mm},
+                  SHiP::geometry::checks::Span{.lo = 1.0 * units::mm, .hi = 2.0 * units::mm}),
               "touching spans do not overlap");
 
 namespace {

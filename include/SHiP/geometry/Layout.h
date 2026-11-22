@@ -67,8 +67,14 @@ inline constexpr auto zero = 0.0 * units::mm;
 template <typename Factory>
 [[nodiscard]] constexpr Slot slotOf(LengthMm halfX, LengthMm halfY, LengthMm halfZ) {
     constexpr SubsystemDescriptor d = Factory::descriptor();
-    return {d.node, d.id, d.x_mm * units::mm, d.y_mm * units::mm, d.z_mm * units::mm, halfX,
-            halfY,  halfZ};
+    return {.path = d.node,
+            .id = d.id,
+            .x = d.x_mm * units::mm,
+            .y = d.y_mm * units::mm,
+            .z = d.z_mm * units::mm,
+            .halfX = halfX,
+            .halfY = halfY,
+            .halfZ = halfZ};
 }
 
 inline constexpr Slot kTarget =
@@ -380,8 +386,8 @@ static_assert(
 static_assert(trackerStation(TrackersFactory::s_station2Z).hi <= kMagnet.zSpan().lo &&
                   kMagnet.zSpan().hi <= trackerStation(TrackersFactory::s_station3Z).lo,
               "the spectrometer magnet must sit between tracker stations 2 and 3");
-static_assert(checks::contains({trackerStation(TrackersFactory::s_station2Z).hi,
-                                kMagnet.zSpan().lo},
+static_assert(checks::contains({.lo = trackerStation(TrackersFactory::s_station2Z).hi,
+                                .hi = kMagnet.zSpan().lo},
                                checks::span(TrackersFactory::s_trackerMagnetZ,
                                             TrackersFactory::s_trackerMagnetHalfZ)),
               "the tracker-magnet marker must sit in the gap between station 2 and the magnet");

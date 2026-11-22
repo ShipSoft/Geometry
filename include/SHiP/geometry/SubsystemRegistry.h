@@ -61,7 +61,8 @@ inline std::map<std::string, SubsystemInfo>& registry() {
  */
 inline bool registerSubsystem(const SubsystemDescriptor& desc,
                               std::function<GeoVPhysVol*(Materials&)> build) {
-    const auto result = registry().emplace(desc.name, SubsystemInfo{desc, std::move(build)});
+    const auto result =
+        registry().emplace(desc.name, SubsystemInfo{.desc = desc, .build = std::move(build)});
     if (!result.second) {
         std::fprintf(stderr,
                      "SHiP::geometry: duplicate subsystem name '%s' registered; "

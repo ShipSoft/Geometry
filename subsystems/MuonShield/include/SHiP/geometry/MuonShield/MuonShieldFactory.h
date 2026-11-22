@@ -37,7 +37,13 @@ class MuonShieldFactory {
     static constexpr SubsystemDescriptor descriptor() {
         using units::gm;
         using units::mm;
-        return {"MuonShield", "/SHiP/muon_shield", 2, 0.0, 0.0, gm(16763.3 * mm), false};
+        return {.name = "MuonShield",
+                .node = "/SHiP/muon_shield",
+                .id = 2,
+                .x_mm = 0.0,
+                .y_mm = 0.0,
+                .z_mm = gm(16763.3 * mm),
+                .isWorld = false};
     }
 
     // MuonShieldArea container dimensions

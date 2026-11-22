@@ -33,7 +33,7 @@ struct Span {
 
 /// Interval of a volume with the given centre and half-length.
 [[nodiscard]] constexpr Span span(LengthMm centre, LengthMm half) {
-    return {centre - half, centre + half};
+    return {.lo = centre - half, .hi = centre + half};
 }
 
 /// @p inner lies within @p outer, allowing @p tol of slack at either end.
@@ -56,7 +56,7 @@ struct Box {
 /// Box with centre (@p cx, @p cy, @p cz) and the given half-lengths.
 [[nodiscard]] constexpr Box box(LengthMm cx, LengthMm cy, LengthMm cz, LengthMm hx, LengthMm hy,
                                 LengthMm hz) {
-    return {span(cx, hx), span(cy, hy), span(cz, hz)};
+    return {.x = span(cx, hx), .y = span(cy, hy), .z = span(cz, hz)};
 }
 
 /// Box centred on the origin.
