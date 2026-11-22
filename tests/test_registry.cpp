@@ -107,8 +107,8 @@ class StubSubsystem {
              .z_mm = z_mm,
              .isWorld = false},
             [name](SHiP::geometry::Materials& materials) -> GeoVPhysVol* {
-                auto* box = new GeoBox(10.0, 10.0, 10.0);
-                auto* log = new GeoLogVol(name, box, materials.getMaterial("Air"));
+                const auto* box = new GeoBox(10.0, 10.0, 10.0);
+                const auto* log = new GeoLogVol(name, box, materials.getMaterial("Air"));
                 return new GeoPhysVol(log);
             });
     }

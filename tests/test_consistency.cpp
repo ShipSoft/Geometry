@@ -86,7 +86,7 @@ TEST_CASE("ConsistencyTest.ExpectedSubsystemCount", "[consistency]") {
     GeoPhysVol* world = builder.build();
     REQUIRE(world != nullptr);
 
-    auto subsystems = collectSubsystems(world);
+    const auto subsystems = collectSubsystems(world);
     CHECK(subsystems.size() == layout::kSlots.size());  // NOLINT(readability/check)
 }
 

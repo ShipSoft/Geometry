@@ -109,7 +109,7 @@ GeoPhysVol* TrackersFactory::build() {
 
     // Container volume spanning all 4 stations.
     auto const* containerBox = new GeoBox(gm(s_halfX), gm(s_halfY), gm(s_containerHalfZ));
-    auto* containerLog = new GeoLogVol("/SHiP/trackers", containerBox, air);
+    const auto* containerLog = new GeoLogVol("/SHiP/trackers", containerBox, air);
     auto* containerPhys = new GeoPhysVol(containerLog);
 
     const std::array<units::LengthMm, s_nStations> stationZ = {s_station1Z, s_station2Z,
@@ -153,7 +153,7 @@ GeoPhysVol* TrackersFactory::buildStation(int stationIndex) {
     // consistency test (station box <= 3000 x 3500 x 500 mm) still passes.
     const std::string stationName = "/SHiP/trackers/station_" + std::to_string(stationIndex + 1);
     auto const* stationBox = new GeoBox(gm(s_halfX), gm(s_halfY), gm(s_halfZ));
-    auto* stationLog = new GeoLogVol(stationName, stationBox, air);
+    const auto* stationLog = new GeoLogVol(stationName, stationBox, air);
     auto* stationPhys = new GeoPhysVol(stationLog);
 
     // Four stereo views, stacked along Z within the station, each rotated
@@ -187,7 +187,7 @@ GeoPhysVol* TrackersFactory::buildView(int stationIndex, int viewIndex) {
                                  "/view_" + std::to_string(viewIndex);
 
     auto const* viewBox = new GeoBox(gm(kViewHalfX), gm(kViewHalfY), gm(kViewHalfZ));
-    auto* viewLog = new GeoLogVol(viewName + "/envelope", viewBox, air);
+    const auto* viewLog = new GeoLogVol(viewName + "/envelope", viewBox, air);
     auto* viewPhys = new GeoPhysVol(viewLog);
 
     // Material frame.
@@ -229,11 +229,11 @@ GeoPhysVol* TrackersFactory::buildFrame(int stationIndex, int viewIndex) {
     auto const* outerBox = new GeoBox(gm(kFrameHalfX), gm(kFrameHalfY), gm(s_frameHalfZ));
     auto const* innerBox =
         new GeoBox(gm(kApertureHalfX), gm(kApertureHalfY), gm(s_frameHalfZ + 1.0 * mm));
-    auto* frameShape = new GeoShapeSubtraction(outerBox, innerBox);
+    const auto* frameShape = new GeoShapeSubtraction(outerBox, innerBox);
 
     const std::string frameName = "/SHiP/trackers/station_" + std::to_string(stationIndex + 1) +
                                   "/view_" + std::to_string(viewIndex) + "/frame_body";
-    auto* frameLog = new GeoLogVol(frameName, frameShape, frameMat);
+    const auto* frameLog = new GeoLogVol(frameName, frameShape, frameMat);
     auto* framePhys = new GeoPhysVol(frameLog);
 
     return framePhys;
@@ -254,7 +254,7 @@ GeoPhysVol* TrackersFactory::buildSubLayer(int stationIndex, int viewIndex, bool
                                 "/view_" + std::to_string(viewIndex) + "/sublayer_" +
                                 (shifted ? "1" : "0") + "_body";
     auto const* subBox = new GeoBox(gm(kSubLayerHalfX), gm(kSubLayerHalfY), gm(kSubLayerHalfZ));
-    auto* subLog = new GeoLogVol(subName, subBox, air);
+    const auto* subLog = new GeoLogVol(subName, subBox, air);
     auto* subPhys = new GeoPhysVol(subLog);
 
     // Globally-unique straw id seed: the GeoSerialIdentifier base so every
@@ -273,7 +273,7 @@ GeoPhysVol* TrackersFactory::buildSubLayer(int stationIndex, int viewIndex, bool
     // the GeoTube (local Z) axis along X. GeoSerialIdentifier reproduces the
     // per-straw ids (base = subLayerOrdinal · s_nStraws); GeoSerialDenominator
     // reproduces the "<subName>/straw_<i>" names.
-    GeoGenfun::Variable i;
+    const GeoGenfun::Variable i;
     GeoGenfun::GENFUNCTION yStraw = gm(yStart + yStagger) + gm(pitch) * i;
     GeoXF::TRANSFUNCTION strawXF =
         GeoXF::Pow(GeoTrf::Transform3D(GeoTrf::Translate3D(0.0, gm(1.0 * mm), 0.0)), yStraw) *
@@ -309,11 +309,11 @@ GeoPhysVol* TrackersFactory::buildStraw() {
     const auto halfLength = s_strawLength / 2.0;
 
     auto const* wallTube = new GeoTube(0.0, gm(rWall), gm(halfLength));
-    auto* wallLog = new GeoLogVol("/SHiP/trackers/straw_wall", wallTube, mylar);
+    const auto* wallLog = new GeoLogVol("/SHiP/trackers/straw_wall", wallTube, mylar);
     auto* wallPhys = new GeoPhysVol(wallLog);
 
     auto const* gasTube = new GeoTube(0.0, gm(rGas), gm(halfLength));
-    auto* gasLog = new GeoLogVol("/SHiP/trackers/straw_gas", gasTube, gas);
+    const auto* gasLog = new GeoLogVol("/SHiP/trackers/straw_gas", gasTube, gas);
     auto* gasPhys = new GeoPhysVol(gasLog);
 
     wallPhys->add(new GeoNameTag("/SHiP/trackers/straw_gas"));
@@ -337,7 +337,7 @@ GeoPhysVol* TrackersFactory::buildTrackerMagnet() {
     const GeoMaterial* air = m_materials.requireMaterial("Air");
 
     auto const* box = new GeoBox(gm(s_halfX), gm(s_halfY), gm(s_trackerMagnetHalfZ));
-    auto* log = new GeoLogVol("/SHiP/trackers/tracker_magnet", box, air);
+    const auto* log = new GeoLogVol("/SHiP/trackers/tracker_magnet", box, air);
     auto* phys = new GeoPhysVol(log);
 
     return phys;

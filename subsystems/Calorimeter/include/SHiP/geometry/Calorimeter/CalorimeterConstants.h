@@ -126,7 +126,7 @@ constexpr units::LengthMm layerThickness(LayerCode code, units::LengthMm absorbe
 constexpr units::LengthMm sectionZ(std::span<const LayerCode> codes,
                                    units::LengthMm absorberThickness) {
     auto z = 0.0 * units::mm;
-    for (LayerCode code : codes) {
+    for (const LayerCode code : codes) {
         z += layerThickness(code, absorberThickness);
     }
     return z;
@@ -143,7 +143,7 @@ inline constexpr auto kTotalStackZ =
 constexpr int sectionVolumeCount(std::span<const LayerCode> codes) {
     using enum LayerCode;
     int n = 0;
-    for (LayerCode code : codes) {
+    for (const LayerCode code : codes) {
         n += code == AirGap ? 0 : 1;
     }
     return n;

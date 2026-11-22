@@ -35,14 +35,14 @@ TEST_CASE("CavernWorldVolume", "[cavern]") {
 TEST_CASE("CavernCavities", "[cavern]") {
     Materials materials;
     SHiP::geometry::CavernFactory factory(materials);
-    GeoPhysVol* world = factory.build();
+    const GeoPhysVol* world = factory.build();
     REQUIRE(world->getNChildVols() == 1);
     const GeoVPhysVol* rock = &*world->getChildVol(0);
     REQUIRE(rock->getLogVol()->getName() == std::string("/SHiP/cavern"));
     const GeoShape* shape = rock->getLogVol()->getShape();
     const GeoTrf::Transform3D toRock = world->getXToChildVol(0).inverse();
 
-    auto isRock = [&](double x, double y, double z) {
+    const auto isRock = [&](double x, double y, double z) {
         const GeoTrf::Vector3D p = toRock * GeoTrf::Vector3D(x, y, z);
         return shape->contains(p.x(), p.y(), p.z());
     };

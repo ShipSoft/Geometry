@@ -21,7 +21,7 @@ namespace SHiP::geometry {
  */
 namespace calo_fibre_hp {
 
-void buildLayer(GeoVPhysVol* mother, GeoMaterial* aluminiumMat, GeoMaterial* fibreMat,
+void buildLayer(GeoVPhysVol* mother, const GeoMaterial* aluminiumMat, const GeoMaterial* fibreMat,
                 const std::string& layerTag, units::LengthMm zCenter, int layerIndex,
                 units::LengthMm casingXY, units::LengthMm casingZ, units::LengthMm fiberDiam,
                 units::LengthMm fiberCoreDiam, bool fibresAlongY, const std::string& nameSuffix);

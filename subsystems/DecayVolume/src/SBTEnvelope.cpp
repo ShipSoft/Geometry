@@ -29,8 +29,8 @@ void buildHelium(GeoPhysVol* container, const GeoMaterial* helium,
         const double dy2 = gm(p.dy_hi);
 
         const std::string name = "/SHiP/decay_volume/helium_" + std::to_string(i);
-        auto* shape = new GeoTrap(dz, 0.0, 0.0, dy1, dx1, dx1, 0.0, dy2, dx2, dx2, 0.0);
-        auto* log = new GeoLogVol(name, shape, helium);
+        const auto* shape = new GeoTrap(dz, 0.0, 0.0, dy1, dx1, dx1, 0.0, dy2, dx2, dx2, 0.0);
+        const auto* log = new GeoLogVol(name, shape, helium);
         auto* phys = new GeoPhysVol(log);
         container->add(new GeoNameTag(name));
         container->add(new GeoTransform(GeoTrf::Translate3D(0.0, 0.0, zMid)));

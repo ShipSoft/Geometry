@@ -145,10 +145,12 @@ void placeContainerAndCells(GeoVPhysVol* mother, const GeoMaterial* alMat,
 
     const double step = wallT + cellZ;
 
-    auto dyAt = [&](double z_local) { return dy1 + ((dy2 - dy1) * (z_local + dz) / (2.0 * dz)); };
+    const auto dyAt = [&](double z_local) {
+        return dy1 + ((dy2 - dy1) * (z_local + dz) / (2.0 * dz));
+    };
 
     const double tanTheta = std::tan(theta);
-    auto shearOffset = [&](double z_ctr) {
+    const auto shearOffset = [&](double z_ctr) {
         return GeoTrf::Translate3D(tanTheta * std::cos(phi) * z_ctr,
                                    tanTheta * std::sin(phi) * z_ctr, z_ctr);
     };
@@ -164,8 +166,9 @@ void placeContainerAndCells(GeoVPhysVol* mother, const GeoMaterial* alMat,
 
         const std::string wname = name + "_W" + std::to_string(w);
 
-        auto* shape = new GeoTrap(wallHalf_z, theta, phi, dyw1, dx, dx, alp, dyw2, dx, dx, alp);
-        auto* lv = new GeoLogVol(wname, shape, alMat);
+        const auto* shape =
+            new GeoTrap(wallHalf_z, theta, phi, dyw1, dx, dx, alp, dyw2, dx, dx, alp);
+        const auto* lv = new GeoLogVol(wname, shape, alMat);
         auto* pv = new GeoPhysVol(lv);
 
         const GeoTrf::Transform3D wallTrf = trf * shearOffset(z_ctr);
@@ -186,8 +189,9 @@ void placeContainerAndCells(GeoVPhysVol* mother, const GeoMaterial* alMat,
 
         const std::string cname = name + "_C" + std::to_string(c);
 
-        auto* shape = new GeoTrap(cellHalf_z, theta, phi, dyc1, dx, dx, alp, dyc2, dx, dx, alp);
-        auto* lv = new GeoLogVol(cname, shape, labMat);
+        const auto* shape =
+            new GeoTrap(cellHalf_z, theta, phi, dyc1, dx, dx, alp, dyc2, dx, dx, alp);
+        const auto* lv = new GeoLogVol(cname, shape, labMat);
         auto* pv = new GeoFullPhysVol(lv);
 
         const GeoTrf::Transform3D cellTrf = trf * shearOffset(z_ctr);

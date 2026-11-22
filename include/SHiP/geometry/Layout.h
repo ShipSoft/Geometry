@@ -230,7 +230,8 @@ static_assert(checks::firstFailure(kKnownOverlaps,
 /// hall, or it overlaps solid rock.
 inline constexpr std::array kCavities = [] {
     using C = CavernFactory;
-    auto hall = [](LengthMm px, LengthMm py, LengthMm pz, LengthMm hx, LengthMm hy, LengthMm hz) {
+    const auto hall = [](LengthMm px, LengthMm py, LengthMm pz, LengthMm hx, LengthMm hy,
+                         LengthMm hz) {
         return checks::box(px, py, pz + C::s_cavernPosZ, hx, hy, hz);
     };
     return std::array{

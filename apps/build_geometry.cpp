@@ -142,7 +142,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    GeoVPhysVol* geometry = nullptr;
+    const GeoVPhysVol* geometry = nullptr;
     std::string label;
 
     try {

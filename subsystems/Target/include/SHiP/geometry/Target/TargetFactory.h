@@ -303,7 +303,7 @@ class TargetFactory {
         "endcap planes must be ordered in z with rmin < rmax inside the vessel");
     static_assert(
         [] {
-            auto ok = [](const auto& grooves) {
+            const auto ok = [](const auto& grooves) {
                 for (std::size_t i = 0; i < grooves.size(); ++i) {
                     if (!(grooves[i][0] < grooves[i][1]) || grooves[i][0] < s_coreZMin ||
                         grooves[i][1] > s_coreBoreStepZ ||

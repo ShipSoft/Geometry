@@ -13,7 +13,7 @@ class GeometryValidator {
 
    public:
     explicit GeometryValidator(const std::string& dbFile) : m_db(nullptr) {
-        int rc = sqlite3_open(dbFile.c_str(), &m_db);
+        const int rc = sqlite3_open(dbFile.c_str(), &m_db);
         if (rc) {
             std::cerr << "Can't open database: " << sqlite3_errmsg(m_db) << '\n';
             sqlite3_close(m_db);
@@ -57,7 +57,7 @@ class GeometryValidator {
 
    private:
     int countRecords(const std::string& tableName) {
-        std::string sql = "SELECT COUNT(*) FROM " + tableName;
+        const std::string sql = "SELECT COUNT(*) FROM " + tableName;
         sqlite3_stmt* stmt;
         int count = 0;
 
@@ -71,7 +71,7 @@ class GeometryValidator {
     }
 
     bool tableExists(const std::string& tableName) {
-        std::string sql = "SELECT name FROM sqlite_master WHERE type='table' AND name=?";
+        const std::string sql = "SELECT name FROM sqlite_master WHERE type='table' AND name=?";
         sqlite3_stmt* stmt;
         bool exists = false;
 
@@ -89,9 +89,9 @@ class GeometryValidator {
         std::cout << "--- Database Structure Check ---" << '\n';
 
         // Check essential tables exist
-        std::string requiredTables[] = {"LogVols",           "PhysVols",   "Materials",
-                                        "Elements",          "Shapes_Box", "Shapes_Tube",
-                                        "ChildrenPositions", "RootVolume"};
+        const std::string requiredTables[] = {"LogVols",           "PhysVols",   "Materials",
+                                              "Elements",          "Shapes_Box", "Shapes_Tube",
+                                              "ChildrenPositions", "RootVolume"};
 
         for (const auto& table : requiredTables) {
             if (tableExists(table)) {
@@ -105,8 +105,8 @@ class GeometryValidator {
     void extractVolumeInformation() {
         std::cout << '\n' << "--- Volume Information ---" << '\n';
 
-        int logvolCount = countRecords("LogVols");
-        int physvolCount = countRecords("PhysVols");
+        const int logvolCount = countRecords("LogVols");
+        const int physvolCount = countRecords("PhysVols");
 
         std::cout << "Total logical volumes: " << logvolCount << '\n';
         std::cout << "Total physical volumes: " << physvolCount << '\n';
@@ -117,14 +117,15 @@ class GeometryValidator {
                   << "Material ID" << '\n';
         std::cout << std::string(50, '-') << '\n';
 
-        std::string sql = "SELECT id, name, shapeId, shapeType, materialId FROM LogVols LIMIT 10";
+        const std::string sql =
+            "SELECT id, name, shapeId, shapeType, materialId FROM LogVols LIMIT 10";
         sqlite3_stmt* stmt;
 
         if (sqlite3_prepare_v2(m_db, sql.c_str(), -1, &stmt, nullptr) == SQLITE_OK) {
             while (sqlite3_step(stmt) == SQLITE_ROW) {
                 const char* name = (const char*)sqlite3_column_text(stmt, 1);
                 const char* shapeType = (const char*)sqlite3_column_text(stmt, 3);
-                int materialId = sqlite3_column_int(stmt, 4);
+                const int materialId = sqlite3_column_int(stmt, 4);
 
                 std::cout << std::setw(20) << (name ? name : "NULL") << std::setw(15)
                           << (shapeType ? shapeType : "NULL") << std::setw(15) << materialId
@@ -137,8 +138,8 @@ class GeometryValidator {
     void extractMaterialInformation() {
         std::cout << '\n' << "--- Material Information ---" << '\n';
 
-        int materialCount = countRecords("Materials");
-        int elementCount = countRecords("Elements");
+        const int materialCount = countRecords("Materials");
+        const int elementCount = countRecords("Elements");
 
         std::cout << "Total materials: " << materialCount << '\n';
         std::cout << "Total elements: " << elementCount << '\n';
@@ -148,13 +149,13 @@ class GeometryValidator {
         std::cout << std::setw(20) << "Name" << std::setw(15) << "Density" << '\n';
         std::cout << std::string(35, '-') << '\n';
 
-        std::string sql = "SELECT id, name, density FROM Materials";
+        const std::string sql = "SELECT id, name, density FROM Materials";
         sqlite3_stmt* stmt;
 
         if (sqlite3_prepare_v2(m_db, sql.c_str(), -1, &stmt, nullptr) == SQLITE_OK) {
             while (sqlite3_step(stmt) == SQLITE_ROW) {
                 const char* name = (const char*)sqlite3_column_text(stmt, 1);
-                double density = sqlite3_column_double(stmt, 2);
+                const double density = sqlite3_column_double(stmt, 2);
 
                 std::cout << std::setw(20) << (name ? name : "NULL") << std::setw(15) << density
                           << '\n';
@@ -166,8 +167,8 @@ class GeometryValidator {
     void extractPositionInformation() {
         std::cout << '\n' << "--- Position Information ---" << '\n';
 
-        int positionCount = countRecords("ChildrenPositions");
-        int transformCount = countRecords("Transforms");
+        const int positionCount = countRecords("ChildrenPositions");
+        const int transformCount = countRecords("Transforms");
 
         std::cout << "Total position records: " << positionCount << '\n';
         std::cout << "Total transforms: " << transformCount << '\n';
@@ -178,15 +179,15 @@ class GeometryValidator {
                   << "Child Type" << '\n';
         std::cout << std::string(45, '-') << '\n';
 
-        std::string sql =
+        const std::string sql =
             "SELECT parentId, parentType, childId, parentCopyNumber, childPos, childType FROM "
             "ChildrenPositions LIMIT 5";
         sqlite3_stmt* stmt;
 
         if (sqlite3_prepare_v2(m_db, sql.c_str(), -1, &stmt, nullptr) == SQLITE_OK) {
             while (sqlite3_step(stmt) == SQLITE_ROW) {
-                int parentId = sqlite3_column_int(stmt, 0);
-                int childId = sqlite3_column_int(stmt, 2);
+                const int parentId = sqlite3_column_int(stmt, 0);
+                const int childId = sqlite3_column_int(stmt, 2);
                 const char* childType = (const char*)sqlite3_column_text(stmt, 5);
 
                 std::cout << std::setw(15) << parentId << std::setw(15) << childId << std::setw(15)

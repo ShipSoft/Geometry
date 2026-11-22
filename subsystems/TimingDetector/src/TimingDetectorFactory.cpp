@@ -87,13 +87,14 @@ GeoPhysVol* TimingDetectorFactory::build() {
 
     auto const* containerBox =
         new GeoBox(gm(s_containerHalfX), gm(s_containerHalfY), gm(s_containerHalfZ));
-    auto* containerLog = new GeoLogVol("/SHiP/timing_detector", containerBox, air);
+    const auto* containerLog = new GeoLogVol("/SHiP/timing_detector", containerBox, air);
     auto* containerPhys = new GeoPhysVol(containerLog);
 
     // One reusable bar logvol, shared across all placements (the GeoModel idiom
     // used by the calorimeter bar layers and the upstream-tagger tiles).
-    auto* barLog = new GeoLogVol("/SHiP/timing_detector/bar",
-                                 new GeoBox(gm(s_barHalfX), gm(s_barHalfY), gm(s_barHalfZ)), scint);
+    const auto* barLog =
+        new GeoLogVol("/SHiP/timing_detector/bar",
+                      new GeoBox(gm(s_barHalfX), gm(s_barHalfY), gm(s_barHalfZ)), scint);
 
     // 3 columns × 110 rows = 330 bars at the analytic positions of
     // barCentre(), which the header checks at compile time.

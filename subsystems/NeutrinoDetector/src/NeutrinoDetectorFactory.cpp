@@ -123,9 +123,9 @@ void buildVeto(GeoVPhysVol* mother, const GeoMaterial* pvt, LengthMm zDownstream
     const double halfW = 0.5 * gm(s_veto_bar_width);
     const double halfT = 0.5 * gm(s_veto_bar_thickness);
 
-    auto* horizLog =
+    const auto* horizLog =
         new GeoLogVol(std::string(kBase) + "/veto/bar_h", new GeoBox(halfL, halfW, halfT), pvt);
-    auto* vertLog =
+    const auto* vertLog =
         new GeoLogVol(std::string(kBase) + "/veto/bar_v", new GeoBox(halfW, halfL, halfT), pvt);
 
     const LengthMm zc[3] = {zDownstreamFace - 2.5 * s_veto_bar_thickness - 2.0 * s_veto_plane_gap,
@@ -153,12 +153,12 @@ void buildVeto(GeoVPhysVol* mother, const GeoMaterial* pvt, LengthMm zDownstream
 void buildTarget(GeoVPhysVol* mother, const GeoMaterial* tungsten, const GeoMaterial* silicon,
                  LengthMm zStart) {
     const double halfXY = 0.5 * gm(s_tgt_plate_xy);
-    auto* wLog = new GeoLogVol(std::string(kBase) + "/target/W_plate",
-                               new GeoBox(halfXY, halfXY, 0.5 * gm(s_tgt_w)), tungsten);
-    auto* siXLog = new GeoLogVol(std::string(kBase) + "/target/Si_X",
-                                 new GeoBox(halfXY, halfXY, 0.5 * gm(s_tgt_si)), silicon);
-    auto* siYLog = new GeoLogVol(std::string(kBase) + "/target/Si_Y",
-                                 new GeoBox(halfXY, halfXY, 0.5 * gm(s_tgt_si)), silicon);
+    const auto* wLog = new GeoLogVol(std::string(kBase) + "/target/W_plate",
+                                     new GeoBox(halfXY, halfXY, 0.5 * gm(s_tgt_w)), tungsten);
+    const auto* siXLog = new GeoLogVol(std::string(kBase) + "/target/Si_X",
+                                       new GeoBox(halfXY, halfXY, 0.5 * gm(s_tgt_si)), silicon);
+    const auto* siYLog = new GeoLogVol(std::string(kBase) + "/target/Si_Y",
+                                       new GeoBox(halfXY, halfXY, 0.5 * gm(s_tgt_si)), silicon);
 
     LengthMm z = zStart;
     for (int l = 0; l < s_tgt_n_layers; ++l) {
@@ -177,8 +177,8 @@ void buildTarget(GeoVPhysVol* mother, const GeoMaterial* tungsten, const GeoMate
 /// measuring Y) or along Y (Y plane, measuring X). @p envLog is the shared
 /// per-section envelope log volume and @p fibrePhys the shared per-section fibre
 /// physical volume; @p zFront is the plane's upstream face.
-void buildFibrePlane(GeoVPhysVol* mother, const GeoLogVol* envLog, GeoPhysVol* fibrePhys, bool isX,
-                     LengthMm sectionXY, LengthMm zFront, const std::string& lTag) {
+void buildFibrePlane(GeoVPhysVol* mother, const GeoLogVol* envLog, const GeoPhysVol* fibrePhys,
+                     bool isX, LengthMm sectionXY, LengthMm zFront, const std::string& lTag) {
     const LengthMm r = 0.5 * s_hcal_fibre_diameter;
     const LengthMm d = s_hcal_fibre_diameter;
     const LengthMm halfXY = 0.5 * sectionXY;
@@ -215,7 +215,7 @@ void buildFibrePlane(GeoVPhysVol* mother, const GeoLogVol* envLog, GeoPhysVol* f
         const LengthMm stagger = (sub == 1) ? r : 0.0 * mm;
         const double start = gm(-halfXY + r + stagger);
 
-        GeoGenfun::Variable i;
+        const GeoGenfun::Variable i;
         GeoGenfun::GENFUNCTION pos = start + gm(d) * i;  // fibre centre along measuring axis
         GeoXF::TRANSFUNCTION fibreXF =
             GeoTrf::Transform3D(GeoTrf::Translate3D(0.0, 0.0, gm(localZ))) *
@@ -234,10 +234,11 @@ void buildFibrePlane(GeoVPhysVol* mother, const GeoLogVol* envLog, GeoPhysVol* f
 void buildHCal(GeoVPhysVol* mother, const GeoMaterial* air, const GeoMaterial* iron,
                const GeoMaterial* polystyrene, LengthMm zStart) {
     // Tile shape is section-independent → one shared log volume.
-    auto* tileLog = new GeoLogVol(std::string(kBase) + "/hcal/tile",
-                                  new GeoBox(0.5 * gm(s_hcal_tile_xy), 0.5 * gm(s_hcal_tile_xy),
-                                             0.5 * gm(s_hcal_tile_thickness)),
-                                  polystyrene);
+    const auto* tileLog =
+        new GeoLogVol(std::string(kBase) + "/hcal/tile",
+                      new GeoBox(0.5 * gm(s_hcal_tile_xy), 0.5 * gm(s_hcal_tile_xy),
+                                 0.5 * gm(s_hcal_tile_thickness)),
+                      polystyrene);
 
     const LengthMm r = 0.5 * s_hcal_fibre_diameter;
     const LengthMm envHalfZ = s_hcal_fibre_sublayers * r;
@@ -254,11 +255,11 @@ void buildHCal(GeoVPhysVol* mother, const GeoMaterial* air, const GeoMaterial* i
         const std::string sTag = std::string(kBase) + "/hcal/S" + std::to_string(s);
 
         // Per-section shared log volumes (reused across all 14 layers).
-        auto* ironLog =
+        const auto* ironLog =
             new GeoLogVol(sTag + "/Fe", new GeoBox(halfXY, halfXY, 0.5 * gm(s_hcal_iron)), iron);
         auto const* fibreEnvLog =
             new GeoLogVol(sTag + "/Fibre_ENV", new GeoBox(envHalfXY, envHalfXY, gm(envHalfZ)), air);
-        auto* fibreLog =
+        const auto* fibreLog =
             new GeoLogVol(sTag + "/fibre", new GeoTube(0.0, gm(r), halfXY), polystyrene);
         // One shared fibre physical volume placed by every plane in this section.
         auto* fibrePhys = new GeoPhysVol(fibreLog);
@@ -307,7 +308,7 @@ GeoPhysVol* NeutrinoDetectorFactory::build() {
     const GeoMaterial* pvt = m_materials.requireMaterial("PVT");
 
     auto const* containerBox = new GeoBox(gm(s_halfX), gm(s_halfY), gm(s_halfZ));
-    auto* containerLog = new GeoLogVol(kBase, containerBox, air);
+    const auto* containerLog = new GeoLogVol(kBase, containerBox, air);
     auto* containerPhys = new GeoPhysVol(containerLog);
 
     const LengthMm zStart = -0.5 * s_content_depth;
