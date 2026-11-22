@@ -56,7 +56,7 @@ TEST_CASE("TrackersStationsMatchConstants", "[trackers]") {
         const auto index = findChildIndex(tc, name);
         REQUIRE(index.has_value());
         const GeoVPhysVol* station = &*tc->getChildVol(*index);
-        auto* box = dynamic_cast<const GeoBox*>(station->getLogVol()->getShape());
+        const auto* box = dynamic_cast<const GeoBox*>(station->getLogVol()->getShape());
         REQUIRE(box != nullptr);
         CHECK(box->getXHalfLength() == gm(TrackersFactory::s_halfX));
         CHECK(box->getYHalfLength() == gm(TrackersFactory::s_halfY));
@@ -120,7 +120,7 @@ TEST_CASE("TrackersHasTrackerMagnet", "[trackers]") {
     INFO("tracker_magnet not found");
     REQUIRE(index.has_value());
     const GeoVPhysVol* tm = &*tc->getChildVol(*index);
-    auto* box = dynamic_cast<const GeoBox*>(tm->getLogVol()->getShape());
+    const auto* box = dynamic_cast<const GeoBox*>(tm->getLogVol()->getShape());
     REQUIRE(box != nullptr);
     CHECK(box->getZHalfLength() == gm(TrackersFactory::s_trackerMagnetHalfZ));
     CHECK(tc->getXToChildVol(*index).translation().z() ==

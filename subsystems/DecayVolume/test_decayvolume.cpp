@@ -113,7 +113,7 @@ TEST_CASE("DecayVolumeHasHeliumFrustum", "[decayvolume]") {
         }
     }
     REQUIRE(he != nullptr);
-    auto* trap = dynamic_cast<const GeoTrap*>(he->getLogVol()->getShape());
+    const auto* trap = dynamic_cast<const GeoTrap*>(he->getLogVol()->getShape());
     REQUIRE(trap != nullptr);
 }
 
