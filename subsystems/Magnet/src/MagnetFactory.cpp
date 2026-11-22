@@ -108,7 +108,7 @@ GeoPhysVol* MagnetFactory::createYoke() {
     auto const* innerBox =
         new GeoBox(gm(s_yokeInnerHalfX), gm(s_yokeInnerHalfY), gm(s_yokeInnerHalfZ));
     // Subtract to create yoke shape
-    const GeoShape* yokeShape = &(outerBox->subtract(*innerBox));
+    const GeoShape* yokeShape = &outerBox->subtract(*innerBox);
 
     auto* yokeLog = new GeoLogVol("/SHiP/magnet/yoke", yokeShape, iron);
     return new GeoPhysVol(yokeLog);
