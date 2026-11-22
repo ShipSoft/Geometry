@@ -44,10 +44,12 @@ GeoPhysVol* CalorimeterFactory::build() {
     const double x0 = -0.5 * (calo::kModuleNX - 1) * gm(calo::kModulePitchX);
     const double y0 = -0.5 * (calo::kModuleNY - 1) * gm(calo::kModulePitchY);
 
-    for (int iy = 0; iy < calo::kModuleNY; ++iy)
-        for (int ix = 0; ix < calo::kModuleNX; ++ix)
+    for (int iy = 0; iy < calo::kModuleNY; ++iy) {
+        for (int ix = 0; ix < calo::kModuleNX; ++ix) {
             buildStack(containerPhys, ix, iy, x0 + (ix * gm(calo::kModulePitchX)),
                        y0 + (iy * gm(calo::kModulePitchY)));
+        }
+    }
 
     return containerPhys;
 }
@@ -234,8 +236,9 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, int moduleX, int modu
                 }
                 case LayerCode::AirGap:
                     zCursor += airGapZ;
-                    if (sec.incrementGlobalOnAirGap)
+                    if (sec.incrementGlobalOnAirGap) {
                         ++globalLayerIdx;
+                    }
                     break;
             }
         }

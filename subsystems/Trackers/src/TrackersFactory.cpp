@@ -297,8 +297,9 @@ GeoPhysVol* TrackersFactory::buildStraw() {
     // Every straw in every sub-layer is identical, so the subtree (with its two
     // shared log volumes and shapes) is built once and reused; sub-layers place
     // it via GeoSerialTransformer.
-    if (m_strawPhys)
+    if (m_strawPhys) {
         return m_strawPhys;
+    }
 
     const GeoMaterial* mylar = m_materials.requireMaterial("Mylar");
     const GeoMaterial* gas = m_materials.requireMaterial("ArCO2_70_30");

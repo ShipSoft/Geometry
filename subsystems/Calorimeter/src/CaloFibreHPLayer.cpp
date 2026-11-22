@@ -42,10 +42,11 @@ void calo_fibre_hp::buildLayer(GeoVPhysVol* mother, GeoMaterial* aluminiumMat,
     const double rOuter = 0.5 * gm(fiberDiam);
     const double rCore = 0.5 * gm(fiberCoreDiam);
 
-    if (rCore <= 0.0 || rCore > rOuter)
+    if (rCore <= 0.0 || rCore > rOuter) {
         throw std::runtime_error(
             "calo_fibre_hp::buildLayer: invalid core diameter "
             "(must be >0 and <= outer diameter)");
+    }
 
     // GeoTube axis is Z; rotate so fibres run along Y or X
     const double halfLen = 0.5 * casingXY;

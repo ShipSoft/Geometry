@@ -48,12 +48,15 @@ ChildShapeCounts countByShape(const GeoVPhysVol* vol) {
         const GeoVPhysVol* child = &*vol->getChildVol(i);
         const GeoLogVol* lv = child->getLogVol();
         const GeoShape* shape = lv->getShape();
-        if (dynamic_cast<const GeoBox*>(shape))
+        if (dynamic_cast<const GeoBox*>(shape)) {
             ++c.boxes;
-        if (dynamic_cast<const GeoTrap*>(shape))
+        }
+        if (dynamic_cast<const GeoTrap*>(shape)) {
             ++c.traps;
-        if (lv->getName().find("helium") != std::string::npos)
+        }
+        if (lv->getName().find("helium") != std::string::npos) {
             ++c.helium;
+        }
     }
     return c;
 }
@@ -163,10 +166,13 @@ std::array<Vec, 8> boxVertices(const GeoBox& b) {
     const double hx = b.getXHalfLength(), hy = b.getYHalfLength(), hz = b.getZHalfLength();
     std::array<Vec, 8> v;
     int i = 0;
-    for (int sz : {-1, 1})
-        for (int sy : {-1, 1})
-            for (int sx : {-1, 1})
+    for (int sz : {-1, 1}) {
+        for (int sy : {-1, 1}) {
+            for (int sx : {-1, 1}) {
                 v[i++] = Vec(sx * hx, sy * hy, sz * hz);
+            }
+        }
+    }
     return v;
 }
 
@@ -219,8 +225,9 @@ double separation(const Hexa& a, const Hexa& b) {
 
     auto probe = [&](const Vec& n) {
         const double nn = n.norm();
-        if (nn < 1e-9)
+        if (nn < 1e-9) {
             return;
+        }
         const Vec u = n / nn;
         double amin = std::numeric_limits<double>::infinity(), amax = -amin;
         double bmin = amin, bmax = amax;
@@ -237,13 +244,17 @@ double separation(const Hexa& a, const Hexa& b) {
         best = std::max(best, std::max(bmin - amax, amin - bmax));
     };
 
-    for (const Hexa* h : {&a, &b})
-        for (const auto& f : kFaces)
+    for (const Hexa* h : {&a, &b}) {
+        for (const auto& f : kFaces) {
             probe((h->v[f[1]] - h->v[f[0]]).cross(h->v[f[2]] - h->v[f[0]]));
+        }
+    }
 
-    for (const auto& ea : kEdges)
-        for (const auto& eb : kEdges)
+    for (const auto& ea : kEdges) {
+        for (const auto& eb : kEdges) {
             probe((a.v[ea[1]] - a.v[ea[0]]).cross(b.v[eb[1]] - b.v[eb[0]]));
+        }
+    }
 
     return best;
 }
@@ -257,18 +268,20 @@ void collect(const GeoVPhysVol* dv, std::vector<Hexa>& helium, std::vector<Hexa>
         const GeoShape* shape = lv->getShape();
 
         std::array<Vec, 8> local;
-        if (const auto* b = dynamic_cast<const GeoBox*>(shape))
+        if (const auto* b = dynamic_cast<const GeoBox*>(shape)) {
             local = boxVertices(*b);
-        else if (const auto* t = dynamic_cast<const GeoTrap*>(shape))
+        } else if (const auto* t = dynamic_cast<const GeoTrap*>(shape)) {
             local = trapVertices(*t);
-        else
+        } else {
             continue;  // no other shape types are placed
+        }
 
         const GeoTrf::Transform3D x = dv->getXToChildVol(i);
         Hexa h;
         h.name = lv->getName();
-        for (int k = 0; k < 8; ++k)
+        for (int k = 0; k < 8; ++k) {
             h.v[k] = x * local[k];
+        }
 
         (h.name.find("helium") != std::string::npos ? helium : sbt).push_back(h);
     }
@@ -369,13 +382,15 @@ double closestApproach(const Built& b, std::string* culprit = nullptr) {
                 ozlo = std::min(ozlo, p.z());
                 ozhi = std::max(ozhi, p.z());
             }
-            if (ozhi < zlo - 1.0 || ozlo > zhi + 1.0)
+            if (ozhi < zlo - 1.0 || ozlo > zhi + 1.0) {
                 continue;  // cheap Z reject; a disjoint pair cannot be the minimum
+            }
             const double s = separation(he, o);
             if (s < worst) {
                 worst = s;
-                if (culprit)
+                if (culprit) {
                     *culprit = he.name + " vs " + o.name;
+                }
             }
         }
     }

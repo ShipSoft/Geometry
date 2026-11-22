@@ -25,10 +25,11 @@ void calo_bar::placeLayer(GeoVPhysVol* mother, GeoLogVol const* barLog, units::L
         const double barCenter = firstBarCenter + (i * step);
 
         double x = 0.0, y = 0.0;
-        if (axis == BarAxis::AlongX)
+        if (axis == BarAxis::AlongX) {
             x = barCenter;
-        else
+        } else {
             y = barCenter;
+        }
 
         const auto name = std::format("{}_L{}_B{}{}", tagPrefix, layerIndex, i, nameSuffix);
 
