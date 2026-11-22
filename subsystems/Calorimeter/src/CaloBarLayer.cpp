@@ -24,7 +24,8 @@ void calo_bar::placeLayer(GeoVPhysVol* mother, GeoLogVol const* barLog, units::L
     for (int i = 0; i < nBars; ++i) {
         const double barCenter = firstBarCenter + (i * step);
 
-        double x = 0.0, y = 0.0;
+        double x = 0.0;
+        double y = 0.0;
         if (axis == BarAxis::AlongX) {
             x = barCenter;
         } else {
