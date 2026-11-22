@@ -33,7 +33,13 @@ class CalorimeterFactory {
     static constexpr SubsystemDescriptor descriptor() {
         using units::gm;
         using units::m;
-        return {"Calorimeter", "/SHiP/calorimeter", 8, 0.0, 0.0, gm(98.32 * m), false};
+        return {.name = "Calorimeter",
+                .node = "/SHiP/calorimeter",
+                .id = 8,
+                .x_mm = 0.0,
+                .y_mm = 0.0,
+                .z_mm = gm(98.32 * m),
+                .isWorld = false};
     }
     /** Build and return the calorimeter container volume. */
     [[nodiscard]] GeoPhysVol* build();

@@ -99,7 +99,13 @@ class StubSubsystem {
    public:
     StubSubsystem(const char* name, int id, double z_mm) : m_name(name) {
         SHiP::geometry::registerSubsystem(
-            {name, name, id, 0.0, 0.0, z_mm, false},
+            {.name = name,
+             .node = name,
+             .id = id,
+             .x_mm = 0.0,
+             .y_mm = 0.0,
+             .z_mm = z_mm,
+             .isWorld = false},
             [name](SHiP::geometry::Materials& materials) -> GeoVPhysVol* {
                 auto* box = new GeoBox(10.0, 10.0, 10.0);
                 auto* log = new GeoLogVol(name, box, materials.getMaterial("Air"));

@@ -57,8 +57,13 @@ class TargetFactory {
      */
     static constexpr SubsystemDescriptor descriptor() {
         using units::gm;
-        return {"Target", "/SHiP/target", 1, 0.0, gm(-s_targetAreaPosY), gm(-s_targetAreaPosZ),
-                false};
+        return {.name = "Target",
+                .node = "/SHiP/target",
+                .id = 1,
+                .x_mm = 0.0,
+                .y_mm = gm(-s_targetAreaPosY),
+                .z_mm = gm(-s_targetAreaPosZ),
+                .isWorld = false};
     }
 
     /**
