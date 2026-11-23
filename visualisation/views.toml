@@ -5,7 +5,7 @@
 # logical volume names, as `sqlite3 <db> "select name from LogVols"` spells them.
 
 # Never drawn: containers and fill gases, which would hide what is inside them.
-hidden_materials = ["Air", "Vacuum", "PressurisedHe90", "ArCO2_70_30"]
+hidden_materials = ["Air", "Vacuum", "PressurisedHe90", "Helium", "ArCO2_70_30"]
 
 # Rendering fails above this many drawn volumes per scene, so that growth in the
 # geometry cannot quietly make the figures too expensive to run in CI.
