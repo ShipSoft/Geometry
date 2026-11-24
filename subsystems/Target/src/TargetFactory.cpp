@@ -4,18 +4,15 @@
 #include "SHiP/geometry/Target/TargetFactory.h"
 
 #include "SHiP/geometry/Materials.h"
+#include "SHiP/geometry/Placement.h"
 #include "SHiP/geometry/SubsystemRegistry.h"
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoDefinitions.h>
-#include <GeoModelKernel/GeoIdentifierTag.h>
-#include <GeoModelKernel/GeoLogVol.h>
-#include <GeoModelKernel/GeoNameTag.h>
 #include <GeoModelKernel/GeoPcon.h>
 #include <GeoModelKernel/GeoPhysVol.h>
 #include <GeoModelKernel/GeoShapeShift.h>
 #include <GeoModelKernel/GeoShapeSubtraction.h>
-#include <GeoModelKernel/GeoTransform.h>
 #include <GeoModelKernel/GeoTube.h>
 #include <GeoModelKernel/GeoTubs.h>
 
@@ -34,41 +31,30 @@ GeoPhysVol* TargetFactory::build() {
     // Create target_vacuum_box (main container)
     auto const* vacuumBox =
         new GeoBox(gm(s_vacuumBoxHalfX), gm(s_vacuumBoxHalfY), gm(s_vacuumBoxHalfZ));
-    const auto* vacuumBoxLog = new GeoLogVol("/SHiP/target", vacuumBox, vacuum);
-    auto* vacuumBoxPhys = new GeoPhysVol(vacuumBoxLog);
+    auto* vacuumBoxPhys = makeVolume("/SHiP/target", vacuumBox, vacuum);
+    // Children are numbered in placement order.
+    Placer placer{vacuumBoxPhys};
 
     // Create and place proximity shielding
     auto* proximityShielding = createProximityShielding();
     GeoTrf::Transform3D const proxTrf = GeoTrf::Translate3D(0.0, gm(s_proxPosY), 0.0);
-    vacuumBoxPhys->add(new GeoNameTag("/SHiP/target/proximity_shielding"));
-    vacuumBoxPhys->add(new GeoIdentifierTag(0));
-    vacuumBoxPhys->add(new GeoTransform(proxTrf));
-    vacuumBoxPhys->add(proximityShielding);
+    placer.place(proximityShielding, proxTrf);
 
     // Create and place top shielding
     auto* topShielding = createTopShielding();
     GeoTrf::Transform3D const topTrf = GeoTrf::Translate3D(0.0, gm(s_topShieldPosY), 0.0);
-    vacuumBoxPhys->add(new GeoNameTag("/SHiP/target/top_shielding"));
-    vacuumBoxPhys->add(new GeoIdentifierTag(1));
-    vacuumBoxPhys->add(new GeoTransform(topTrf));
-    vacuumBoxPhys->add(topShielding);
+    placer.place(topShielding, topTrf);
 
     // Create and place bottom shielding
     auto* bottomShielding = createBottomShielding();
     GeoTrf::Transform3D const bottomTrf = GeoTrf::Translate3D(0.0, gm(s_bottomShieldPosY), 0.0);
-    vacuumBoxPhys->add(new GeoNameTag("/SHiP/target/bottom_shielding"));
-    vacuumBoxPhys->add(new GeoIdentifierTag(2));
-    vacuumBoxPhys->add(new GeoTransform(bottomTrf));
-    vacuumBoxPhys->add(bottomShielding);
+    placer.place(bottomShielding, bottomTrf);
 
     // Create and place shielding pedestal
     auto* shieldingPedestal = createShieldingPedestal();
     GeoTrf::Transform3D const pedestalTrf =
         GeoTrf::Translate3D(0.0, gm(s_pedestalPosY), gm(s_pedestalPosZ));
-    vacuumBoxPhys->add(new GeoNameTag("/SHiP/target/shielding_pedestal"));
-    vacuumBoxPhys->add(new GeoIdentifierTag(3));
-    vacuumBoxPhys->add(new GeoTransform(pedestalTrf));
-    vacuumBoxPhys->add(shieldingPedestal);
+    placer.place(shieldingPedestal, pedestalTrf);
 
     // Create and place HeVolume (contains disks, steel core, jacket, flanges
     // and rear endcap). The tube is centred on the target-frame He centre,
@@ -77,10 +63,7 @@ GeoPhysVol* TargetFactory::build() {
     auto* heVolume = createHeVolume();
     const GeoTrf::Transform3D heVolumeTrf =
         GeoTrf::Translate3D(0.0, gm(s_targetAreaPosY), gm(s_targetAreaPosZ + s_heCentreZ));
-    vacuumBoxPhys->add(new GeoNameTag("/SHiP/target/he_volume"));
-    vacuumBoxPhys->add(new GeoIdentifierTag(4));
-    vacuumBoxPhys->add(new GeoTransform(heVolumeTrf));
-    vacuumBoxPhys->add(heVolume);
+    placer.place(heVolume, heVolumeTrf);
 
     // Upstream cover plate remainder outside the He container: rectangular
     // plate, asymmetric about the beam axis, with a central hole covering
@@ -93,14 +76,10 @@ GeoPhysVol* TargetFactory::build() {
     GeoTrf::Transform3D const coverHoleTrf =
         GeoTrf::Translate3D(0.0, gm(-s_coverPlateOffsetY), 0.0);
     const GeoShape* coverShape = &coverBox->subtract((*coverHole) << coverHoleTrf);
-    const auto* coverLog = new GeoLogVol("/SHiP/target/cover_plate", coverShape, steel316L);
     const auto coverCentreZ = 0.5 * (s_heZMin + s_coverZMax);
     GeoTrf::Transform3D const coverTrf = GeoTrf::Translate3D(
         0.0, gm(s_targetAreaPosY + s_coverPlateOffsetY), gm(s_targetAreaPosZ + coverCentreZ));
-    vacuumBoxPhys->add(new GeoNameTag("/SHiP/target/cover_plate"));
-    vacuumBoxPhys->add(new GeoIdentifierTag(5));
-    vacuumBoxPhys->add(new GeoTransform(coverTrf));
-    vacuumBoxPhys->add(new GeoPhysVol(coverLog));
+    placer.place(makeVolume("/SHiP/target/cover_plate", coverShape, steel316L), coverTrf);
 
     return vacuumBoxPhys;
 }
@@ -125,8 +104,7 @@ GeoPhysVol* TargetFactory::createProximityShielding() {
         GeoTrf::Translate3D(0.0, gm(s_proxHoleOffsetY), gm(s_proxHoleOffsetZ));
     const GeoShape* proxShape = &shape1->subtract((*hole) << holeTrf);
 
-    const auto* proxLog = new GeoLogVol("/SHiP/target/proximity_shielding", proxShape, copper);
-    return new GeoPhysVol(proxLog);
+    return makeVolume("/SHiP/target/proximity_shielding", proxShape, copper);
 }
 
 GeoPhysVol* TargetFactory::createTopShielding() {
@@ -134,8 +112,7 @@ GeoPhysVol* TargetFactory::createTopShielding() {
 
     auto const* topBox =
         new GeoBox(gm(s_topShieldHalfX), gm(s_topShieldHalfY), gm(s_topShieldHalfZ));
-    const auto* topLog = new GeoLogVol("/SHiP/target/top_shielding", topBox, copper);
-    return new GeoPhysVol(topLog);
+    return makeVolume("/SHiP/target/top_shielding", topBox, copper);
 }
 
 GeoPhysVol* TargetFactory::createBottomShielding() {
@@ -143,8 +120,7 @@ GeoPhysVol* TargetFactory::createBottomShielding() {
 
     auto const* bottomBox =
         new GeoBox(gm(s_bottomShieldHalfX), gm(s_bottomShieldHalfY), gm(s_bottomShieldHalfZ));
-    const auto* bottomLog = new GeoLogVol("/SHiP/target/bottom_shielding", bottomBox, copper);
-    return new GeoPhysVol(bottomLog);
+    return makeVolume("/SHiP/target/bottom_shielding", bottomBox, copper);
 }
 
 GeoPhysVol* TargetFactory::createShieldingPedestal() {
@@ -152,8 +128,7 @@ GeoPhysVol* TargetFactory::createShieldingPedestal() {
 
     auto const* pedestalBox =
         new GeoBox(gm(s_pedestalHalfX), gm(s_pedestalHalfY), gm(s_pedestalHalfZ));
-    const auto* pedestalLog = new GeoLogVol("/SHiP/target/shielding_pedestal", pedestalBox, iron);
-    return new GeoPhysVol(pedestalLog);
+    return makeVolume("/SHiP/target/shielding_pedestal", pedestalBox, iron);
 }
 
 const GeoShape* TargetFactory::createSteelCoreShape() {
@@ -200,22 +175,15 @@ GeoPhysVol* TargetFactory::createHeVolume() {
 
     // Create HeVolume container
     auto const* heVolumeTube = new GeoTube(0.0, gm(s_heRadius), 0.5 * gm(s_heZMax - s_heZMin));
-    const auto* heVolumeLog =
-        new GeoLogVol("/SHiP/target/he_volume", heVolumeTube, pressurisedHe90);
-    auto* heVolumePhys = new GeoPhysVol(heVolumeLog);
+    auto* heVolumePhys = makeVolume("/SHiP/target/he_volume", heVolumeTube, pressurisedHe90);
 
     // The HeVolume tube is centred on the target-frame He centre; this
     // translation converts a target-frame z centre into the local frame
     const auto spanTrf = [](double z0, double z1) {
         return GeoTrf::Translate3D(0.0, 0.0, (0.5 * (z0 + z1)) - gm(s_heCentreZ));
     };
-    int nextId = 0;
-    const auto place = [&](GeoPhysVol* child, const std::string& name, GeoTrf::Transform3D trf) {
-        heVolumePhys->add(new GeoNameTag(name));
-        heVolumePhys->add(new GeoIdentifierTag(nextId++));
-        heVolumePhys->add(new GeoTransform(trf));
-        heVolumePhys->add(child);
-    };
+    // Children are numbered in placement order.
+    Placer placer{heVolumePhys};
 
     // Tungsten disks (no cladding); the last disk (rear block) is larger
     for (int i = 0; i < s_numDisks; ++i) {
@@ -224,74 +192,59 @@ GeoPhysVol* TargetFactory::createHeVolume() {
         const double radius = (i == s_numDisks - 1) ? gm(s_lastDiskRadius) : gm(s_diskRadius);
         const auto* diskTube = new GeoTube(0.0, radius, 0.5 * (z1 - z0));
         const std::string diskName = "/SHiP/target/core_" + std::to_string(i + 1);
-        const auto* diskLog = new GeoLogVol(diskName, diskTube, tungsten);
-        place(new GeoPhysVol(diskLog), diskName, spanTrf(z0, z1));
+        placer.place(makeVolume(diskName, diskTube, tungsten), spanTrf(z0, z1));
     }
 
     // Steel core with the He grooves subtracted; the shape is defined in the
     // target frame, so shift it by the He centre only
-    const auto* coreLog =
-        new GeoLogVol("/SHiP/target/core_steel", createSteelCoreShape(), steel316L);
-    place(new GeoPhysVol(coreLog), "/SHiP/target/core_steel",
-          GeoTrf::Translate3D(0.0, 0.0, -gm(s_heCentreZ)));
+    placer.place(makeVolume("/SHiP/target/core_steel", createSteelCoreShape(), steel316L),
+                 GeoTrf::Translate3D(0.0, 0.0, -gm(s_heCentreZ)));
 
     // Jacket tube and flanges
     auto const* jacketTube =
         new GeoTube(gm(s_jacketRmin), gm(s_jacketRmax), 0.5 * gm(s_jacketZMax - s_jacketZMin));
-    const auto* jacketLog = new GeoLogVol("/SHiP/target/jacket", jacketTube, steel316L);
-    place(new GeoPhysVol(jacketLog), "/SHiP/target/jacket",
-          spanTrf(gm(s_jacketZMin), gm(s_jacketZMax)));
+    placer.place(makeVolume("/SHiP/target/jacket", jacketTube, steel316L),
+                 spanTrf(gm(s_jacketZMin), gm(s_jacketZMax)));
 
     auto const* flangeFrontTube = new GeoTube(gm(s_flangeFrontRmin), gm(s_jacketRmax),
                                               0.5 * gm(s_jacketZMin - s_flangeFrontZMin));
-    const auto* flangeFrontLog =
-        new GeoLogVol("/SHiP/target/flange_front", flangeFrontTube, steel316L);
-    place(new GeoPhysVol(flangeFrontLog), "/SHiP/target/flange_front",
-          spanTrf(gm(s_flangeFrontZMin), gm(s_jacketZMin)));
+    placer.place(makeVolume("/SHiP/target/flange_front", flangeFrontTube, steel316L),
+                 spanTrf(gm(s_flangeFrontZMin), gm(s_jacketZMin)));
 
     // Beam window and its nose ring closing the vessel upstream
     auto const* windowTube =
         new GeoTube(0.0, gm(s_windowRmax), 0.5 * gm(s_windowZMax - s_windowZMin));
-    const auto* windowLog = new GeoLogVol("/SHiP/target/front_window", windowTube, steel316L);
-    place(new GeoPhysVol(windowLog), "/SHiP/target/front_window",
-          spanTrf(gm(s_windowZMin), gm(s_windowZMax)));
+    placer.place(makeVolume("/SHiP/target/front_window", windowTube, steel316L),
+                 spanTrf(gm(s_windowZMin), gm(s_windowZMax)));
 
     auto const* noseTube = new GeoTube(gm(s_windowRmax), gm(s_flangeFrontRmin),
                                        0.5 * gm(s_flangeFrontZMin - s_noseZMin));
-    const auto* noseLog = new GeoLogVol("/SHiP/target/front_nose", noseTube, steel316L);
-    place(new GeoPhysVol(noseLog), "/SHiP/target/front_nose",
-          spanTrf(gm(s_noseZMin), gm(s_flangeFrontZMin)));
+    placer.place(makeVolume("/SHiP/target/front_nose", noseTube, steel316L),
+                 spanTrf(gm(s_noseZMin), gm(s_flangeFrontZMin)));
 
     // Cover plate bore rings (the part of the plate within the He container)
     const auto* coverRing1Tube =
         new GeoTube(gm(s_coverRing1Rmin), gm(s_heRadius), 0.5 * gm(s_flangeFrontZMin - s_heZMin));
-    const auto* coverRing1Log =
-        new GeoLogVol("/SHiP/target/cover_ring1", coverRing1Tube, steel316L);
-    place(new GeoPhysVol(coverRing1Log), "/SHiP/target/cover_ring1",
-          spanTrf(gm(s_heZMin), gm(s_flangeFrontZMin)));
+    placer.place(makeVolume("/SHiP/target/cover_ring1", coverRing1Tube, steel316L),
+                 spanTrf(gm(s_heZMin), gm(s_flangeFrontZMin)));
 
     auto const* coverRing2Tube = new GeoTube(gm(s_coverRing2Rmin), gm(s_heRadius),
                                              0.5 * gm(s_coverZMax - s_flangeFrontZMin));
-    const auto* coverRing2Log =
-        new GeoLogVol("/SHiP/target/cover_ring2", coverRing2Tube, steel316L);
-    place(new GeoPhysVol(coverRing2Log), "/SHiP/target/cover_ring2",
-          spanTrf(gm(s_flangeFrontZMin), gm(s_coverZMax)));
+    placer.place(makeVolume("/SHiP/target/cover_ring2", coverRing2Tube, steel316L),
+                 spanTrf(gm(s_flangeFrontZMin), gm(s_coverZMax)));
 
     auto const* flangeRearTube = new GeoTube(gm(s_jacketRmax), gm(s_flangeRearRmax),
                                              0.5 * gm(s_flangeRearZMax - s_jacketZMax));
-    const auto* flangeRearLog =
-        new GeoLogVol("/SHiP/target/flange_back", flangeRearTube, steel316L);
-    place(new GeoPhysVol(flangeRearLog), "/SHiP/target/flange_back",
-          spanTrf(gm(s_jacketZMax), gm(s_flangeRearZMax)));
+    placer.place(makeVolume("/SHiP/target/flange_back", flangeRearTube, steel316L),
+                 spanTrf(gm(s_jacketZMax), gm(s_flangeRearZMax)));
 
     // Rear endcap as a single polycone in the target frame
     auto* endcapPcon = new GeoPcon(gm(0.0 * deg), gm(360.0 * deg));
     for (const auto& plane : s_endcapPlanes) {
         endcapPcon->addPlane(gm(plane[0]), gm(plane[1]), gm(plane[2]));
     }
-    const auto* endcapLog = new GeoLogVol("/SHiP/target/endcap", endcapPcon, steel316L);
-    place(new GeoPhysVol(endcapLog), "/SHiP/target/endcap",
-          GeoTrf::Translate3D(0.0, 0.0, -gm(s_heCentreZ)));
+    placer.place(makeVolume("/SHiP/target/endcap", endcapPcon, steel316L),
+                 GeoTrf::Translate3D(0.0, 0.0, -gm(s_heCentreZ)));
 
     return heVolumePhys;
 }
