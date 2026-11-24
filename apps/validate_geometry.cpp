@@ -29,30 +29,33 @@ class GeometryValidator {
 
     bool isValid() const { return m_db != nullptr; }
 
-    void validateGeometry() {
+    /// Prints the report. Returns false if the database could not be opened, a
+    /// required table is missing, or it holds no volumes.
+    bool validateGeometry() {
         if (!isValid()) {
             std::cerr << "Database not available" << '\n';
-            return;
+            return false;
         }
 
         std::cout << "=== SHiP Geometry Validation Report ===" << '\n';
         std::cout << '\n';
 
         // Check database structure
-        checkDatabaseStructure();
+        bool ok = checkDatabaseStructure();
 
         // Extract and display key geometry information
-        extractVolumeInformation();
+        ok = extractVolumeInformation() && ok;
         extractMaterialInformation();
         extractPositionInformation();
 
         std::cout << '\n';
         std::cout << "=== Validation Summary ===" << '\n';
-        std::cout << "Database structure: OK" << '\n';
+        std::cout << "Database structure: " << (ok ? "OK" : "FAILED") << '\n';
         std::cout << "For detailed GDML comparison, use external tools like:" << '\n';
         std::cout << "- ROOT's TGeoManager::Export() method" << '\n';
         std::cout << "- Geant4's GDML export functionality" << '\n';
         std::cout << "- Custom GDML writer based on database content" << '\n';
+        return ok;
     }
 
    private:
@@ -85,8 +88,9 @@ class GeometryValidator {
         return exists;
     }
 
-    void checkDatabaseStructure() {
+    bool checkDatabaseStructure() {
         std::cout << "--- Database Structure Check ---" << '\n';
+        bool ok = true;
 
         // Check essential tables exist
         const std::string requiredTables[] = {"LogVols",           "PhysVols",   "Materials",
@@ -98,11 +102,13 @@ class GeometryValidator {
                 std::cout << "✓ Table " << table << " exists" << '\n';
             } else {
                 std::cout << "✗ Table " << table << " missing" << '\n';
+                ok = false;
             }
         }
+        return ok;
     }
 
-    void extractVolumeInformation() {
+    bool extractVolumeInformation() {
         std::cout << '\n' << "--- Volume Information ---" << '\n';
 
         const int logvolCount = countRecords("LogVols");
@@ -110,6 +116,10 @@ class GeometryValidator {
 
         std::cout << "Total logical volumes: " << logvolCount << '\n';
         std::cout << "Total physical volumes: " << physvolCount << '\n';
+        const bool ok = logvolCount > 0 && physvolCount > 0;
+        if (!ok) {
+            std::cout << "✗ The database holds no volumes" << '\n';
+        }
 
         // Show first few volumes as examples
         std::cout << '\n' << "Sample logical volumes:" << '\n';
@@ -133,6 +143,7 @@ class GeometryValidator {
             }
         }
         sqlite3_finalize(stmt);
+        return ok;
     }
 
     void extractMaterialInformation() {
@@ -199,19 +210,22 @@ class GeometryValidator {
 };
 
 int main(int argc, char* argv[]) {
-    std::string dbFile = "ship_geomodel.db";
+    std::string dbFile = "ship_geometry.db";
     if (argc > 1) {
         dbFile = argv[1];
     }
 
     try {
         GeometryValidator validator(dbFile);
-        validator.validateGeometry();
+        const bool ok = validator.validateGeometry();
 
         std::cout << '\n';
         std::cout << "Note: For full GDML export, consider implementing a custom" << '\n';
         std::cout << "GDML writer that traverses the database and generates XML." << '\n';
         std::cout << "The database contains all necessary geometric information." << '\n';
+        if (!ok) {
+            return 1;
+        }
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << '\n';
         return 1;
