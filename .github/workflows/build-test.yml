@@ -29,6 +29,55 @@ jobs:
       runs-on: ubuntu-24.04-arm
       tasks: '["test", "geometry"]'
 
+  notify-sea-cucumber:
+    name: Notify sea-cucumber a new Geometry is available
+    runs-on: ubuntu-latest
+    needs: [all-checks]
+    permissions: {}
+    # A failed notification shouldn't turn the main build red.
+    continue-on-error: true
+
+    # Only dispatch on pushes to main.
+    if: >-
+      ${{
+        github.event_name == 'push' &&
+        github.ref == 'refs/heads/main'
+      }}
+
+    steps:
+      - name: Create app token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.APP_CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: ShipSoft
+          repositories: sea-cucumber
+          # Sending a repository_dispatch needs write access to contents.
+          permission-contents: write
+
+      - name: Dispatch artifact availability
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          ARTIFACT_NAME: ship_geometry-${{ github.sha }}
+        run: |
+          jq -n \
+            --arg run_id "$GITHUB_RUN_ID" \
+            --arg sha "$GITHUB_SHA" \
+            --arg artifact_name "$ARTIFACT_NAME" \
+            '{
+              event_type: "geometry-artifact-ready",
+              client_payload: {
+                run_id: $run_id,
+                sha: $sha,
+                artifact_name: $artifact_name
+              }
+            }' |
+          gh api \
+            --method POST \
+            repos/ShipSoft/sea-cucumber/dispatches \
+            --input -
+
   all-checks:
     name: All checks passed
     if: always()
