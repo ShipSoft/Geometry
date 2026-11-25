@@ -60,9 +60,10 @@ class UpstreamTaggerFactory {
      * @brief This subsystem's self-description (name, node, id, placement).
      *
      * Integration layout 2026-1.2 (EDMS 3287817 v1.2): 0.4 m slot from 32.67
-     * to 33.07 m at the entrance of the decay volume. The 160 mm tile plane is
+     * to 33.07 m at the entrance of the decay volume. The 160 mm air container is
      * placed inside that slot with its rear face flush with the decay-volume
-     * container (33.07 m), so it cannot sit exactly on the slot mid-plane.
+     * container (33.07 m), so it cannot sit exactly on the slot mid-plane. The
+     * tile plane is at the container centre, 32.99 m.
      */
     static constexpr SubsystemDescriptor descriptor() {
         using units::gm;
