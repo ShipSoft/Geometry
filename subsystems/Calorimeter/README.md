@@ -123,6 +123,8 @@ A violation fails the build with a descriptive message.
 - `HplBuilderPlacesSharedCentres` — `buildLayer` places every fibre at
   `calo::fibreCentre()`.
 - `HplBuilderRejectsThinCasing` — a casing thinner than the stack throws.
+- `HplFibreCountToleratesRounding` — a casing-to-pitch ratio that rounds
+  just below a whole number does not lose a fibre.
 
 ## Status
 

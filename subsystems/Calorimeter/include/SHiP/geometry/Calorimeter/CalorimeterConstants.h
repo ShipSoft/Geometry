@@ -182,7 +182,10 @@ constexpr units::LengthMm hplMinCasingZ(units::LengthMm fibreDiameter = kFiberDi
 /// Fibres in sublayer @p sublayer (0 … kHplSublayers - 1).
 constexpr int fibresPerSublayer(int sublayer, units::LengthMm casingXY = kPlateXY,
                                 units::LengthMm fibreDiameter = kFiberDiameter) {
-    const int nMid = static_cast<int>(units::ratio(casingXY / fibreDiameter));
+    // The tolerance keeps a ratio that should be whole, but comes out a few
+    // ulp below it, from losing a fibre to truncation.
+    constexpr double kTolerance = 1e-9;
+    const int nMid = static_cast<int>(units::ratio(casingXY / fibreDiameter) + kTolerance);
     return sublayer == 1 ? nMid : nMid - 1;
 }
 
