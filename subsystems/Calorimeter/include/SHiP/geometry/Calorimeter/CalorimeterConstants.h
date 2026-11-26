@@ -202,6 +202,15 @@ constexpr FibreCentre fibreCentre(int sublayer, int index, units::LengthMm casin
     return {.across = (index - 0.5 * (n - 1)) * fibreDiameter, .z = (sublayer - 1) * dz};
 }
 
+/// Stride between sublayers in fibreCopyNumber(); larger than any row.
+inline constexpr int kHplCopyNumberStride = 10000;
+
+/// Geant4 copy number of fibre @p index in sublayer @p sublayer within its
+/// casing: sublayer * kHplCopyNumberStride + index, so it reads as S/F.
+constexpr int fibreCopyNumber(int sublayer, int index) {
+    return (sublayer * kHplCopyNumberStride) + index;
+}
+
 /// Fibres in one HPL layer, summed over its sublayers.
 inline constexpr int kFibresPerHpl = [] {
     int n = 0;
@@ -227,6 +236,8 @@ static_assert(fibresPerSublayer(1) * kFiberDiameter <= kPlateXY,
 static_assert(fibresPerSublayer(0) == fibresPerSublayer(1) - 1 &&
                   fibresPerSublayer(2) == fibresPerSublayer(1) - 1,
               "outer HPL fibre rows hold one fibre fewer than the middle row");
+static_assert(fibresPerSublayer(1) < kHplCopyNumberStride,
+              "HPL fibre copy numbers of adjacent sublayers would collide");
 static_assert(kFibresPerHpl == 5398, "transcription guard: 1799 + 1800 + 1799 fibres per HPL");
 static_assert(kTotalStackZ == 2600.0 * units::mm,
               "transcription guard: 40 lead + 40 scint + 8 HPL + 1 air gap in the ECAL "

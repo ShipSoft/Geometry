@@ -16,6 +16,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include <cmath>
 #include <limits>
+#include <set>
 #include <stdexcept>
 
 using SHiP::geometry::CalorimeterFactory;
@@ -74,9 +75,9 @@ struct HplBuild {
 
     void build(SHiP::geometry::units::LengthMm casingXY,
                SHiP::geometry::units::LengthMm casingZ) const {
-        SHiP::geometry::calo_fibre_hp::buildLayer(mother, al, ps, "T", 0.0 * mm, 0, casingXY,
-                                                  casingZ, calo::kFiberDiameter,
-                                                  calo::kFiberCoreDiameter, true, "");
+        SHiP::geometry::calo_fibre_hp::buildLayer(mother, al, ps, "T", 0.0 * mm, casingXY, casingZ,
+                                                  calo::kFiberDiameter, calo::kFiberCoreDiameter,
+                                                  true, "");
     }
 };
 
@@ -152,8 +153,40 @@ TEST_CASE("HplBuilderPlacesSharedCentres", "[calorimeter]") {
                 FAIL("fibre S" << s << "_F" << i << " at (" << t.x() << ", " << t.y() << ", "
                                << t.z() << ")");
             }
+            if (casing->getIdOfChildVol(child) != calo::fibreCopyNumber(s, i)) {
+                FAIL("fibre S" << s << "_F" << i << " has the wrong copy number");
+            }
         }
     }
+}
+
+TEST_CASE("HplCasingsSharedAcrossLayers", "[calorimeter]") {
+    // Every HPL layer of one orientation places the same casing, so the
+    // fibres exist once per orientation rather than once per layer.
+    Materials materials;
+    CalorimeterFactory factory(materials);
+    const GeoIntrusivePtr<GeoPhysVol> calorimeter{factory.build()};
+    std::set<const GeoVPhysVol*> casings;
+    unsigned placements = 0;
+    for (unsigned m = 0; m < calorimeter->getNChildVols(); ++m) {
+        const PVConstLink layer = calorimeter->getChildVol(m);
+        for (unsigned c = 0; c < layer->getNChildVols(); ++c) {
+            const PVConstLink child = layer->getChildVol(c);
+            if (child->getLogVol()->getName() == "HPL_CasingLog") {
+                casings.insert(child.get());
+                ++placements;
+            }
+        }
+    }
+    const auto isHpl = [](calo::LayerCode code) {
+        return code == calo::LayerCode::FibreHPL_X || code == calo::LayerCode::FibreHPL_Y;
+    };
+    const auto hplPerModule =
+        static_cast<unsigned>(std::ranges::count_if(calo::kEcalLayers, isHpl) +
+                              std::ranges::count_if(calo::kHcalLayers, isHpl));
+    REQUIRE(hplPerModule > 0);
+    CHECK(placements == calo::kModuleNX * calo::kModuleNY * hplPerModule);
+    CHECK(casings.size() == 2);
 }
 
 TEST_CASE("HplBuilderRejectsThinCasing", "[calorimeter]") {

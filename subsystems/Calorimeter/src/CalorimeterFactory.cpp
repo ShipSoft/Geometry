@@ -41,12 +41,22 @@ GeoPhysVol* CalorimeterFactory::build() {
     const auto* containerLog = new GeoLogVol("/SHiP/calorimeter", containerBox, air);
     auto* containerPhys = new GeoPhysVol(containerLog);
 
+    // Every HPL layer of one orientation is identical, so its casing and
+    // fibres are built once and placed in every slot of every module.
+    const GeoMaterial* alMat = m_materials.requireMaterial("Aluminium");
+    const GeoMaterial* psMat = m_materials.requireMaterial("Polystyrene");
+    const HplCasings hpl{
+        .alongY = calo_fibre_hp::makeLayer(alMat, psMat, calo::kPlateXY, calo::kHplThickness,
+                                           calo::kFiberDiameter, calo::kFiberCoreDiameter, true),
+        .alongX = calo_fibre_hp::makeLayer(alMat, psMat, calo::kPlateXY, calo::kHplThickness,
+                                           calo::kFiberDiameter, calo::kFiberCoreDiameter, false)};
+
     const double x0 = -0.5 * (calo::kModuleNX - 1) * gm(calo::kModulePitchX);
     const double y0 = -0.5 * (calo::kModuleNY - 1) * gm(calo::kModulePitchY);
 
     for (int iy = 0; iy < calo::kModuleNY; ++iy) {
         for (int ix = 0; ix < calo::kModuleNX; ++ix) {
-            buildStack(containerPhys, ix, iy, x0 + (ix * gm(calo::kModulePitchX)),
+            buildStack(containerPhys, hpl, ix, iy, x0 + (ix * gm(calo::kModulePitchX)),
                        y0 + (iy * gm(calo::kModulePitchY)));
         }
     }
@@ -56,15 +66,14 @@ GeoPhysVol* CalorimeterFactory::build() {
 
 // ── buildStack ───────────────────────────────────────────────────────────────
 
-void CalorimeterFactory::buildStack(GeoPhysVol* container, int moduleX, int moduleY, double offsetX,
-                                    double offsetY) const {
+void CalorimeterFactory::buildStack(GeoPhysVol* container, const HplCasings& hpl, int moduleX,
+                                    int moduleY, double offsetX, double offsetY) const {
     using calo::LayerCode;
 
     const GeoMaterial* leadMat = m_materials.requireMaterial("Lead");
     const GeoMaterial* ironMat = m_materials.requireMaterial("Iron");
     const GeoMaterial* pvtMat = m_materials.requireMaterial("PVT");
     GeoMaterial* psMat = m_materials.requireMaterial("Polystyrene");
-    GeoMaterial* alMat = m_materials.requireMaterial("Aluminium");
     GeoMaterial* airMat = m_materials.requireMaterial("Air");
 
     const double plateXY = gm(calo::kPlateXY);
@@ -114,7 +123,6 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, int moduleX, int modu
     int iWideV = 0;
     int iThinH = 0;
     int iThinV = 0;
-    int iHPL = 0;
 
     // Describes one calorimeter section (ECAL or HCAL)
     struct SectionDescriptor {
@@ -215,12 +223,9 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, int moduleX, int modu
                     const auto volumeName =
                         std::format("{}_sl{}_hpl_y{}", basePath, scintLayerIdx, moduleTag);
                     auto* env = makeEnv(volumeName, 0.5 * hplZ, zCursor + (0.5 * hplZ));
-                    calo_fibre_hp::buildLayer(env, alMat, psMat, volumeName, 0.0 * units::mm, iHPL,
-                                              calo::kPlateXY, calo::kHplThickness,
-                                              calo::kFiberDiameter, calo::kFiberCoreDiameter, true,
+                    calo_fibre_hp::placeLayer(env, hpl.alongY, volumeName, 0.0 * units::mm,
                                               moduleTag);
                     zCursor += hplZ;
-                    ++iHPL;
                     ++globalLayerIdx;
                     ++scintLayerIdx;
                     break;
@@ -229,12 +234,9 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, int moduleX, int modu
                     const auto volumeName =
                         std::format("{}_sl{}_hpl_x{}", basePath, scintLayerIdx, moduleTag);
                     auto* env = makeEnv(volumeName, 0.5 * hplZ, zCursor + (0.5 * hplZ));
-                    calo_fibre_hp::buildLayer(env, alMat, psMat, volumeName, 0.0 * units::mm, iHPL,
-                                              calo::kPlateXY, calo::kHplThickness,
-                                              calo::kFiberDiameter, calo::kFiberCoreDiameter, false,
+                    calo_fibre_hp::placeLayer(env, hpl.alongX, volumeName, 0.0 * units::mm,
                                               moduleTag);
                     zCursor += hplZ;
-                    ++iHPL;
                     ++globalLayerIdx;
                     ++scintLayerIdx;
                     break;

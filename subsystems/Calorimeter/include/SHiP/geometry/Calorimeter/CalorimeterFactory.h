@@ -47,9 +47,15 @@ class CalorimeterFactory {
    private:
     Materials& m_materials;
 
+    /** The two HPL casings, each shared by every layer of its orientation. */
+    struct HplCasings {
+        GeoPhysVol* alongY;  ///< fibres along Y
+        GeoPhysVol* alongX;  ///< fibres along X
+    };
+
     /** Place one NX×NY tiled stack of layers inside @p container. */
-    void buildStack(GeoPhysVol* container, int moduleX, int moduleY, double offsetX,
-                    double offsetY) const;
+    void buildStack(GeoPhysVol* container, const HplCasings& hpl, int moduleX, int moduleY,
+                    double offsetX, double offsetY) const;
 };
 
 }  // namespace SHiP::geometry

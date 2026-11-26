@@ -69,9 +69,23 @@ The centres come from `calo::fibresPerSublayer()` and
 `calo::fibreCentre(sublayer, index)` in `CalorimeterConstants.h`. The builder
 places fibres with them, and they are public so that the calorimeter digitiser
 can use the same functions rather than a copy that could drift apart.
-`buildLayer` checks its inputs before it adds anything to the mother volume,
-and throws if the casing is thinner than the close-packed stack or narrower
-than two fibre diameters (the outer rows would be empty).
+`makeLayer` checks its inputs before it creates any volume, and throws if the
+casing is thinner than the close-packed stack or narrower than two fibre
+diameters (the outer rows would be empty).
+
+All HPL layers of one orientation are identical, so the factory builds one
+filled casing per orientation with `calo_fibre_hp::makeLayer()` and places
+it in all 48 slots (8 per module, 6 modules) with `placeLayer()`. GeoModel
+and Geant4 then hold 2 × 5398 fibres instead of 48 × 5398, which shrinks the
+geometry database from 105 MB to 20 MB. Geant4 still tracks through every
+fibre in every layer.
+
+Because the casing is shared, a fibre's name and copy number identify it
+within its casing only: `HPL_{V|H}_S{sublayer}_F{index}_Clad` (and `_Core`),
+with copy number `calo::fibreCopyNumber(sublayer, index)` =
+`sublayer * 10000 + index`. The layer and module come from the casing's
+placement, `{layer}_HPL_Casing_MX{x}Y{y}`, one level up the touchable
+history.
 
 ## Materials
 
@@ -123,7 +137,9 @@ A violation fails the build with a descriptive message.
 - `HplFibresInsideCasing` — the outermost fibres of each row stay inside
   the casing.
 - `HplBuilderPlacesSharedCentres` — `buildLayer` places every fibre at
-  `calo::fibreCentre()`.
+  `calo::fibreCentre()`, with copy number `calo::fibreCopyNumber()`.
+- `HplCasingsSharedAcrossLayers` — the calorimeter places one casing per
+  fibre orientation in every HPL slot.
 - `HplBuilderRejectsThinCasing` — a casing thinner than the stack throws
   and leaves the mother volume empty.
 - `HplBuilderRejectsNarrowCasing` — a casing narrower than two fibre
