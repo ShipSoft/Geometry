@@ -68,8 +68,10 @@ centred in the casing:
 The centres come from `calo::fibresPerSublayer()` and
 `calo::fibreCentre(sublayer, index)` in `CalorimeterConstants.h`. The builder
 places fibres with them, and they are public so that the calorimeter digitiser
-can use the same functions rather than a copy that could drift apart. `buildLayer` throws if the casing is thinner
-than the close-packed stack.
+can use the same functions rather than a copy that could drift apart.
+`buildLayer` checks its inputs before it adds anything to the mother volume,
+and throws if the casing is thinner than the close-packed stack or narrower
+than two fibre diameters (the outer rows would be empty).
 
 ## Materials
 
@@ -122,7 +124,10 @@ A violation fails the build with a descriptive message.
   the casing.
 - `HplBuilderPlacesSharedCentres` — `buildLayer` places every fibre at
   `calo::fibreCentre()`.
-- `HplBuilderRejectsThinCasing` — a casing thinner than the stack throws.
+- `HplBuilderRejectsThinCasing` — a casing thinner than the stack throws
+  and leaves the mother volume empty.
+- `HplBuilderRejectsNarrowCasing` — a casing narrower than two fibre
+  diameters throws and leaves the mother volume empty.
 - `HplFibreCountToleratesRounding` — a casing-to-pitch ratio that rounds
   just below a whole number does not lose a fibre.
 

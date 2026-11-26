@@ -28,6 +28,26 @@ void calo_fibre_hp::buildLayer(GeoVPhysVol* mother, const GeoMaterial* aluminium
                                const std::string& nameSuffix) {
     const double casingXY = gm(casingXYIn);
     const double casingZ = gm(casingZIn);
+    const double rOuter = 0.5 * gm(fiberDiam);
+    const double rCore = 0.5 * gm(fiberCoreDiam);
+
+    // Validate everything before touching mother, so that a rejected call
+    // leaves the caller's tree unchanged.
+    if (rCore <= 0.0 || rCore > rOuter) {
+        throw std::runtime_error(
+            "calo_fibre_hp::buildLayer: invalid core diameter "
+            "(must be >0 and <= outer diameter)");
+    }
+    if (casingZIn < calo::hplMinCasingZ(fiberDiam)) {
+        throw std::runtime_error(
+            "calo_fibre_hp::buildLayer: casing too thin for three close-packed "
+            "fibre sublayers (needs >= fibre diameter * (1 + sqrt(3)))");
+    }
+    if (calo::fibresPerSublayer(0, casingXYIn, fiberDiam) < 1) {
+        throw std::runtime_error(
+            "calo_fibre_hp::buildLayer: casing too narrow for a fibre in every "
+            "sublayer (needs >= 2 * fibre diameter)");
+    }
 
     // ── aluminium casing ──────────────────────────────────────────────────
     const auto* casingShape = new GeoBox(0.5 * casingXY, 0.5 * casingXY, 0.5 * casingZ);
@@ -39,15 +59,6 @@ void calo_fibre_hp::buildLayer(GeoVPhysVol* mother, const GeoMaterial* aluminium
     mother->add(casingPhys);
 
     // ── fibre geometry ────────────────────────────────────────────────────
-    const double rOuter = 0.5 * gm(fiberDiam);
-    const double rCore = 0.5 * gm(fiberCoreDiam);
-
-    if (rCore <= 0.0 || rCore > rOuter) {
-        throw std::runtime_error(
-            "calo_fibre_hp::buildLayer: invalid core diameter "
-            "(must be >0 and <= outer diameter)");
-    }
-
     // GeoTube axis is Z; rotate so fibres run along Y or X
     const double halfLen = 0.5 * casingXY;
     const GeoTrf::Transform3D rotAxis =
@@ -61,12 +72,6 @@ void calo_fibre_hp::buildLayer(GeoVPhysVol* mother, const GeoMaterial* aluminium
 
     // ── fibre tiling: three hexagonally close-packed sublayers ────────────
     // Positions come from calo::fibreCentre(), shared with the digitiser.
-    if (casingZIn < calo::hplMinCasingZ(fiberDiam)) {
-        throw std::runtime_error(
-            "calo_fibre_hp::buildLayer: casing too thin for three close-packed "
-            "fibre sublayers (needs >= fibre diameter * (1 + sqrt(3)))");
-    }
-
     const std::string orient = fibresAlongY ? "V_L" : "H_L";
 
     for (int sublayer = 0; sublayer < calo::kHplSublayers; ++sublayer) {
