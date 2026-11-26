@@ -7,6 +7,7 @@
 #include "SHiP/geometry/Materials.h"
 
 #include <GeoModelKernel/GeoBox.h>
+#include <GeoModelKernel/GeoIntrusivePtr.h>
 #include <GeoModelKernel/GeoLogVol.h>
 #include <GeoModelKernel/GeoPhysVol.h>
 
@@ -61,6 +62,24 @@ double fibreDistance(int s1, int i1, int s2, int i2) {
     return std::hypot(gm(a.across) - gm(b.across), gm(a.z) - gm(b.z));
 }
 
+/// A mother volume and the materials for building one HPL layer into it.
+/// The intrusive pointer releases the tree however the test exits.
+struct HplBuild {
+    Materials materials;
+    const GeoMaterial* al = materials.requireMaterial("Aluminium");
+    const GeoMaterial* ps = materials.requireMaterial("Polystyrene");
+    const GeoMaterial* air = materials.requireMaterial("Air");
+    GeoIntrusivePtr<GeoPhysVol> mother{new GeoPhysVol(new GeoLogVol(
+        "mother", new GeoBox(gm(calo::kPlateXY), gm(calo::kPlateXY), gm(calo::kPlateXY)), air))};
+
+    void build(SHiP::geometry::units::LengthMm casingXY,
+               SHiP::geometry::units::LengthMm casingZ) const {
+        SHiP::geometry::calo_fibre_hp::buildLayer(mother, al, ps, "T", 0.0 * mm, 0, casingXY,
+                                                  casingZ, calo::kFiberDiameter,
+                                                  calo::kFiberCoreDiameter, true, "");
+    }
+};
+
 }  // namespace
 
 TEST_CASE("HplFibreCountsPerSublayer", "[calorimeter]") {
@@ -114,19 +133,10 @@ TEST_CASE("HplFibresInsideCasing", "[calorimeter]") {
 }
 
 TEST_CASE("HplBuilderPlacesSharedCentres", "[calorimeter]") {
-    Materials materials;
-    const GeoMaterial* al = materials.requireMaterial("Aluminium");
-    const GeoMaterial* ps = materials.requireMaterial("Polystyrene");
-    const GeoMaterial* air = materials.requireMaterial("Air");
-    const double half = gm(calo::kPlateXY);
-    auto* mother = new GeoPhysVol(new GeoLogVol("mother", new GeoBox(half, half, half), air));
-    mother->ref();
-
-    SHiP::geometry::calo_fibre_hp::buildLayer(
-        mother, al, ps, "T", 0.0 * SHiP::geometry::units::mm, 0, calo::kPlateXY,
-        calo::kHplThickness, calo::kFiberDiameter, calo::kFiberCoreDiameter, true, "");
-    REQUIRE(mother->getNChildVols() == 1);
-    const PVConstLink casing = mother->getChildVol(0);
+    const HplBuild hpl;
+    hpl.build(calo::kPlateXY, calo::kHplThickness);
+    REQUIRE(hpl.mother->getNChildVols() == 1);
+    const PVConstLink casing = hpl.mother->getChildVol(0);
     REQUIRE(casing->getNChildVols() == static_cast<unsigned>(calo::kFibresPerHpl));
 
     // Children are placed sublayer by sublayer, fibre by fibre (fibres along Y,
@@ -144,25 +154,21 @@ TEST_CASE("HplBuilderPlacesSharedCentres", "[calorimeter]") {
             }
         }
     }
-
-    mother->unref();
 }
 
 TEST_CASE("HplBuilderRejectsThinCasing", "[calorimeter]") {
-    Materials materials;
-    const GeoMaterial* al = materials.requireMaterial("Aluminium");
-    const GeoMaterial* ps = materials.requireMaterial("Polystyrene");
-    const GeoMaterial* air = materials.requireMaterial("Air");
-    const double half = gm(calo::kPlateXY);
-    auto* mother = new GeoPhysVol(new GeoLogVol("mother", new GeoBox(half, half, half), air));
-    mother->ref();
+    const HplBuild hpl;
     // 3 mm < 1.2 mm * (1 + sqrt(3)) ≈ 3.28 mm
-    CHECK_THROWS_AS(SHiP::geometry::calo_fibre_hp::buildLayer(
-                        mother, al, ps, "T", 0.0 * SHiP::geometry::units::mm, 0, calo::kPlateXY,
-                        3.0 * SHiP::geometry::units::mm, calo::kFiberDiameter,
-                        calo::kFiberCoreDiameter, true, ""),
-                    std::runtime_error);
-    mother->unref();
+    CHECK_THROWS_AS(hpl.build(calo::kPlateXY, 3.0 * mm), std::runtime_error);
+    // The check runs before the casing is placed, so nothing is left behind.
+    CHECK(hpl.mother->getNChildVols() == 0);
+}
+
+TEST_CASE("HplBuilderRejectsNarrowCasing", "[calorimeter]") {
+    const HplBuild hpl;
+    // 2 mm < 2 * 1.2 mm: the outer sublayers would hold no fibres.
+    CHECK_THROWS_AS(hpl.build(2.0 * mm, calo::kHplThickness), std::runtime_error);
+    CHECK(hpl.mother->getNChildVols() == 0);
 }
 
 TEST_CASE("HplFibreCountToleratesRounding", "[calorimeter]") {
