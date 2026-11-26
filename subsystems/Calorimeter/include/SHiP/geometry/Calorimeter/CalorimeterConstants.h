@@ -6,6 +6,7 @@
 #include "SHiP/geometry/Units.h"
 
 #include <array>
+#include <numbers>
 #include <span>
 
 /**
@@ -157,6 +158,56 @@ inline constexpr int kVolsPerModule =
 inline constexpr int kWidePVTBarCount = static_cast<int>(units::ratio(kPlateXY / kWidePVTBarPitch));
 inline constexpr int kThinPSBarCount = static_cast<int>(units::ratio(kPlateXY / kThinPSBarPitch));
 
+// ── HPL fibre layout ────────────────────────────────────────────────────
+//
+//  Three hexagonally close-packed rows of touching fibres (pitch = one fibre
+//  diameter), centred in the casing:
+//
+//    sublayer 0:  n_mid - 1 fibres, z = -r√3
+//    sublayer 1:  n_mid     fibres, z =  0      (n_mid = floor(casingXY / pitch))
+//    sublayer 2:  n_mid - 1 fibres, z = +r√3
+//
+//  Every row is centred on 0 across the layer, so the outer rows sit half a
+//  pitch off the middle row and each middle fibre nests between two outer
+//  ones. The calorimeter digitiser relies on these exact centres.
+
+/// Number of fibre sublayers (rows) in one HPL layer.
+inline constexpr int kHplSublayers = 3;
+
+/// Smallest casing thickness that holds the close-packed stack: 2r(1 + √3).
+constexpr units::LengthMm hplMinCasingZ(units::LengthMm fibreDiameter = kFiberDiameter) {
+    return fibreDiameter * (1.0 + std::numbers::sqrt3);
+}
+
+/// Fibres in sublayer @p sublayer (0 … kHplSublayers - 1).
+constexpr int fibresPerSublayer(int sublayer, units::LengthMm casingXY = kPlateXY,
+                                units::LengthMm fibreDiameter = kFiberDiameter) {
+    const int nMid = static_cast<int>(units::ratio(casingXY / fibreDiameter));
+    return sublayer == 1 ? nMid : nMid - 1;
+}
+
+struct FibreCentre {
+    units::LengthMm across;  ///< across the fibres, in the casing plane (X or Y)
+    units::LengthMm z;       ///< through the casing, relative to its midplane
+};
+
+/// Centre of fibre @p index in sublayer @p sublayer, in the casing frame.
+constexpr FibreCentre fibreCentre(int sublayer, int index, units::LengthMm casingXY = kPlateXY,
+                                  units::LengthMm fibreDiameter = kFiberDiameter) {
+    const int n = fibresPerSublayer(sublayer, casingXY, fibreDiameter);
+    const auto dz = 0.5 * fibreDiameter * std::numbers::sqrt3;
+    return {.across = (index - 0.5 * (n - 1)) * fibreDiameter, .z = (sublayer - 1) * dz};
+}
+
+/// Fibres in one HPL layer, summed over its sublayers.
+inline constexpr int kFibresPerHpl = [] {
+    int n = 0;
+    for (int s = 0; s < kHplSublayers; ++s) {
+        n += fibresPerSublayer(s);
+    }
+    return n;
+}();
+
 // ── Compile-time validation ──────────────────────────────────────────────
 static_assert(!kEcalLayers.empty() && !kHcalLayers.empty());
 static_assert(kEcalLayers.size() == 89, "transcription guard: 89 entries in the ECAL sequence");
@@ -166,6 +217,14 @@ static_assert(kWidePVTBarCount * kWidePVTBarPitch == kPlateXY,
               "plate size must be a whole number of wide PVT bars");
 static_assert(kThinPSBarCount * kThinPSBarPitch == kPlateXY,
               "plate size must be a whole number of thin PS bars");
+static_assert(hplMinCasingZ() <= kHplThickness,
+              "close-packed HPL fibre stack exceeds the casing thickness");
+static_assert(fibresPerSublayer(1) * kFiberDiameter <= kPlateXY,
+              "middle HPL fibre row exceeds the casing");
+static_assert(fibresPerSublayer(0) == fibresPerSublayer(1) - 1 &&
+                  fibresPerSublayer(2) == fibresPerSublayer(1) - 1,
+              "outer HPL fibre rows hold one fibre fewer than the middle row");
+static_assert(kFibresPerHpl == 5398, "transcription guard: 1799 + 1800 + 1799 fibres per HPL");
 static_assert(kTotalStackZ == 2600.0 * units::mm,
               "transcription guard: 40 lead + 40 scint + 8 HPL + 1 air gap in the ECAL "
               "(1600 mm), 100 mm gap, 5 iron + 5 scint in the HCAL (900 mm)");
