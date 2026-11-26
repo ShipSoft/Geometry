@@ -81,7 +81,7 @@ geometry database from 105 MB to 20 MB. Geant4 still tracks through every
 fibre in every layer.
 
 Because the casing is shared, a fibre's name and copy number identify it
-within its casing only: `HPL_{V|H}_S{sublayer}_F{index}_Clad` (and `_Core`),
+within its casing only: `HPL_{V|H}_S{sublayer}_F{index}_Clad`,
 with copy number `calo::fibreCopyNumber(sublayer, index)` =
 `sublayer * 10000 + index`. The layer and module come from the casing's
 placement, `{layer}_HPL_Casing_MX{x}Y{y}`, one level up the touchable

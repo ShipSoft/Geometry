@@ -65,12 +65,15 @@ GeoPhysVol* calo_fibre_hp::makeLayer(const GeoMaterial* aluminiumMat, const GeoM
 
     const auto* cladShape = new GeoTube(0.0, rOuter, halfLen);
     const auto* coreShape = new GeoTube(0.0, rCore, halfLen);
-    // Held by intrusive pointers so that they are released even if no fibre
-    // ends up using them.
-    const GeoIntrusivePtr<const GeoLogVol> cladLog{
-        new GeoLogVol("HPL_CladLog", cladShape, fibreMat)};
-    const GeoIntrusivePtr<const GeoLogVol> coreLog{
-        new GeoLogVol("HPL_FiberCoreLog", coreShape, fibreMat)};
+    const auto* cladLog = new GeoLogVol("HPL_CladLog", cladShape, fibreMat);
+    const auto* coreLog = new GeoLogVol("HPL_FiberCoreLog", coreShape, fibreMat);
+
+    // All fibres are identical, so one cladding with its core is placed at
+    // every position. The intrusive pointer releases it even if no fibre
+    // ends up using it.
+    const GeoIntrusivePtr<GeoPhysVol> fibre{new GeoPhysVol(cladLog)};
+    fibre->add(new GeoNameTag("HPL_Core"));
+    fibre->add(new GeoPhysVol(coreLog));
 
     // ── fibre tiling: three hexagonally close-packed sublayers ────────────
     // Positions come from calo::fibreCentre(), shared with the digitiser.
@@ -84,18 +87,12 @@ GeoPhysVol* calo_fibre_hp::makeLayer(const GeoMaterial* aluminiumMat, const GeoM
             const double fibrePosition = gm(centre.across);
             const double xPos = fibresAlongY ? fibrePosition : 0.0;
             const double yPos = fibresAlongY ? 0.0 : fibrePosition;
-            const auto baseName = std::format("HPL_{}_S{}_F{}", orient, sublayer, i);
-
-            // cladding physical volume; core is a child of it
-            auto* cladPhys = new GeoPhysVol(cladLog);
-            cladPhys->add(new GeoNameTag(std::format("{}_Core", baseName).c_str()));
-            cladPhys->add(new GeoPhysVol(coreLog));
-
-            casingPhys->add(new GeoNameTag(std::format("{}_Clad", baseName).c_str()));
+            casingPhys->add(
+                new GeoNameTag(std::format("HPL_{}_S{}_F{}_Clad", orient, sublayer, i)));
             casingPhys->add(new GeoIdentifierTag(calo::fibreCopyNumber(sublayer, i)));
             casingPhys->add(
                 new GeoTransform(GeoTrf::Translate3D(xPos, yPos, gm(centre.z)) * rotAxis));
-            casingPhys->add(cladPhys);
+            casingPhys->add(fibre);
         }
     }
     return casingPhys;
