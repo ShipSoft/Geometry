@@ -3,6 +3,8 @@
 
 #include "SHiP/geometry/Calorimeter/CaloFibreHPLayer.h"
 
+#include "SHiP/geometry/Calorimeter/CalorimeterConstants.h"
+
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoLogVol.h>
 #include <GeoModelKernel/GeoNameTag.h>
@@ -10,8 +12,6 @@
 #include <GeoModelKernel/GeoTransform.h>
 #include <GeoModelKernel/GeoTube.h>
 
-#include <algorithm>
-#include <cmath>
 #include <format>
 #include <stdexcept>
 #include <string>
@@ -59,23 +59,22 @@ void calo_fibre_hp::buildLayer(GeoVPhysVol* mother, const GeoMaterial* aluminium
     const auto* cladLog = new GeoLogVol("HPL_CladLog", cladShape, fibreMat);
     const auto* coreLog = new GeoLogVol("HPL_FiberCoreLog", coreShape, fibreMat);
 
-    // ── fibre tiling: three staggered sublayers ───────────────────────────
-    const double pitch = 2.0 * rOuter;  // tight packing
-    const double dxMax = 0.5 * pitch;   // middle-sublayer shift
-    const double usable = casingXY - (2.0 * rOuter) - dxMax;
-    const int nFib = std::max(1, static_cast<int>(std::floor(usable / pitch)) + 1);
-    const double x0 = -0.5 * (((nFib - 1) * pitch) + dxMax);
-
-    const double dx[3] = {0.0, 0.5 * pitch, 0.0};
-    const double dz = std::max(0.0, (0.5 * casingZ) - rOuter);
-    const double zLocal[3] = {-dz, 0.0, +dz};
+    // ── fibre tiling: three hexagonally close-packed sublayers ────────────
+    // Positions come from calo::fibreCentre(), shared with the digitiser.
+    if (casingZIn < calo::hplMinCasingZ(fiberDiam)) {
+        throw std::runtime_error(
+            "calo_fibre_hp::buildLayer: casing too thin for three close-packed "
+            "fibre sublayers (needs >= fibre diameter * (1 + sqrt(3)))");
+    }
 
     const std::string orient = fibresAlongY ? "V_L" : "H_L";
 
-    for (int sublayer = 0; sublayer < 3; ++sublayer) {
+    for (int sublayer = 0; sublayer < calo::kHplSublayers; ++sublayer) {
+        const int nFib = calo::fibresPerSublayer(sublayer, casingXYIn, fiberDiam);
         for (int i = 0; i < nFib; ++i) {
-            const double fibrePosition = x0 + (i * pitch) + dx[sublayer];
-            const double sublayerZ = zLocal[sublayer];
+            const auto centre = calo::fibreCentre(sublayer, i, casingXYIn, fiberDiam);
+            const double fibrePosition = gm(centre.across);
+            const double sublayerZ = gm(centre.z);
 
             const auto baseName = std::format("{}_HPL_{}{}_S{}_F{}{}", layerTag, orient, layerIndex,
                                               sublayer, i, nameSuffix);

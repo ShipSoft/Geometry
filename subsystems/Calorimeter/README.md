@@ -39,6 +39,37 @@ are arrays of the `LayerCode` enum:
 | `Absorber`   | Absorber plate (Lead in ECAL section, Iron in HCAL) |
 | `AirGap`     | Air gap (no volume placed, just advances Z cursor)  |
 
+## HPL fibre layout
+
+Each HPL layer is a solid aluminium casing (`kPlateXY` × `kPlateXY` ×
+`kHplThickness`) holding three rows of fibres (`kFiberDiameter` cladding,
+`kFiberCoreDiameter` core). The rows are hexagonally close-packed and
+centred in the casing:
+
+```
+  ┌──────────────────────────────────┐
+  │    ( )( )( )( )( )( )( )         │  sublayer 2: n_mid − 1 fibres, z = +r√3
+  │   ( )( )( )( )( )( )( )( )       │  sublayer 1: n_mid fibres,     z = 0
+  │    ( )( )( )( )( )( )( )         │  sublayer 0: n_mid − 1 fibres, z = −r√3
+  └──────────────────────────────────┘
+```
+
+- Fibres in a row touch (pitch = one fibre diameter), and every row is
+  centred on the casing axis, so the outer rows sit half a pitch off the
+  middle row and each middle fibre nests between two outer ones.
+- `n_mid = floor(kPlateXY / kFiberDiameter)` = 1800, so a layer holds
+  1799 + 1800 + 1799 = 5398 fibres (`kFibresPerHpl`).
+- Rows are `r√3` ≈ 1.039 mm apart in z, so neighbouring fibres in adjacent
+  rows touch. The stack is `2r(1 + √3)` ≈ 3.28 mm tall, centred on the casing
+  midplane, so it lies within the 2.4 mm readout SiPM's footprint
+  (|z| ≤ 1.2 mm); the outer rows reach partly beyond it.
+
+The centres come from `calo::fibresPerSublayer()` and
+`calo::fibreCentre(sublayer, index)` in `CalorimeterConstants.h`. The builder
+places fibres with them, and they are public so that the calorimeter digitiser
+can use the same functions rather than a copy that could drift apart. `buildLayer` throws if the casing is thinner
+than the close-packed stack.
+
 ## Materials
 
 | Material   | Density       | Composition         | Notes                       |
@@ -66,6 +97,9 @@ The parameters are validated at compile time by `static_assert`s in
   (`kContainerHalfX` / `kContainerHalfY`).
 - `kFiberCoreDiameter` cannot exceed `kFiberDiameter`.
 - `kPlateXY` must be a whole number of bars at both bar pitches.
+- The close-packed HPL fibre stack must fit in `kHplThickness`, the middle
+  fibre row must fit in `kPlateXY`, and the outer rows must hold one fibre
+  fewer than the middle row.
 
 A violation fails the build with a descriptive message.
 
@@ -80,6 +114,14 @@ A violation fails the build with a descriptive message.
   duplicated layer placement cannot pass unnoticed.
 - `TotalStackZMatchesReference` — `calo::kTotalStackZ` matches the
   hand-computed reference, guarding the layer-sequence transcription.
+- `HplFibreCountsPerSublayer` — 1799 / 1800 / 1799 fibres per sublayer.
+- `HplFibresCloseTouchWithoutOverlap` — every pair of neighbouring fibres,
+  within a row and between rows, is exactly one diameter apart.
+- `HplFibresInsideCasing` — the outermost fibres of each row stay inside
+  the casing.
+- `HplBuilderPlacesSharedCentres` — `buildLayer` places every fibre at
+  `calo::fibreCentre()`.
+- `HplBuilderRejectsThinCasing` — a casing thinner than the stack throws.
 
 ## Status
 
