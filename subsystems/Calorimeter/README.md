@@ -60,9 +60,10 @@ centred in the casing:
 - `n_mid = floor(kPlateXY / kFiberDiameter)` = 1800, so a layer holds
   1799 + 1800 + 1799 = 5398 fibres (`kFibresPerHpl`).
 - Rows are `r√3` ≈ 1.039 mm apart in z, so neighbouring fibres in adjacent
-  rows touch. The stack is `2r(1 + √3)` ≈ 3.28 mm tall, centred on the casing
-  midplane, so it lies within the 2.4 mm readout SiPM's footprint
-  (|z| ≤ 1.2 mm); the outer rows reach partly beyond it.
+  rows touch. The stack is `2r(1 + √3)` ≈ 3.28 mm tall and centred on the
+  casing midplane. All fibre centres lie within the 2.4 mm readout SiPM
+  (|z| ≤ 1.2 mm), but the outer-row fibres reach |z| ≈ 1.64 mm, so about
+  30 % of each outer-row core lies outside the SiPM's footprint.
 
 The centres come from `calo::fibresPerSublayer()` and
 `calo::fibreCentre(sublayer, index)` in `CalorimeterConstants.h`. The builder
