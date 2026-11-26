@@ -52,6 +52,7 @@ namespace {
 
 namespace calo = SHiP::geometry::calo;
 using SHiP::geometry::units::gm;
+using SHiP::geometry::units::mm;
 
 /// Distance between the centres of two fibres, in mm.
 double fibreDistance(int s1, int i1, int s2, int i2) {
@@ -162,4 +163,11 @@ TEST_CASE("HplBuilderRejectsThinCasing", "[calorimeter]") {
                         calo::kFiberCoreDiameter, true, ""),
                     std::runtime_error);
     mother->unref();
+}
+
+TEST_CASE("HplFibreCountToleratesRounding", "[calorimeter]") {
+    // 0.3 / 0.1 is 2.9999999999999996 in double precision; plain truncation
+    // would drop a fibre from every row.
+    CHECK(calo::fibresPerSublayer(1, 0.3 * mm, 0.1 * mm) == 3);
+    CHECK(calo::fibresPerSublayer(0, 0.3 * mm, 0.1 * mm) == 2);
 }
