@@ -42,10 +42,12 @@ class Materials;
  * thick, coarse tiles 10 mm; both are centred on the same Z plane.
  *
  * The whole assembly is returned as a single GeoFullPhysVol container (air),
- * so the tagger keeps a sensitive tree-top. Individual tiles are GeoPhysVol
- * with hierarchical "/SHiP/upstream_tagger/..." names, mirroring the
- * calorimeter bar layers; sensitive-detector assignment is performed
- * downstream by name pattern.
+ * so the tagger keeps a sensitive tree-top. Each region's tiles are one
+ * GeoSerialTransformer (expanded into per-tile placements in Geant4) named
+ * "/SHiP/upstream_tagger/<region>/tile"; a tile is identified by its region
+ * and copy number ix · nY + iy. Downstream sensitive-detector assignment by
+ * name can match the tile logical volumes, "/SHiP/upstream_tagger/fine_tile"
+ * and "/SHiP/upstream_tagger/coarse_tile".
  *
  * The container envelope (half 2200 × 3200 × 80 mm, centre Z = 32 720 mm)
  * is unchanged from the previous monolithic slab so the placement in
