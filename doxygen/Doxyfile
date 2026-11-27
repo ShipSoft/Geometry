@@ -18,4 +18,5 @@ QUIET                  = YES
 WARN_NO_PARAMDOC       = NO
 USE_MDFILE_AS_MAINPAGE = README.md
 INPUT                 += README.md
+INPUT                 += docs
 JAVADOC_AUTOBRIEF      = YES
