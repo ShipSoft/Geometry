@@ -203,14 +203,13 @@ TEST_CASE("HplCasingsSharedAcrossLayers", "[calorimeter]") {
     const GeoIntrusivePtr<GeoPhysVol> calorimeter{factory.build()};
     std::set<const GeoVPhysVol*> casings;
     unsigned placements = 0;
-    for (unsigned m = 0; m < calorimeter->getNChildVols(); ++m) {
-        const PVConstLink layer = calorimeter->getChildVol(m);
-        for (unsigned c = 0; c < layer->getNChildVols(); ++c) {
-            const PVConstLink child = layer->getChildVol(c);
-            if (child->getLogVol()->getName() == "HPL_CasingLog") {
-                casings.insert(child.get());
-                ++placements;
-            }
+    // The casings sit directly in the container, at the same depth as the
+    // bar layers.
+    for (unsigned c = 0; c < calorimeter->getNChildVols(); ++c) {
+        const PVConstLink child = calorimeter->getChildVol(c);
+        if (child->getLogVol()->getName() == "HPL_CasingLog") {
+            casings.insert(child.get());
+            ++placements;
         }
     }
     const auto isHpl = [](calo::LayerCode code) {

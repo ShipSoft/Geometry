@@ -225,9 +225,7 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, const SharedLayers& s
                 case LayerCode::FibreHPL_Y: {
                     const auto volumeName =
                         std::format("{}_sl{}_hpl_y{}", basePath, scintLayerIdx, moduleTag);
-                    auto* env = makeEnv(volumeName, 0.5 * hplZ, zCursor + (0.5 * hplZ));
-                    calo_fibre_hp::placeLayer(env, shared.hplAlongY, volumeName, 0.0 * units::mm,
-                                              moduleTag);
+                    placeShared(volumeName, shared.hplAlongY, zCursor + (0.5 * hplZ));
                     zCursor += hplZ;
                     ++globalLayerIdx;
                     ++scintLayerIdx;
@@ -236,9 +234,7 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, const SharedLayers& s
                 case LayerCode::FibreHPL_X: {
                     const auto volumeName =
                         std::format("{}_sl{}_hpl_x{}", basePath, scintLayerIdx, moduleTag);
-                    auto* env = makeEnv(volumeName, 0.5 * hplZ, zCursor + (0.5 * hplZ));
-                    calo_fibre_hp::placeLayer(env, shared.hplAlongX, volumeName, 0.0 * units::mm,
-                                              moduleTag);
+                    placeShared(volumeName, shared.hplAlongX, zCursor + (0.5 * hplZ));
                     zCursor += hplZ;
                     ++globalLayerIdx;
                     ++scintLayerIdx;
