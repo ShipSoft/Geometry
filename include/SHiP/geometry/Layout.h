@@ -84,9 +84,9 @@ inline constexpr Slot kTarget =
 inline constexpr Slot kMuonShield = slotOf<MuonShieldFactory>(
     MuonShieldFactory::s_areaHalfX, MuonShieldFactory::s_areaHalfY, MuonShieldFactory::s_areaHalfZ);
 
-/// z 26.40-31.50 m (WARM muon-shield configuration). The SND sits within the
-/// downstream end of the muon-shield region, so the two containers overlap
-/// (known deviation #117, see kKnownOverlaps).
+/// z 26.40-31.50 m (WARM muon-shield configuration), inside the muon-shield
+/// container, so the two containers overlap (known deviation #117, see
+/// kKnownOverlaps).
 inline constexpr Slot kNeutrinoDetector = slotOf<NeutrinoDetectorFactory>(
     NeutrinoDetectorFactory::s_halfX, NeutrinoDetectorFactory::s_halfY,
     NeutrinoDetectorFactory::s_halfZ);
@@ -130,10 +130,10 @@ struct KnownOverlap {
 };
 
 inline constexpr std::array kKnownOverlaps{
-    // #117: the SND sits in the downstream end of the muon shield.
+    // #117: the SND sits inside the muon-shield container.
     KnownOverlap{.a = kMuonShield.path,
                  .b = kNeutrinoDetector.path,
-                 .region = checks::bounds(-400, 400, -400, 400, 26400, 31487.3)},
+                 .region = checks::intersection(kMuonShield.box(), kNeutrinoDetector.box())},
     // #118: the trackers container spans the whole magnet along the beam.
     KnownOverlap{.a = kTrackers.path,
                  .b = kMagnet.path,
@@ -309,7 +309,16 @@ inline constexpr auto kCalorimeterRegion = envelopes::hull("Calorimeter", envelo
 }  // namespace detail
 
 static_assert(kTarget.zSpan().hi <= envelopes::kHadronStopper.zStart,
+              "the target vacuum box reaches into the hadron stopper envelope");
+static_assert(kTarget.zSpan().hi <= MuonShieldFactory::k_hadronStopper.zStart,
               "the target vacuum box reaches into the hadron stopper");
+static_assert(checks::contains(envelopes::kHadronStopper.z(),
+                               {.lo = MuonShieldFactory::k_hadronStopper.zStart,
+                                .hi = MuonShieldFactory::k_hadronStopper.zEnd()},
+                               1e-6 * detail::mm),
+              "the hadron stopper is outside its EDMS envelope along z");
+static_assert(fitsEnvelopeZ(kMuonShield, detail::kMuonShieldRegion),
+              "the muon shield container is outside its EDMS region along z");
 
 static_assert(fitsEnvelopeXY(kMuonShield, detail::kMuonShieldRegion),
               "the muon shield container is outside its EDMS envelope transversely");
@@ -341,15 +350,9 @@ static_assert(fitsEnvelopeXY(kCalorimeter, detail::kCalorimeterRegion),
 // Known deviations from the EDMS envelopes (#120). Each is bounded by its
 // current size: if one is fixed, assert the positive check above instead; if
 // one gets worse, the second assert fails.
-inline constexpr auto kMuonShieldEarlyStart = 101.0 * detail::mm;  // 100.7 mm
 inline constexpr auto kUpstreamTaggerExcessX = 1450.0 * detail::mm;
 inline constexpr auto kUpstreamTaggerExcessY = 1600.0 * detail::mm;
 inline constexpr auto kTimingDetectorEarlyStart = 168.0 * detail::mm;
-static_assert(!fitsEnvelopeZ(kMuonShield, detail::kMuonShieldRegion),
-              "the muon shield container now fits the EDMS region: assert fitsEnvelopeZ instead");
-static_assert(fitsEnvelopeZ(kMuonShield, detail::kMuonShieldRegion, kMuonShieldEarlyStart),
-              "the muon shield container deviates from the EDMS region by more than "
-              "kMuonShieldEarlyStart");
 static_assert(!fitsEnvelopeXY(kUpstreamTagger, envelopes::kUpstreamTagger),
               "the UBT container now fits the EDMS envelope: assert fitsEnvelopeXY instead");
 static_assert(fitsEnvelopeXY(kUpstreamTagger, envelopes::kUpstreamTagger, kUpstreamTaggerExcessX,

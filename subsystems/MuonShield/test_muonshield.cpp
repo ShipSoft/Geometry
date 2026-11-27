@@ -10,33 +10,62 @@
 #include <GeoModelKernel/GeoPhysVol.h>
 
 #include <catch2/catch_test_macros.hpp>
-#include <iterator>
 #include <string>
+#include <vector>
 
 using SHiP::geometry::Materials;
 using SHiP::geometry::MuonShieldFactory;
 using SHiP::geometry::units::gm;
 
-// The station table is checked against the container at compile time
-// (MuonShieldFactory.cpp); this checks the factory builds what it describes.
-TEST_CASE("MuonShieldStationsMatchTable", "[muonshield]") {
+namespace {
+
+/// The blocks in placement order: the hadron stopper, then M1-M7.
+std::vector<MuonShieldFactory::MagnetData> blocks() {
+    std::vector<MuonShieldFactory::MagnetData> all{MuonShieldFactory::k_hadronStopper};
+    all.insert(all.end(), MuonShieldFactory::k_magnets.begin(), MuonShieldFactory::k_magnets.end());
+    return all;
+}
+
+}  // namespace
+
+// The tables are checked against the container at compile time
+// (MuonShieldFactory.cpp); this checks the factory builds what they describe.
+TEST_CASE("MuonShieldContainerSpansTheShield", "[muonshield]") {
     Materials materials;
     MuonShieldFactory factory(materials);
     GeoPhysVol* ms = factory.build();
     REQUIRE(ms != nullptr);
-    REQUIRE(ms->getNChildVols() == std::size(MuonShieldFactory::k_stations));
 
+    const auto* area = dynamic_cast<const GeoBox*>(ms->getLogVol()->getShape());
+    REQUIRE(area != nullptr);
+    CHECK(area->getXHalfLength() == gm(MuonShieldFactory::s_areaHalfX));
+    CHECK(area->getYHalfLength() == gm(MuonShieldFactory::s_areaHalfY));
+    CHECK(area->getZHalfLength() == gm(MuonShieldFactory::s_areaHalfZ));
+    // M7 is the widest block and the hadron stopper the tallest.
+    CHECK(MuonShieldFactory::s_areaHalfX == MuonShieldFactory::k_magnets.back().halfX);
+    CHECK(MuonShieldFactory::s_areaHalfY == MuonShieldFactory::k_hadronStopper.halfY);
+}
+
+TEST_CASE("MuonShieldBlocksMatchTable", "[muonshield]") {
+    Materials materials;
+    MuonShieldFactory factory(materials);
+    GeoPhysVol* ms = factory.build();
+    REQUIRE(ms != nullptr);
+
+    const auto expected = blocks();
+    REQUIRE(ms->getNChildVols() == expected.size());
     for (unsigned int i = 0; i < ms->getNChildVols(); ++i) {
-        const auto& station = MuonShieldFactory::k_stations[i];
-        INFO("station " << station.name);
+        const auto& magnet = expected.at(i);
+        INFO("block " << magnet.name);
         const GeoVPhysVol* child = &*ms->getChildVol(i);
-        CHECK(child->getLogVol()->getName() == "/SHiP/muon_shield/" + std::string(station.name));
-        CHECK(ms->getXToChildVol(i).translation().z() == gm(station.stationZ));
+        CHECK(child->getLogVol()->getName() == "/SHiP/muon_shield/" + std::string(magnet.name));
+        CHECK(child->getLogVol()->getMaterial()->getName() == "Iron");
+        CHECK(ms->getXToChildVol(i).translation().z() ==
+              gm(magnet.zCentre() - MuonShieldFactory::s_centreZ));
         const auto* box = dynamic_cast<const GeoBox*>(child->getLogVol()->getShape());
         REQUIRE(box != nullptr);
-        CHECK(box->getXHalfLength() == gm(station.containerHalfX));
-        CHECK(box->getYHalfLength() == gm(station.containerHalfY));
-        CHECK(box->getZHalfLength() == gm(station.containerHalfZ));
-        CHECK(child->getNChildVols() == std::size(station.pieces));
+        CHECK(box->getXHalfLength() == gm(magnet.halfX));
+        CHECK(box->getYHalfLength() == gm(magnet.halfY));
+        CHECK(box->getZHalfLength() == gm(magnet.halfZ));
     }
 }
