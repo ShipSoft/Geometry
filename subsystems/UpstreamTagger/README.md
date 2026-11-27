@@ -37,10 +37,16 @@ the same Z plane at the container centre. The plane
 spans X ∈ [−2200, +2200] mm, Y ∈ [−3200, +3200] mm: the tiles cover the full
 4.4 × 6.4 m container cross-section.
 
-Like the calorimeter bar layers, the individual tiles are `GeoPhysVol` with
-hierarchical `/SHiP/upstream_tagger/...` names; sensitive-detector assignment
-is done downstream by name pattern. The whole assembly is returned as a single
-`GeoFullPhysVol` container so the tagger keeps a sensitive tree-top.
+Each region's tile grid is a single `GeoSerialTransformer`, so the GeoModel
+tree and the geometry database hold one node per region rather than one per
+tile; the conversion to Geant4 expands it into one placement per tile. All
+tiles of a region share the name `/SHiP/upstream_tagger/<region>/tile`; a
+tile is identified by its region and its copy number `ix · nY + iy`, where
+(ix, iy) is its column and row in the region's grid and nY the number of rows.
+The tile logical volumes are `/SHiP/upstream_tagger/fine_tile` and
+`/SHiP/upstream_tagger/coarse_tile`, for sensitive-detector assignment by
+name. The whole assembly is returned as a single `GeoFullPhysVol` container
+so the tagger keeps a sensitive tree-top.
 
 ## Geometry tree
 
@@ -81,6 +87,8 @@ the shared catalogue.
 - `UBTHasSensitiveVolume` — the returned container is a `GeoVFullPhysVol`.
 - `UBTHasSevenRegions` — the container holds the seven tile regions.
 - `UBTTileCount` — the regions contain 47 000 tiles in total.
+- `UBTTileGridAndCopyNumbers` — every tile sits on its region's grid, with
+  copy number `ix · nY + iy`.
 
 ## Status
 

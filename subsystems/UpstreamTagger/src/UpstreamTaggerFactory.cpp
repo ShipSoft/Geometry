@@ -14,8 +14,13 @@
 #include <GeoModelKernel/GeoLogVol.h>
 #include <GeoModelKernel/GeoNameTag.h>
 #include <GeoModelKernel/GeoPhysVol.h>
+#include <GeoModelKernel/GeoSerialIdentifier.h>
+#include <GeoModelKernel/GeoSerialTransformer.h>
 #include <GeoModelKernel/GeoTransform.h>
+#include <GeoModelKernel/GeoXF.h>
 
+#include <GeoGenericFunctions/Mod.h>
+#include <GeoGenericFunctions/Variable.h>
 #include <array>
 #include <cstddef>
 #include <string>
@@ -176,27 +181,34 @@ GeoPhysVol* makeRegionEnvelope(GeoVPhysVol* container, const GeoMaterial* air,
 // Fill @p env with a regular grid of identical tiles sharing @p tileLog,
 // centred on the region. The regions are whole numbers of tiles wide
 // (asserted above), so the grid fills the region exactly.
+//
+// The whole grid is one GeoSerialTransformer, so the GeoModel tree and the
+// geometry database hold one node per region instead of one per tile. The
+// conversion to Geant4 expands it into the same per-tile placements as
+// before. Copy k is tile (ix, iy) = (k / nY, k mod nY), and
+// GeoSerialIdentifier numbers it k = ix·nY + iy, the numbering the per-tile
+// placements used.
 void placeTileGrid(GeoVPhysVol* env, const GeoLogVol* tileLog, const Region& region) {
     const int nX = tileCount(region.halfX, region.pitch());
     const int nY = tileCount(region.halfY, region.pitch());
     const double pitch = gm(region.pitch());
-    const std::string regionName = region.name;
 
     const double x0 = -0.5 * (nX - 1) * pitch;
     const double y0 = -0.5 * (nY - 1) * pitch;
 
-    int tileId = 0;
-    for (int ix = 0; ix < nX; ++ix) {
-        for (int iy = 0; iy < nY; ++iy) {
-            const std::string tileName =
-                regionName + "/tile_" + std::to_string(ix) + "_" + std::to_string(iy);
-            env->add(new GeoNameTag(tileName));
-            env->add(new GeoIdentifierTag(tileId++));
-            env->add(
-                new GeoTransform(GeoTrf::Translate3D(x0 + (ix * pitch), y0 + (iy * pitch), 0.0)));
-            env->add(new GeoPhysVol(tileLog));
-        }
-    }
+    // Doubles through GeoGenfun, as in the neutrino detector's fibre planes:
+    // Pow(unit step, f) is a translation by f GeoModel units.
+    const GeoGenfun::Variable k;
+    GeoGenfun::GENFUNCTION iy = GeoGenfun::Mod(nY)(k);
+    GeoGenfun::GENFUNCTION ix = (k - iy) / nY;
+    GeoGenfun::GENFUNCTION x = x0 + pitch * ix;
+    GeoGenfun::GENFUNCTION y = y0 + pitch * iy;
+    const GeoXF::TRANSFUNCTION tileXF = GeoXF::Pow(GeoTrf::Translate3D(1.0, 0.0, 0.0), x) *
+                                        GeoXF::Pow(GeoTrf::Translate3D(0.0, 1.0, 0.0), y);
+
+    env->add(new GeoNameTag(std::string(region.name) + "/tile"));
+    env->add(new GeoSerialIdentifier(0));
+    env->add(new GeoSerialTransformer(new GeoPhysVol(tileLog), &tileXF, nX * nY));
 }
 
 }  // namespace
