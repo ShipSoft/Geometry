@@ -199,7 +199,9 @@ To add a new material, edit `src/Materials.cpp`:
    tree node, id, and placement
 2. **Implementation**: `subsystems/<Name>/src/<Name>Factory.cpp` — implement
    `build()` using GeoModel primitives (`GeoBox`, `GeoTubs`, `GeoLogVol`,
-   `GeoPhysVol`, `GeoTransform`, etc.)
+   `GeoPhysVol`, `GeoTransform`, etc.). If the subsystem repeats identical
+   layers, planes, bars or fibres, build each repeated volume once and share
+   it, as described in [Repeated volumes](docs/repeated-volumes.md).
 3. **Registration**: add one line, `REGISTER_SUBSYSTEM(<Name>Factory)`, at
    the end of the factory `.cpp`, inside `namespace SHiP::geometry`. The
    subsystem registers itself; **do not** edit `src/DetectorBuilder.cpp`, which
