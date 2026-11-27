@@ -88,11 +88,11 @@ inline constexpr auto kEnvelopeHalfY = 3300.0 * mm;
 inline constexpr auto kEnvelopeHalfZ = 25200.0 * mm;
 
 // ── Materials (names in Materials) ──────────────────────────────────
-inline constexpr std::string_view kAirMaterial = "Air";                 // envelope container
-inline constexpr std::string_view kSteelMaterial = "Iron";              // H-beam structure
-inline constexpr std::string_view kWallMaterial = "Aluminium";          // sensor cell walls
-inline constexpr std::string_view kScintillatorMaterial = "LAB";        // sensor cells
-inline constexpr std::string_view kHeliumMaterial = "PressurisedHe90";  // decay region
+inline constexpr std::string_view kAirMaterial = "Air";           // envelope container
+inline constexpr std::string_view kSteelMaterial = "Iron";        // H-beam structure
+inline constexpr std::string_view kWallMaterial = "Aluminium";    // sensor cell walls
+inline constexpr std::string_view kScintillatorMaterial = "LAB";  // sensor cells
+inline constexpr std::string_view kHeliumMaterial = "Helium";     // decay region, ambient pressure
 
 // ── Derived quantities ──────────────────────────────────────────────────
 //

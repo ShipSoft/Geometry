@@ -99,6 +99,13 @@ void Materials::createMaterials() {
     pressurisedHe90->lock();
     m_materials["PressurisedHe90"] = pressurisedHe90;
 
+    // Helium (density 1.663e-4 g/cm³): pure He at ambient pressure and temperature
+    // (ideal gas at 1 atm and 20 °C), filling the decay volume
+    auto* helium = new GeoMaterial("Helium", gm(1.663e-4 * units::g / units::cm3));
+    helium->add(m_elements["Helium"], 1.0);
+    helium->lock();
+    m_materials["Helium"] = helium;
+
     // Tungsten (density 19.3 g/cm³): pure W
     auto* tungsten = new GeoMaterial("Tungsten", gm(19.3 * units::g / units::cm3));
     tungsten->add(m_elements["Tungsten"], 1.0);

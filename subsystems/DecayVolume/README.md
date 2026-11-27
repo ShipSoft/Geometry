@@ -15,7 +15,8 @@ at the exit) made of two parts:
 - **LAB liquid-scintillator sensor cells** in thin aluminium containers,
   tiling the four faces of the frustum.
 
-The decay region itself is **helium**, but it is not sized by a fixed inset.
+The decay region itself is **helium at ambient pressure**, but it is not sized
+by a fixed inset.
 It is *derived* from where the SBT material actually sits (see
 [`SBTEnvelope.h`](include/DecayVolume/SBTEnvelope.h)): the innermost surfaces —
 the side and top/bottom scintillator containers, and the top/bottom longitudinal
@@ -36,7 +37,7 @@ children of the container), which the clash-avoidance logic relies on.
 
 ```
 /SHiP/decay_volume                         (Air box, 4400 × 6600 × 50400 mm)
- ├─ /SHiP/decay_volume/helium_0..19        (PressurisedHe90, 20 inscribed GeoTrap slabs)
+ ├─ /SHiP/decay_volume/helium_0..19        (Helium, 20 inscribed GeoTrap slabs)
  ├─ /SHiP/decay_volume/sbt/structure_*     (Iron, 312 GeoBox H-beam pieces)
  └─ /SHiP/decay_volume/sbt/sensors_*       (Al walls + LAB cells, 3380 GeoTrap)
 ```
@@ -80,7 +81,7 @@ column front-flange edge for clash avoidance. Each piece is 7 aluminium walls +
 | Iron            | 7.874 g/cm³  | H-beam supporting structure    |
 | Aluminium       | 2.70 g/cm³   | Sensor container walls         |
 | LAB             | 0.867 g/cm³  | Scintillator cells (new)       |
-| PressurisedHe90 | 2.12 mg/cm³  | Central decay region           |
+| Helium          | 0.166 mg/cm³ | Decay region, ambient pressure |
 
 `LAB` (linear alkylbenzene, C 87.41% / H 12.59% by mass) was added to the
 central `Materials` catalogue for the SBT cells.

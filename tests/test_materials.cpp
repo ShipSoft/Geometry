@@ -12,4 +12,5 @@ TEST_CASE("MaterialsTest.MaterialsAvailable", "[materials]") {
     CHECK_NOTHROW(mats.requireMaterial("Iron"));
     CHECK_NOTHROW(mats.requireMaterial("Air"));
     CHECK_NOTHROW(mats.requireMaterial("Vacuum"));
+    CHECK_NOTHROW(mats.requireMaterial("Helium"));
 }
