@@ -66,21 +66,23 @@ TEST_CASE("LayerCopyNumbersIdentifyModuleAndLayer", "[calorimeter]") {
 
     std::set<int> seen;
     for (unsigned c = 0; c < calorimeter->getNChildVols(); ++c) {
-        const auto id = calorimeter->getIdOfChildVol(c);
-        REQUIRE(id.has_value());
-        CHECK(seen.insert(*id).second);
+        // value_or rather than a REQUIRE on has_value(): clang-tidy cannot
+        // see through Catch's macros. No valid copy number is negative.
+        const int id = calorimeter->getIdOfChildVol(c).value_or(-1);
+        REQUIRE(id >= 0);
+        CHECK(seen.insert(id).second);
         // Modules are placed one after another, each layer by layer.
         const int module = static_cast<int>(c) / calo::kVolsPerModule;
         const int layer = static_cast<int>(c) % calo::kVolsPerModule;
         const int ix = module % calo::kModuleNX;
         const int iy = module / calo::kModuleNX;
         const GeoTrf::Vector3D t = calorimeter->getXToChildVol(c).translation();
-        if (calo::moduleOfLayerCopyNumber(*id) != calo::moduleIndex(ix, iy) ||
-            calo::layerOfLayerCopyNumber(*id) != layer ||
+        if (calo::moduleOfLayerCopyNumber(id) != calo::moduleIndex(ix, iy) ||
+            calo::layerOfLayerCopyNumber(id) != layer ||
             t.x() != x0 + (ix * gm(calo::kModulePitchX)) ||
             t.y() != y0 + (iy * gm(calo::kModulePitchY))) {
             FAIL("child " << c << " (" << calorimeter->getNameOfChildVol(c) << ") has copy number "
-                          << *id << " at (" << t.x() << ", " << t.y() << ")");
+                          << id << " at (" << t.x() << ", " << t.y() << ")");
         }
     }
 }

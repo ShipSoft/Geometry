@@ -5,7 +5,9 @@
 
 #include "SHiP/geometry/Units.h"
 
-class GeoPhysVol;
+// GeoModel volumes are reference counted, so their destructors are
+// protected on purpose; the check does not apply to a forward declaration.
+class GeoPhysVol;  // NOLINT(cppcoreguidelines-virtual-class-destructor)
 class GeoMaterial;
 
 namespace SHiP::geometry {

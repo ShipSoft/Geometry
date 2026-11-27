@@ -8,7 +8,9 @@
 #include <string_view>
 
 class GeoLogVol;
-class GeoPhysVol;
+// GeoModel volumes are reference counted, so their destructors are
+// protected on purpose; the check does not apply to a forward declaration.
+class GeoPhysVol;  // NOLINT(cppcoreguidelines-virtual-class-destructor)
 
 namespace SHiP::geometry {
 
