@@ -32,6 +32,20 @@ in the X plane run along X (measuring Y); fibres in the Y plane run along Y
 highest-volume subsystem; the per-plane air envelopes keep them spatially
 bounded for navigation.
 
+Within a section, every X plane is identical and so is every Y plane. Each
+section's two planes are therefore built once as filled envelopes and placed
+in all 14 of its layers. GeoModel's Geant4 conversion makes one logical
+volume per filled envelope, so Geant4 holds 6 fibre planes (24 000 fibre
+volumes) instead of 84 (336 000), while still tracking through every fibre of
+every plane. In a standalone neutrino detector this cuts gmclash's peak RSS
+from 167 MB to 66 MB, and geantinos along the beam take the same steps in
+about a quarter of the time.
+
+Because the planes are shared, the fibres inside a plane are named after the
+section, `hcal/S{s}/FibreX` (or `FibreY`), with copy numbers 0 … 2n − 1
+running across the two sub-layers. The layer comes from the envelope's
+placement, `hcal/S{s}_L{l}/FibreX`, one level up the touchable history.
+
 ## Geometry tree
 
 ```text
@@ -77,6 +91,9 @@ material was new (added alongside this subsystem); the rest already existed.
 - `NeutrinoDetectorChildCount` - the container has 4819 direct children.
 - `NeutrinoDetectorFibreCount` - the recursive descendant count is 340819,
   guarding the individual-fibre placement.
+- `FibrePlanesSharedWithinSection` - each section places one shared X plane
+  and one shared Y plane in all its layers, with section-level fibre names
+  and continuous copy numbers.
 
 ## Status
 
