@@ -316,6 +316,15 @@ TEST_CASE("HplBuilderRejectsNarrowCasing", "[calorimeter]") {
     CHECK(hpl.mother->getNChildVols() == 0);
 }
 
+TEST_CASE("HplBuilderRejectsCopyNumberOverflow", "[calorimeter]") {
+    const HplBuild hpl;
+    // 2160 mm / 0.2 mm = 10800 fibres per row, more than the sublayer stride
+    // of fibreCopyNumber(), so neighbouring sublayers would share numbers.
+    CHECK_THROWS_AS(SHiP::geometry::calo_fibre_hp::makeLayer(hpl.al, hpl.ps, 2160.0 * mm, 1.0 * mm,
+                                                             0.2 * mm, 0.18 * mm, true),
+                    std::runtime_error);
+}
+
 TEST_CASE("HplFibreCountToleratesRounding", "[calorimeter]") {
     // 0.3 / 0.1 is 2.9999999999999996 in double precision; plain truncation
     // would drop a fibre from every row.

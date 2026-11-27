@@ -48,6 +48,11 @@ GeoPhysVol* calo_fibre_hp::makeLayer(const GeoMaterial* aluminiumMat, const GeoM
             "calo_fibre_hp::makeLayer: casing too narrow for a fibre in every "
             "sublayer (needs >= 2 * fibre diameter)");
     }
+    if (calo::fibresPerSublayer(1, casingXYIn, fiberDiam) >= calo::kHplCopyNumberStride) {
+        throw std::runtime_error(
+            "calo_fibre_hp::makeLayer: too many fibres per sublayer for "
+            "calo::fibreCopyNumber()");
+    }
 
     const std::string orient = fibresAlongY ? "V" : "H";
 
