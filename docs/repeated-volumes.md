@@ -103,6 +103,7 @@ sharing between modules even when the contents are identical.
 |---|---|---|
 | Calorimeter HPL casings, 48 slots (#151) | 952,064 Geant4 physical volumes, 105 MB database | 455,448, 20 MB |
 | Calorimeter bar layers, 270 slots (#151) | 444,654 Geant4 physical volumes | 413,838 |
+| Calorimeter HPL casings placed without their air envelopes, 48 slots (#151) | 413,838 Geant4 physical volumes | 413,790 |
 | Neutrino detector fibre planes, 84 slots (#153) | 340,820 Geant4 physical volumes (standalone) | 28,820 |
 
 In the neutrino detector, geantinos along the beam also ran about four times
