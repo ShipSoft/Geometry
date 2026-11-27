@@ -230,8 +230,29 @@ touchable history in Geant4:
 - Give every repeated child a copy number (`GeoIdentifierTag`, or
   `GeoSerialIdentifier` for a serial transformer), and document the
   numbering. Do not rely on names alone.
-- Keep the placement of each shared volume uniquely named and, where it
-  helps, numbered: that is where the layer and module now live.
+- Keep the placement of each shared volume uniquely named and numbered:
+  that is where the layer and module now live. Make the copy number unique
+  across the whole subsystem, not just within a module, and provide a
+  function that decodes it. In the calorimeter (#151),
+  `calo::layerCopyNumber(module, layer)` is `module * 1000 + layer`. A
+  number that restarts in every module leaves the module recoverable only
+  by parsing the name.
+- Place the shared volume directly, without a wrapper around it. An air
+  envelope of the same size adds a level and a volume, and the copy number
+  ends up on the wrapper rather than on the volume that holds the children. In
+  #151 the HPL casings were wrapped and the bar layers were not, so the
+  layer sat two levels above a fibre's cladding but one level above a bar.
+- Document the depth at which each index lives, counted from the step
+  point, so that a sensitive detector can use `GetCopyNumber(depth)`
+  directly.
+- Warn the people who write sensitive detectors and digitisers. One Geant4
+  physical volume now stands for every slot, so a lookup cached by
+  `G4VPhysicalVolume*`, or keyed on the step volume's name, returns the
+  first slot's layer and module for every hit, and nothing shows that it
+  went wrong. Hits have to be identified through the touchable history
+  (`GetCopyNumber(depth)` / `GetVolume(depth)`).
+- Shared slots cannot differ from each other. Misaligning one layer or
+  marking dead channels in it means giving that layer a volume of its own.
 - Changing names that the simulation or digitisation match on is a breaking
   change. Mark the commit with `!` and say in the pull request what changed,
   so that the downstream code can be checked.
