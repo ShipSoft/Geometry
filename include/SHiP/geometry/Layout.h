@@ -84,9 +84,12 @@ inline constexpr Slot kTarget =
 inline constexpr Slot kMuonShield = slotOf<MuonShieldFactory>(
     MuonShieldFactory::s_areaHalfX, MuonShieldFactory::s_areaHalfY, MuonShieldFactory::s_areaHalfZ);
 
-/// z 26.40-31.50 m (WARM muon-shield configuration), inside the muon-shield
-/// container, so the two containers overlap (known deviation #117, see
-/// kKnownOverlaps).
+/// z 22.94-27.99 m, in the end of muon-shield magnet M5 and the whole of M6
+/// (FairShip TRY_2026). Those magnets have a cavity of the SND container's
+/// stepped shape cut out of their iron (MuonShieldFactory::k_sndCavity), but
+/// the SND is still inside the muon-shield container, so the two containers
+/// overlap (known deviation #117, see kKnownOverlaps). The slot is the
+/// container's bounding box.
 inline constexpr Slot kNeutrinoDetector = slotOf<NeutrinoDetectorFactory>(
     NeutrinoDetectorFactory::s_halfX, NeutrinoDetectorFactory::s_halfY,
     NeutrinoDetectorFactory::s_halfZ);
@@ -322,8 +325,6 @@ static_assert(fitsEnvelopeZ(kMuonShield, detail::kMuonShieldRegion),
 
 static_assert(fitsEnvelopeXY(kMuonShield, detail::kMuonShieldRegion),
               "the muon shield container is outside its EDMS envelope transversely");
-static_assert(fitsEnvelopeZ(kNeutrinoDetector, envelopes::kNeutrinoDetector),
-              "the SND container is outside its EDMS envelope along z");
 static_assert(fitsEnvelopeXY(kNeutrinoDetector, envelopes::kNeutrinoDetector),
               "the SND container is outside its EDMS envelope transversely");
 static_assert(fitsEnvelopeZ(kUpstreamTagger, envelopes::kUpstreamTagger),
@@ -350,9 +351,18 @@ static_assert(fitsEnvelopeXY(kCalorimeter, detail::kCalorimeterRegion),
 // Known deviations from the EDMS envelopes (#120). Each is bounded by its
 // current size: if one is fixed, assert the positive check above instead; if
 // one gets worse, the second assert fails.
+inline constexpr auto kNeutrinoDetectorEarlyStart = 3461.0 * detail::mm;  // 3460 mm
 inline constexpr auto kUpstreamTaggerExcessX = 1450.0 * detail::mm;
 inline constexpr auto kUpstreamTaggerExcessY = 1600.0 * detail::mm;
 inline constexpr auto kTimingDetectorEarlyStart = 168.0 * detail::mm;
+// The SND follows FairShip's TRY_2026 shield (in M5 and M6), while the EDMS
+// envelope still follows the WARM layout, 3.46 m further downstream.
+static_assert(!fitsEnvelopeZ(kNeutrinoDetector, envelopes::kNeutrinoDetector),
+              "the SND container now fits the EDMS envelope: assert fitsEnvelopeZ instead");
+static_assert(fitsEnvelopeZ(kNeutrinoDetector, envelopes::kNeutrinoDetector,
+                            kNeutrinoDetectorEarlyStart),
+              "the SND container deviates from the EDMS envelope by more than "
+              "kNeutrinoDetectorEarlyStart");
 static_assert(!fitsEnvelopeXY(kUpstreamTagger, envelopes::kUpstreamTagger),
               "the UBT container now fits the EDMS envelope: assert fitsEnvelopeXY instead");
 static_assert(fitsEnvelopeXY(kUpstreamTagger, envelopes::kUpstreamTagger, kUpstreamTaggerExcessX,

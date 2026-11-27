@@ -13,9 +13,15 @@
 #include <GeoModelKernel/GeoLogVol.h>
 #include <GeoModelKernel/GeoNameTag.h>
 #include <GeoModelKernel/GeoPhysVol.h>
+#include <GeoModelKernel/GeoShape.h>
+#include <GeoModelKernel/GeoShapeShift.h>
+#include <GeoModelKernel/GeoShapeSubtraction.h>
 #include <GeoModelKernel/GeoTransform.h>
 
+#include <algorithm>
+#include <cstddef>
 #include <string>
+#include <string_view>
 
 namespace SHiP::geometry {
 
@@ -38,8 +44,40 @@ constexpr checks::Box areaBox() {
                        MSF::s_areaHalfZ);
 }
 
+constexpr checks::Box cavityBox(const MSF::CavitySection& section) {
+    return checks::box(kZero, kZero, 0.5 * (section.zStart + section.zEnd), section.halfX,
+                       section.halfY, 0.5 * (section.zEnd - section.zStart));
+}
+
+/// Only M5 and M6 carry the SND, and every cavity step stays inside the iron
+/// of the magnets it cuts transversely, so each keeps an iron frame around it.
+constexpr bool sndCavityInM5AndM6() {
+    return !MSF::hasSndCavity(MSF::k_hadronStopper) &&
+           std::ranges::all_of(MSF::k_magnets, [](const MSF::MagnetData& magnet) {
+               const std::string_view name = magnet.name;
+               const bool expected = name == "magn_5" || name == "magn_6";
+               if (MSF::hasSndCavity(magnet) != expected) {
+                   return false;
+               }
+               return std::ranges::all_of(MSF::k_sndCavity, [&magnet](const MSF::CavitySection& s) {
+                   return !MSF::cuts(s, magnet) ||
+                          (s.halfX < magnet.halfX && s.halfY < magnet.halfY);
+               });
+           });
+}
+
 }  // namespace
 
+static_assert(sndCavityInM5AndM6(),
+              "the SND cavity must cut M5 and M6 only, and leave iron around it transversely");
+static_assert(std::ranges::all_of(MSF::k_sndCavity,
+                                  [](const MSF::CavitySection& s) {
+                                      return checks::contains(areaBox(), cavityBox(s));
+                                  }),
+              "the SND cavity sticks out of the muon-shield container");
+static_assert(MSF::k_sndCavity.back().zStart == MSF::k_magnets[5].zStart &&
+                  MSF::k_sndCavity.back().zEnd == MSF::k_magnets[5].zEnd(),
+              "the HCAL step of the SND cavity must span M6 face to face");
 static_assert(checks::contains(areaBox(), magnetBox(MSF::k_hadronStopper)),
               "the hadron stopper sticks out of the muon-shield container");
 static_assert(checks::firstFailure(MSF::k_magnets,
@@ -70,9 +108,45 @@ GeoPhysVol* MuonShieldFactory::build() {
     // The hadron stopper first, then M1-M7, each with its index as identifier.
     int id = 0;
     const auto place = [&](const MagnetData& magnet) {
-        auto const* box = new GeoBox(gm(magnet.halfX), gm(magnet.halfY), gm(magnet.halfZ));
+        const GeoShape* shape = new GeoBox(gm(magnet.halfX), gm(magnet.halfY), gm(magnet.halfZ));
+        // Cut each cavity step over the part of it inside this magnet. Where a
+        // cut reaches a magnet face, or a wider step of the cavity, it is
+        // extended a little past it, so the subtraction leaves no
+        // zero-thickness iron skin.
+        constexpr auto eps = 1.0 * mm;
+        const auto wider = [](std::size_t i, const CavitySection& s) {
+            if (i >= k_sndCavity.size()) {
+                return false;
+            }
+            const auto& n = k_sndCavity.at(i);
+            return n.halfX >= s.halfX && n.halfY >= s.halfY;
+        };
+        for (std::size_t i = 0; i < k_sndCavity.size(); ++i) {
+            const CavitySection& section = k_sndCavity.at(i);
+            if (!cuts(section, magnet)) {
+                continue;
+            }
+            auto cutLo = section.zStart;
+            if (cutLo <= magnet.zStart) {
+                cutLo = magnet.zStart - eps;
+            } else if (i > 0 && wider(i - 1, section)) {
+                cutLo -= eps;
+            }
+            auto cutHi = section.zEnd;
+            if (cutHi >= magnet.zEnd()) {
+                cutHi = magnet.zEnd() + eps;
+            } else if (wider(i + 1, section)) {
+                cutHi += eps;
+            }
+            auto const* cut =
+                new GeoBox(gm(section.halfX), gm(section.halfY), gm(0.5 * (cutHi - cutLo)));
+            GeoTrf::Translate3D const cutTrf(0.0, 0.0,
+                                             gm(0.5 * (cutLo + cutHi) - magnet.zCentre()));
+            shape = &shape->subtract(*cut << cutTrf);
+        }
+
         const std::string name = "/SHiP/muon_shield/" + std::string(magnet.name);
-        auto* magnetPhys = new GeoPhysVol(new GeoLogVol(name, box, iron));
+        auto* magnetPhys = new GeoPhysVol(new GeoLogVol(name, shape, iron));
         areaPhys->add(new GeoNameTag(name));
         areaPhys->add(new GeoIdentifierTag(id++));
         areaPhys->add(

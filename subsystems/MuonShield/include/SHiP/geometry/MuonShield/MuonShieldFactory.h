@@ -3,11 +3,13 @@
 
 #pragma once
 
+#include "SHiP/geometry/NeutrinoDetector/NeutrinoDetectorFactory.h"
 #include "SHiP/geometry/SubsystemDescriptor.h"
 #include "SHiP/geometry/Units.h"
 
 #include <algorithm>
 #include <array>
+#include <cstddef>
 
 class GeoPhysVol;
 
@@ -36,6 +38,13 @@ struct MuonShieldMagnet {
  * of the magnet's outer size, as FairShip builds them. The apertures and yoke
  * shapes are not modelled (#125), and neither is the field, which comes from
  * the field map.
+ *
+ * The scattering and neutrino detector sits in the end of M5 and the whole of
+ * M6, as in FairShip, so those two magnets have a cavity for it cut out of
+ * their iron (k_sndCavity). The cavity is the SND container's shape at its
+ * placement, so it steps with the SND's sub-detectors and the iron comes up
+ * to each of them. Only NeutrinoDetectorFactory's header is used, for its
+ * constants; the libraries do not depend on each other.
  */
 class MuonShieldFactory {
    public:
@@ -116,6 +125,45 @@ class MuonShieldFactory {
         k_hadronStopper.halfY, std::ranges::max(k_magnets, {}, &MagnetData::halfY).halfY);
     static constexpr auto s_areaHalfZ = 0.5 * (s_zEnd - s_zStart);
     static constexpr auto s_centreZ = 0.5 * (s_zStart + s_zEnd);
+
+    /// One step of the SND cavity, in the world frame: a box on the beam axis
+    /// from @c zStart to @c zEnd.
+    struct CavitySection {
+        units::LengthMm zStart, zEnd;
+        units::LengthMm halfX, halfY;
+    };
+
+    /// Cavity for the SND (veto, target, MGC, HCAL): the SND container's
+    /// sections (NeutrinoDetectorFactory::k_sections) placed where the SND
+    /// is. The .cpp checks that it cuts M5 and M6 only and that the HCAL step
+    /// is exactly M6.
+    static constexpr auto k_sndCavity = [] {
+        using NDF = NeutrinoDetectorFactory;
+        static_assert(NDF::descriptor().x_mm == 0.0 && NDF::descriptor().y_mm == 0.0,
+                      "the SND cavity assumes the SND is centred on the beam axis");
+        const auto origin = NDF::descriptor().z_mm * units::mm;
+        std::array<CavitySection, NDF::k_sections.size()> cavity{};
+        for (std::size_t i = 0; i < cavity.size(); ++i) {
+            const auto& s = NDF::k_sections.at(i);
+            cavity.at(i) = {.zStart = origin + s.zStart,
+                            .zEnd = origin + s.zEnd,
+                            .halfX = s.halfX,
+                            .halfY = s.halfY};
+        }
+        return cavity;
+    }();
+
+    /// The cavity section overlaps the magnet's iron along z.
+    [[nodiscard]] static constexpr bool cuts(const CavitySection& section,
+                                             const MagnetData& magnet) {
+        return magnet.zStart < section.zEnd && section.zStart < magnet.zEnd();
+    }
+
+    /// Some of the SND cavity lies in this magnet, so it is cut out.
+    [[nodiscard]] static constexpr bool hasSndCavity(const MagnetData& magnet) {
+        return std::ranges::any_of(k_sndCavity,
+                                   [&magnet](const CavitySection& s) { return cuts(s, magnet); });
+    }
 
     /**
      * @brief This subsystem's self-description (name, node, id, placement).

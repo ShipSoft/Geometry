@@ -57,7 +57,7 @@ placement, `hcal/S{s}_L{l}/FibreX`, one level up the touchable history.
 ## Geometry tree
 
 ```text
-/SHiP/neutrino_detector (Air, 800 x 800 x 5100 mm box)
+/SHiP/neutrino_detector (Air, stepped union of 4 boxes, 602.5 x 602.5 x 5050 mm bounding box)
  |- veto/P{0..2}_B{0..6}                21 PVT bars (3 planes x 7)
  |- target/
        |- L{0..119}/{W,Si_X,Si_Y}      120 W + 120 Si-X + 120 Si-Y
@@ -73,11 +73,22 @@ placement, `hcal/S{s}_L{l}/FibreX`, one level up the touchable history.
 Direct container children: 21 + 363 + 20 + 6174 = 6578. Total volumes including the
 individual fibres: 409778 (403200 fibres).
 
-Position in world: z = 28 950 mm (centre of the 26.40-31.50 m WARM SND slot).
-The SND is part of the muon shield, so its box container sits within the
-downstream end of the muon-shield region; the resulting envelope overlap is
-declared in `tests/test_consistency.cpp`, analogous to the trackers/magnet
-overlap.
+Position in world: z = 25 465 mm (22.94-27.99 m: the end of muon-shield
+magnet M5 and the whole of M6, as in FairShip's TRY_2026 layout). This is
+3.46 m upstream of the EDMS envelope (26.40-31.50 m), which follows the WARM
+shield layout; `Layout.h` records it as a bounded known deviation.
+
+The container is exactly as long as its content (5.05 m), laid out from its
+downstream end, so the HCAL (24.63-27.99 m) fills M6 exactly. It is not a
+single box but the union of four boxes, one per sub-detector, each 1 mm wider
+than it (`NeutrinoDetectorFactory::k_sections`): veto 211 x 220 mm, target
+201 x 201, MGC 251 x 251 and HCAL 301.25 x 301.25 (half-sizes). The gaps
+between sub-detectors belong to the narrower box beside them. The muon shield
+cuts the same boxes out of the M5 and M6 iron, so the iron comes up to each
+sub-detector.
+
+The SND is still inside the muon-shield container, so the two containers
+overlap (#117, declared in `Layout.h`).
 
 ## Materials
 
@@ -106,12 +117,12 @@ material was new (added alongside this subsystem); the rest already existed.
 
 - [x] C++ implementation (veto + target + HCAL)
 - [x] Individual scintillating fibres
-- [x] Box container (part of the muon shield)
-- [ ] HYBRID muon-shield placement variant (currently WARM)
+- [x] Stepped container following the sub-detectors, in a cavity of M5 and M6
+- [x] Placement in the TRY_2026 muon shield (M5 and M6)
 - [ ] Per-channel sensitive-detector readout
 - [ ] Verification against the standalone SND reference
 
 ## TODO
 
-- Confirm the WARM vs HYBRID placement and z-position with the integration team.
+- Confirm the TRY_2026 placement with the integration team: the EDMS envelope still follows the WARM layout.
 - Add per-channel sensitive-detector readout once the SD layer is integrated.

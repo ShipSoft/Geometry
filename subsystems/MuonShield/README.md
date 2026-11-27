@@ -11,6 +11,20 @@ each magnet are one solid iron box of the magnet's outer size, as FairShip
 builds them. The apertures and yoke shapes are not modelled (#125). The field
 is not modelled either: it comes from the field map.
 
+The scattering and neutrino detector sits in the end of M5 and the whole of
+M6, as in FairShip. Those two magnets have a cavity for it cut out of their
+iron, stepped to follow each sub-detector with 1 mm clearance, so the iron
+comes up to the SND everywhere else. The cavity (`MuonShieldFactory::k_sndCavity`)
+is derived from the SND container's sections and its placement, so the two
+cannot drift apart (half-sizes x, y in mm):
+
+| Step   | z (m)         | Half x | Half y | In     |
+|--------|---------------|-------:|-------:|--------|
+| Veto   | 22.94 - 22.98 |    211 |    220 | M5     |
+| Target | 22.98 - 24.42 |    201 |    201 | M5     |
+| MGC    | 24.42 - 24.63 |    251 |    251 | M5     |
+| HCAL   | 24.63 - 27.99 | 301.25 | 301.25 | all M6 |
+
 ## Geometry Tree
 
 Positions are along the beam in the world frame (half-sizes x, y in mm).
@@ -22,8 +36,8 @@ Positions are along the beam in the world frame (half-sizes x, y in mm).
  |- magn_2 (Iron box)               z =  7.89 - 12.39 m   1490 x  890
  |- magn_3 (Iron box)               z = 12.55 - 17.05 m   1552 x  850
  |- magn_4 (Iron box)               z = 17.20 - 21.70 m   1592 x  600
- |- magn_5 (Iron box)               z = 21.86 - 24.48 m   1340 x  520
- |- magn_6 (Iron box)               z = 24.63 - 27.99 m   1500 x  630
+ |- magn_5 (Iron box - SND cavity)  z = 21.86 - 24.48 m   1340 x  520
+ |- magn_6 (Iron box - SND cavity)  z = 24.63 - 27.99 m   1500 x  630
  \- magn_7 (Iron box)               z = 28.18 - 32.18 m   1710 x 1270
 ```
 
@@ -45,5 +59,6 @@ them at compile time.
 ## Status
 
 - [x] Solid-block hadron stopper and magnets M1-M7 (FairShip TRY_2026)
+- [x] Cavity for the SND in M5 and M6, stepped to its sub-detectors
 - [ ] Real magnet apertures and yokes (#125)
 - [ ] Iron absorber around the hadron stopper (FairShip `AbsorberVol`)

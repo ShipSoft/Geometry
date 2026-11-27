@@ -14,12 +14,17 @@
 #include <GeoModelKernel/GeoPhysVol.h>
 #include <GeoModelKernel/GeoSerialIdentifier.h>
 #include <GeoModelKernel/GeoSerialTransformer.h>
+#include <GeoModelKernel/GeoShape.h>
+#include <GeoModelKernel/GeoShapeShift.h>
+#include <GeoModelKernel/GeoShapeUnion.h>
 #include <GeoModelKernel/GeoTransform.h>
 #include <GeoModelKernel/GeoTube.h>
 #include <GeoModelKernel/GeoXF.h>
 
 #include <GeoGenericFunctions/Variable.h>
+#include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <string>
 
 namespace SHiP::geometry {
@@ -82,31 +87,69 @@ constexpr int s_hcal_n_sections = 3;
 constexpr int s_hcal_n_layers = 14;
 constexpr LengthMm s_hcal_section_xy[s_hcal_n_sections] = {600.0 * mm, 600.0 * mm, 600.0 * mm};
 
-// Longitudinal layout (upstream → downstream), content centred in the container.
+// Longitudinal layout (upstream → downstream), laid out back from the
+// container's downstream end, so the HCAL ends on it (and on M6's downstream
+// face) exactly.
+using SND = NeutrinoDetectorFactory;
 constexpr auto s_tgt_depth =
     s_tgt_pitch * s_tgt_n_layers + s_tgt_n_timing_layers * (s_tgt_timing_si + s_tgt_timing_air);
 constexpr auto s_mgc_depth = s_mgc_pitch * s_mgc_n_layers;
 constexpr auto s_hcal_depth = s_hcal_n_sections * (s_hcal_layer * s_hcal_n_layers);
-constexpr auto s_content_depth = s_veto_total_thickness + s_veto_gap_to_target + s_tgt_depth +
-                                 s_target_gap_to_mgc + s_mgc_depth + s_mgc_gap_to_hcal +
-                                 s_hcal_depth;
+constexpr auto s_hcal_start = SND::s_halfZ - s_hcal_depth;
+constexpr auto s_mgc_start = s_hcal_start - s_mgc_gap_to_hcal - s_mgc_depth;
+constexpr auto s_tgt_start = s_mgc_start - s_target_gap_to_mgc - s_tgt_depth;
+constexpr auto s_veto_downstream_face = s_tgt_start - s_veto_gap_to_target;
+constexpr auto s_veto_start = s_veto_downstream_face - s_veto_total_thickness;
 
 // ── Compile-time validation ──────────────────────────────────────────────
-using SND = NeutrinoDetectorFactory;
 
-static_assert(s_content_depth <= 2.0 * SND::s_halfZ,
-              "veto, target, MGC and HCAL are longer than the SND container");
-static_assert(0.5 * s_veto_bar_length <= SND::s_halfX &&
-                  0.5 * s_veto_plane_xy + s_veto_shift_y <= SND::s_halfY,
-              "the staggered veto planes do not fit the container");
-static_assert(0.5 * s_tgt_plate_xy <= SND::s_halfX && 0.5 * s_tgt_plate_xy <= SND::s_halfY,
-              "the target plates do not fit the container");
-static_assert(0.5 * s_mgc_plate_xy <= SND::s_halfX && 0.5 * s_mgc_plate_xy <= SND::s_halfY,
-              "the mgc plates do not fit the container");
+/// The part from @p zLo to @p zHi, @p halfX by @p halfY, lies within its
+/// container section. The layer pitches are sums of decimals, so z gets a
+/// rounding allowance.
+constexpr bool fitsSection(const SND::Section& s, LengthMm zLo, LengthMm zHi, LengthMm halfX,
+                           LengthMm halfY) {
+    constexpr auto tol = 1e-6 * mm;
+    return s.zStart - tol <= zLo && zHi <= s.zEnd + tol && halfX <= s.halfX && halfY <= s.halfY;
+}
+
+constexpr bool sectionsAreContiguous() {
+    for (std::size_t i = 1; i < SND::k_sections.size(); ++i) {
+        if (SND::k_sections.at(i).zStart != SND::k_sections.at(i - 1).zEnd) {
+            return false;
+        }
+    }
+    return SND::k_sections.front().zStart == -SND::s_halfZ &&
+           SND::k_sections.back().zEnd == SND::s_halfZ;
+}
+
+constexpr bool sectionsWithinBounds() {
+    return std::ranges::all_of(SND::k_sections, [](const SND::Section& s) {
+        return s.halfX <= SND::s_halfX && s.halfY <= SND::s_halfY;
+    });
+}
+
+static_assert(sectionsAreContiguous(),
+              "the container sections must run without gaps over the full container length");
+static_assert(sectionsWithinBounds(), "a container section is wider than s_halfX/s_halfY");
+static_assert(s_veto_start >= -SND::s_halfZ - 1e-6 * mm &&
+                  s_veto_start <= -SND::s_halfZ + 1e-6 * mm,
+              "the SND container must be exactly as long as veto, target, MGC and HCAL");
+static_assert(fitsSection(SND::k_sections[0], s_veto_start, s_veto_downstream_face,
+                          0.5 * s_veto_bar_length, 0.5 * s_veto_plane_xy + s_veto_shift_y),
+              "the staggered veto planes do not fit their container section");
+static_assert(fitsSection(SND::k_sections[1], s_tgt_start, s_tgt_start + s_tgt_depth,
+                          0.5 * s_tgt_plate_xy, 0.5 * s_tgt_plate_xy),
+              "the target does not fit its container section");
+static_assert(fitsSection(SND::k_sections[2], s_mgc_start, s_mgc_start + s_mgc_depth,
+                          0.5 * s_mgc_plate_xy, 0.5 * s_mgc_plate_xy),
+              "the MGC does not fit its container section");
 // A fibre plane's envelope is one fibre diameter wider than its section.
-static_assert(0.5 * s_hcal_section_xy[s_hcal_n_sections - 1] + s_hcal_fibre_diameter <=
-                  SND::s_halfX,
-              "the largest HCAL section does not fit the container");
+static_assert(fitsSection(SND::k_sections[3], s_hcal_start, s_hcal_start + s_hcal_depth,
+                          0.5 * s_hcal_section_xy[s_hcal_n_sections - 1] + s_hcal_fibre_diameter,
+                          0.5 * s_hcal_section_xy[s_hcal_n_sections - 1] + s_hcal_fibre_diameter),
+              "the HCAL does not fit its container section");
+static_assert(SND::k_sections[3].zStart == s_hcal_start,
+              "the HCAL container section must start where the HCAL does");
 static_assert(s_tgt_n_layers % s_tgt_n_timing_layers == 0,
               "the target timing layers are not evenly spaced");
 constexpr bool hcalSectionsTileExactly() {
@@ -366,7 +409,7 @@ void buildHCal(GeoVPhysVol* mother, const GeoMaterial* air, const GeoMaterial* i
 NeutrinoDetectorFactory::NeutrinoDetectorFactory(Materials& materials) : m_materials(materials) {}
 
 /// Resolve materials, create the air container, lay out the veto, target, MGC and
-/// HCAL in beam order (content centred in the container), and return it.
+/// HCAL in beam order (flush with the downstream end), and return it.
 GeoPhysVol* NeutrinoDetectorFactory::build() {
     const GeoMaterial* air = m_materials.requireMaterial("Air");
     const GeoMaterial* tungsten = m_materials.requireMaterial("Tungsten");
@@ -375,20 +418,22 @@ GeoPhysVol* NeutrinoDetectorFactory::build() {
     const GeoMaterial* polystyrene = m_materials.requireMaterial("Polystyrene");
     const GeoMaterial* pvt = m_materials.requireMaterial("PVT");
 
-    auto const* containerBox = new GeoBox(gm(s_halfX), gm(s_halfY), gm(s_halfZ));
-    const auto* containerLog = new GeoLogVol(kBase, containerBox, air);
+    // The container is the union of its sections, one box per sub-detector.
+    const GeoShape* container = nullptr;
+    for (const Section& section : k_sections) {
+        auto const* box = new GeoBox(gm(section.halfX), gm(section.halfY),
+                                     gm(0.5 * (section.zEnd - section.zStart)));
+        const GeoShape& placed =
+            *box << GeoTrf::Translate3D(0.0, 0.0, gm(0.5 * (section.zStart + section.zEnd)));
+        container = container == nullptr ? &placed : &container->add(placed);
+    }
+    const auto* containerLog = new GeoLogVol(kBase, container, air);
     auto* containerPhys = new GeoPhysVol(containerLog);
 
-    const LengthMm zStart = -0.5 * s_content_depth;
-    const LengthMm vetoDownstreamFace = zStart + s_veto_total_thickness;
-    const LengthMm targetStart = vetoDownstreamFace + s_veto_gap_to_target;
-    const LengthMm mgcStart = targetStart + s_tgt_depth + s_target_gap_to_mgc;
-    const LengthMm hcalStart = mgcStart + s_mgc_depth + s_mgc_gap_to_hcal;
-
-    buildVeto(containerPhys, pvt, vetoDownstreamFace);
-    buildTarget(containerPhys, tungsten, silicon, targetStart);
-    buildMGC(containerPhys, tungsten, silicon, mgcStart);
-    buildHCal(containerPhys, air, iron, polystyrene, hcalStart);
+    buildVeto(containerPhys, pvt, s_veto_downstream_face);
+    buildTarget(containerPhys, tungsten, silicon, s_tgt_start);
+    buildMGC(containerPhys, tungsten, silicon, s_mgc_start);
+    buildHCal(containerPhys, air, iron, polystyrene, s_hcal_start);
 
     return containerPhys;
 }
