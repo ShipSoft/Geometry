@@ -87,8 +87,8 @@ between sub-detectors belong to the narrower box beside them. The muon shield
 cuts the same boxes out of the M5 and M6 iron, so the iron comes up to each
 sub-detector.
 
-The SND is still inside the muon-shield container, so the two containers
-overlap (#117, declared in `Layout.h`).
+The muon-shield container has the same cavity cut out of it, so the two
+containers, siblings in the world, do not overlap (`Layout.h`, `kCutOuts`).
 
 ## Materials
 

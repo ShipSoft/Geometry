@@ -86,10 +86,9 @@ inline constexpr Slot kMuonShield = slotOf<MuonShieldFactory>(
 
 /// z 22.94-27.99 m, in the end of muon-shield magnet M5 and the whole of M6
 /// (FairShip TRY_2026). Those magnets have a cavity of the SND container's
-/// stepped shape cut out of their iron (MuonShieldFactory::k_sndCavity), but
-/// the SND is still inside the muon-shield container, so the two containers
-/// overlap (known deviation #117, see kKnownOverlaps). The slot is the
-/// container's bounding box.
+/// stepped shape cut out of their iron (MuonShieldFactory::k_sndCavity), and
+/// so does the muon-shield container, so the two containers do not overlap
+/// (see kCutOuts). The slot is the container's bounding box.
 inline constexpr Slot kNeutrinoDetector = slotOf<NeutrinoDetectorFactory>(
     NeutrinoDetectorFactory::s_halfX, NeutrinoDetectorFactory::s_halfY,
     NeutrinoDetectorFactory::s_halfZ);
@@ -133,14 +132,41 @@ struct KnownOverlap {
 };
 
 inline constexpr std::array kKnownOverlaps{
-    // #117: the SND sits inside the muon-shield container.
-    KnownOverlap{.a = kMuonShield.path,
-                 .b = kNeutrinoDetector.path,
-                 .region = checks::intersection(kMuonShield.box(), kNeutrinoDetector.box())},
     // #118: the trackers container spans the whole magnet along the beam.
     KnownOverlap{.a = kTrackers.path,
                  .b = kMagnet.path,
                  .region = checks::bounds(-3000, 3000, -3430, 3430, 87070, 92070)},
+};
+
+/// A container with a cavity of another container's shape cut out of it.
+/// The two boxes overlap, but the containers do not, as long as the other
+/// container stays inside the cavity. The slots only know the boxes, so the
+/// check takes the cavity's bounding box, @c hole (world frame); that the
+/// cavity has the container's exact shape is up to the factory (the muon
+/// shield derives its cavity from the SND's sections and placement).
+struct CutOut {
+    std::string_view from;
+    std::string_view cut;
+    checks::Box hole;
+};
+
+/// The SND sits in a cavity of the muon-shield container (#117).
+inline constexpr std::array kCutOuts{
+    CutOut{.from = kMuonShield.path,
+           .cut = kNeutrinoDetector.path,
+           .hole =
+               [] {
+                   const auto& cavity = MuonShieldFactory::k_sndCavity;
+                   auto halfX = detail::zero;
+                   auto halfY = detail::zero;
+                   for (const auto& s : cavity) {
+                       halfX = s.halfX < halfX ? halfX : s.halfX;
+                       halfY = s.halfY < halfY ? halfY : s.halfY;
+                   }
+                   return checks::Box{.x = {.lo = -halfX, .hi = halfX},
+                                      .y = {.lo = -halfY, .hi = halfY},
+                                      .z = {.lo = cavity.front().zStart, .hi = cavity.back().zEnd}};
+               }()},
 };
 
 // ── Layout predicates ───────────────────────────────────────────────────
@@ -163,15 +189,35 @@ template <std::size_t M>
     return false;
 }
 
+/// One of the pair has the other's shape cut out of it (listed in @p cutOuts),
+/// and the other lies within that cavity.
+template <std::size_t K>
+[[nodiscard]] constexpr bool isCutOut(const std::array<CutOut, K>& cutOuts, const Slot& a,
+                                      const Slot& b) {
+    for (const auto& c : cutOuts) {
+        if (c.from == a.path && c.cut == b.path) {
+            return checks::contains(c.hole, b.box());
+        }
+        if (c.from == b.path && c.cut == a.path) {
+            return checks::contains(c.hole, a.box());
+        }
+    }
+    return false;
+}
+
 /// Index of the first slot that overlaps a later one, unless the pair is a
-/// known overlap that has not grown; npos if there is none.
-template <std::size_t N, std::size_t M = kKnownOverlaps.size()>
+/// known overlap that has not grown, or one sits in a cavity cut out of the
+/// other; npos if there is none.
+template <std::size_t N, std::size_t M = kKnownOverlaps.size(), std::size_t K = kCutOuts.size()>
 [[nodiscard]] constexpr std::size_t firstUnexpectedOverlap(
-    const std::array<Slot, N>& slots, const std::array<KnownOverlap, M>& known = kKnownOverlaps) {
+    const std::array<Slot, N>& slots, const std::array<KnownOverlap, M>& known = kKnownOverlaps,
+    const std::array<CutOut, K>& cutOuts = kCutOuts) {
     for (std::size_t i = 0; i < N; ++i) {
+        const Slot& a = slots.at(i);
         for (std::size_t j = i + 1; j < N; ++j) {
-            if (checks::overlaps(slots[i].box(), slots[j].box()) &&
-                !isKnownOverlap(known, slots[i], slots[j])) {
+            const Slot& b = slots.at(j);
+            if (checks::overlaps(a.box(), b.box()) && !isKnownOverlap(known, a, b) &&
+                !isCutOut(cutOuts, a, b)) {
                 return i;
             }
         }
@@ -206,7 +252,7 @@ static_assert(firstOutOfOrder(kSlots) == checks::npos,
               "subsystem centres must not decrease along the beam");
 static_assert(firstUnexpectedOverlap(kSlots) == checks::npos,
               "two subsystem containers overlap, and the pair is not in kKnownOverlaps or "
-              "overlaps beyond its recorded region");
+              "kCutOuts, or overlaps beyond its recorded region");
 static_assert(checks::firstFailure(kSlots,
                                    [](const Slot& s) {
                                        return checks::contains(kWorld, s.box());
@@ -225,6 +271,21 @@ static_assert(checks::firstFailure(kKnownOverlaps,
                                    }) == checks::npos,
               "a known overlap is gone (or names an unknown subsystem): "
               "drop it from kKnownOverlaps and close its issue");
+static_assert(checks::firstFailure(kCutOuts,
+                                   [](const CutOut& c) {
+                                       for (const auto& a : kSlots) {
+                                           for (const auto& b : kSlots) {
+                                               if (a.path == c.from && b.path == c.cut) {
+                                                   return checks::overlaps(a.box(), b.box()) &&
+                                                          checks::contains(c.hole, b.box()) &&
+                                                          checks::contains(a.box(), c.hole);
+                                               }
+                                           }
+                                       }
+                                       return false;
+                                   }) == checks::npos,
+              "a cut-out names an unknown subsystem, its container has left the cavity, or "
+              "the cavity sticks out of the container it is cut from");
 
 // ── Cavern ──────────────────────────────────────────────────────────────
 

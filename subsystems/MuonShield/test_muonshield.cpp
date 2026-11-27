@@ -34,13 +34,22 @@ std::vector<MuonShieldFactory::MagnetData> blocks() {
 
 // The tables are checked against the container at compile time
 // (MuonShieldFactory.cpp); this checks the factory builds what they describe.
-TEST_CASE("MuonShieldContainerSpansTheShield", "[muonshield]") {
+TEST_CASE("MuonShieldContainerSpansTheShieldAroundTheSnd", "[muonshield]") {
     Materials materials;
     MuonShieldFactory factory(materials);
     GeoPhysVol* ms = factory.build();
     REQUIRE(ms != nullptr);
 
-    const auto* area = dynamic_cast<const GeoBox*>(ms->getLogVol()->getShape());
+    // The container is a box with the SND's sections cut out of it, one cut
+    // per cavity step, so that the SND does not overlap it.
+    const GeoShape* shape = ms->getLogVol()->getShape();
+    std::size_t nCuts = 0;
+    while (const auto* cut = dynamic_cast<const GeoShapeSubtraction*>(shape)) {
+        shape = cut->getOpA();
+        ++nCuts;
+    }
+    CHECK(nCuts == MuonShieldFactory::k_sndCavity.size());
+    const auto* area = dynamic_cast<const GeoBox*>(shape);
     REQUIRE(area != nullptr);
     CHECK(area->getXHalfLength() == gm(MuonShieldFactory::s_areaHalfX));
     CHECK(area->getYHalfLength() == gm(MuonShieldFactory::s_areaHalfY));

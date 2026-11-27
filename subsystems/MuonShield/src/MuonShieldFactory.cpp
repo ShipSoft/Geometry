@@ -95,13 +95,63 @@ static_assert(checks::firstPairFailure(MSF::k_magnets,
 
 // ---------------------------------------------------------------------------
 
+namespace {
+
+/// @p body, a solid on the beam axis from @p zLo to @p zHi (world frame),
+/// with the part of the SND cavity inside it cut out. Where a cut reaches a
+/// face of the body, or a wider step of the cavity, it is extended a little
+/// past it, so the subtraction leaves no zero-thickness skin. Where the cavity
+/// ends inside the body, the cut ends exactly on the SND's face.
+const GeoShape* subtractSndCavity(const GeoShape* body, units::LengthMm zLo, units::LengthMm zHi) {
+    using Section = MuonShieldFactory::CavitySection;
+    const auto& cavity = MuonShieldFactory::k_sndCavity;
+    constexpr auto eps = 1.0 * mm;
+    const auto wider = [&cavity](std::size_t i, const Section& s) {
+        if (i >= cavity.size()) {
+            return false;
+        }
+        const auto& n = cavity.at(i);
+        return n.halfX >= s.halfX && n.halfY >= s.halfY;
+    };
+    const auto zCentre = 0.5 * (zLo + zHi);
+    const GeoShape* shape = body;
+    for (std::size_t i = 0; i < cavity.size(); ++i) {
+        const Section& section = cavity.at(i);
+        if (section.zEnd <= zLo || zHi <= section.zStart) {
+            continue;
+        }
+        auto cutLo = section.zStart;
+        if (cutLo <= zLo) {
+            cutLo = zLo - eps;
+        } else if (i > 0 && wider(i - 1, section)) {
+            cutLo -= eps;
+        }
+        auto cutHi = section.zEnd;
+        if (cutHi >= zHi) {
+            cutHi = zHi + eps;
+        } else if (wider(i + 1, section)) {
+            cutHi += eps;
+        }
+        auto const* cut =
+            new GeoBox(gm(section.halfX), gm(section.halfY), gm(0.5 * (cutHi - cutLo)));
+        GeoTrf::Translate3D const cutTrf(0.0, 0.0, gm(0.5 * (cutLo + cutHi) - zCentre));
+        shape = &shape->subtract(*cut << cutTrf);
+    }
+    return shape;
+}
+
+}  // namespace
+
 MuonShieldFactory::MuonShieldFactory(Materials& materials) : m_materials(materials) {}
 
 GeoPhysVol* MuonShieldFactory::build() {
     const GeoMaterial* air = m_materials.requireMaterial("Air");
     const GeoMaterial* iron = m_materials.requireMaterial("Iron");
 
-    auto const* area = new GeoBox(gm(s_areaHalfX), gm(s_areaHalfY), gm(s_areaHalfZ));
+    // The container has the SND's shape cut out of it, so that the SND, its
+    // sibling in the world, does not overlap it (Layout.h, kCutOuts).
+    const GeoShape* area = subtractSndCavity(
+        new GeoBox(gm(s_areaHalfX), gm(s_areaHalfY), gm(s_areaHalfZ)), s_zStart, s_zEnd);
     auto const* areaLog = new GeoLogVol("/SHiP/muon_shield", area, air);
     auto* areaPhys = new GeoPhysVol(areaLog);
 
@@ -109,41 +159,7 @@ GeoPhysVol* MuonShieldFactory::build() {
     int id = 0;
     const auto place = [&](const MagnetData& magnet) {
         const GeoShape* shape = new GeoBox(gm(magnet.halfX), gm(magnet.halfY), gm(magnet.halfZ));
-        // Cut each cavity step over the part of it inside this magnet. Where a
-        // cut reaches a magnet face, or a wider step of the cavity, it is
-        // extended a little past it, so the subtraction leaves no
-        // zero-thickness iron skin.
-        constexpr auto eps = 1.0 * mm;
-        const auto wider = [](std::size_t i, const CavitySection& s) {
-            if (i >= k_sndCavity.size()) {
-                return false;
-            }
-            const auto& n = k_sndCavity.at(i);
-            return n.halfX >= s.halfX && n.halfY >= s.halfY;
-        };
-        for (std::size_t i = 0; i < k_sndCavity.size(); ++i) {
-            const CavitySection& section = k_sndCavity.at(i);
-            if (!cuts(section, magnet)) {
-                continue;
-            }
-            auto cutLo = section.zStart;
-            if (cutLo <= magnet.zStart) {
-                cutLo = magnet.zStart - eps;
-            } else if (i > 0 && wider(i - 1, section)) {
-                cutLo -= eps;
-            }
-            auto cutHi = section.zEnd;
-            if (cutHi >= magnet.zEnd()) {
-                cutHi = magnet.zEnd() + eps;
-            } else if (wider(i + 1, section)) {
-                cutHi += eps;
-            }
-            auto const* cut =
-                new GeoBox(gm(section.halfX), gm(section.halfY), gm(0.5 * (cutHi - cutLo)));
-            GeoTrf::Translate3D const cutTrf(0.0, 0.0,
-                                             gm(0.5 * (cutLo + cutHi) - magnet.zCentre()));
-            shape = &shape->subtract(*cut << cutTrf);
-        }
+        shape = subtractSndCavity(shape, magnet.zStart, magnet.zEnd());
 
         const std::string name = "/SHiP/muon_shield/" + std::string(magnet.name);
         auto* magnetPhys = new GeoPhysVol(new GeoLogVol(name, shape, iron));

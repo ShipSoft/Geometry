@@ -1,10 +1,10 @@
 [
   {
     "type": "encapsulated",
-    "volume": "/SHiP/muon_shield",
-    "other": "/SHiP/neutrino_detector",
+    "volume": "/SHiP/cavern",
+    "other": "/SHiP/calorimeter",
     "max_distance_mm": -1.0,
-    "issue": 117
+    "issue": 120
   },
   {
     "type": "sister",
@@ -82,13 +82,6 @@
     "other": "/SHiP/magnet/coil_1",
     "max_distance_mm": 260.0,
     "issue": 119
-  },
-  {
-    "type": "sister",
-    "volume": "/SHiP/neutrino_detector",
-    "other": "/SHiP/muon_shield",
-    "max_distance_mm": 1593.0,
-    "issue": 117
   },
   {
     "type": "sister",

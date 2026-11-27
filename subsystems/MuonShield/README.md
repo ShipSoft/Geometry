@@ -16,7 +16,8 @@ M6, as in FairShip. Those two magnets have a cavity for it cut out of their
 iron, stepped to follow each sub-detector with 1 mm clearance, so the iron
 comes up to the SND everywhere else. The cavity (`MuonShieldFactory::k_sndCavity`)
 is derived from the SND container's sections and its placement, so the two
-cannot drift apart (half-sizes x, y in mm):
+cannot drift apart. The container has the same cavity cut out of it, so it
+does not overlap the SND, its sibling in the world (half-sizes x, y in mm):
 
 | Step   | z (m)         | Half x | Half y | In     |
 |--------|---------------|-------:|-------:|--------|
@@ -30,7 +31,7 @@ cannot drift apart (half-sizes x, y in mm):
 Positions are along the beam in the world frame (half-sizes x, y in mm).
 
 ```
-/SHiP/muon_shield (Air, 3420 x 3380 x 30040 mm, centred at z = 17 160 mm)
+/SHiP/muon_shield (Air, 3420 x 3380 x 30040 mm box minus the SND cavity, centred at z = 17 160 mm)
  |- magn_absorb (Iron box)          z =  2.14 -  4.44 m   1635 x 1690
  |- magn_1 (Iron box)               z =  4.59 -  7.59 m   1360 x  800
  |- magn_2 (Iron box)               z =  7.89 - 12.39 m   1490 x  890

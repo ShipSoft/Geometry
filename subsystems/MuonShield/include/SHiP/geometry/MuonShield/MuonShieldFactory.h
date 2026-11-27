@@ -43,7 +43,9 @@ struct MuonShieldMagnet {
  * M6, as in FairShip, so those two magnets have a cavity for it cut out of
  * their iron (k_sndCavity). The cavity is the SND container's shape at its
  * placement, so it steps with the SND's sub-detectors and the iron comes up
- * to each of them. Only NeutrinoDetectorFactory's header is used, for its
+ * to each of them. The container has the same cavity cut out of it, so the
+ * SND, its sibling in the world, does not overlap it (Layout.h, kCutOuts).
+ * Only NeutrinoDetectorFactory's header is used, for its
  * constants; the libraries do not depend on each other.
  */
 class MuonShieldFactory {
