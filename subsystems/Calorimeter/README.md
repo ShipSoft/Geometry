@@ -17,11 +17,20 @@ All parameters — layer sequences, thicknesses, module tiling — are
 
 ```
 /SHiP/calorimeter (Air, 6000 × 7000 × 2900 mm — the fixed subsystem envelope)
- └─ for each (mx, my) in [0..nx-1] × [0..ny-1]:
-      └─ <layer_env_MXxYy>           (Air envelope, kPlateXY × kPlateXY × layer_thickness)
-            └─ layer body            (Lead / Iron / WidePVT / ThinPS / HPL)
-                  └─ ...             (fibres or bars, depending on layer type)
+ └─ for each (mx, my) in [0..nx-1] × [0..ny-1], one layer placement per layer:
+      ├─ lead: Air envelope       └─ lead plate
+      ├─ iron plate
+      ├─ bar layer: Air envelope  └─ bars           (shared, one per bar type)
+      └─ HPL: aluminium casing    └─ fibre cladding └─ core  (shared, one per orientation)
 ```
+
+Every layer placement is named
+`/SHiP/calorimeter/{ecal|hcal}/gl{n}…_MX{x}Y{y}` and carries the copy
+number `calo::layerCopyNumber(module, layer)` =
+`module * 1000 + layer`, unique across the calorimeter. Here
+`module = calo::moduleIndex(x, y)` = `y * kModuleNX + x`, and `layer`
+counts the module's layer placements from 0. `calo::moduleOfLayerCopyNumber()`
+and `calo::layerOfLayerCopyNumber()` decode it.
 
 ## Layer types
 
@@ -70,12 +79,14 @@ The centres come from `calo::fibresPerSublayer()` and
 places fibres with them, and they are public so that the calorimeter digitiser
 can use the same functions rather than a copy that could drift apart.
 `makeLayer` checks its inputs before it creates any volume, and throws if the
-casing is thinner than the close-packed stack or narrower than two fibre
-diameters (the outer rows would be empty).
+casing is thinner than the close-packed stack, narrower than two fibre
+diameters (the outer rows would be empty), or so wide that a row holds
+10,000 fibres or more (the copy numbers of neighbouring sublayers would
+collide).
 
 All HPL layers of one orientation are identical, so the factory builds one
 filled casing per orientation with `calo_fibre_hp::makeLayer()` and places
-it in all 48 slots (8 per module, 6 modules) with `placeLayer()`. GeoModel
+it directly in all 48 slots (8 per module, 6 modules). GeoModel
 and Geant4 then hold 2 × 5398 fibres instead of 48 × 5398, which shrinks the
 geometry database from 105 MB to 20 MB. Geant4 still tracks through every
 fibre in every layer.
@@ -84,8 +95,8 @@ Because the casing is shared, a fibre's name and copy number identify it
 within its casing only: `HPL_{V|H}_S{sublayer}_F{index}_Clad`,
 with copy number `calo::fibreCopyNumber(sublayer, index)` =
 `sublayer * 10000 + index`. The layer and module come from the casing's
-placement, `{layer}_HPL_Casing_MX{x}Y{y}`, one level up the touchable
-history.
+placement, `…/gl{n}_sl{m}_hpl_{y|x}_MX{x}Y{y}`, one level above the
+cladding.
 
 ## Bar layers
 
@@ -99,9 +110,37 @@ type across the six modules (270 bar-layer slots in all). GeoModel and Geant4 th
 A bar's name and copy number identify it within its layer: bar `i` is named
 `{type}_B{i}` (for example `thin_ps_h_B17`) with copy number `i`. The layer
 and module come from the envelope's placement,
-`/SHiP/calorimeter/{ecal|hcal}/gl{n}_sl{m}_{type}_MX{x}Y{y}`, one level up
-the touchable history. The bar logical volumes are
+`/SHiP/calorimeter/{ecal|hcal}/gl{n}_sl{m}_{type}_MX{x}Y{y}`, one level
+above the bar. The bar logical volumes are
 `/SHiP/calorimeter/{type}` and the envelopes `/SHiP/calorimeter/{type}_env`.
+
+## Identifying hits
+
+Counting up the Geant4 touchable history from the step point:
+
+| Depth | Fibre step                                  | Bar step                                |
+|-------|---------------------------------------------|-----------------------------------------|
+| 0     | `HPL_Core`, no copy number                  | bar, copy number = bar index            |
+| 1     | cladding, `fibreCopyNumber(sublayer, index)`; orientation (`V`/`H`) in the name | layer envelope, `layerCopyNumber()` |
+| 2     | casing, `layerCopyNumber()`                 | `/SHiP/calorimeter` container           |
+| 3     | `/SHiP/calorimeter` container               |                                         |
+
+So for a fibre the layer is `GetCopyNumber(2)` and the fibre
+`GetCopyNumber(1)`; for a bar the layer is `GetCopyNumber(1)` and the bar
+`GetCopyNumber(0)`.
+
+> [!WARNING]
+> One Geant4 physical volume per bar type, and per fibre within a casing,
+> is reused in every slot. A sensitive detector or digitiser that caches a
+> lookup by `G4VPhysicalVolume*`, or keys it on the step volume's name,
+> gets the first layer's layer and module for every layer, and nothing
+> shows that it went wrong. Identify hits only through the touchable
+> history (`GetCopyNumber(depth)` / `GetVolume(depth)`).
+
+Sharing also means that all layers of one type are the same volume. A
+per-layer misalignment or a dead channel in one layer cannot be added as
+a transform or a change inside the shared volume; it means giving that
+layer a volume of its own.
 
 ## Materials
 
@@ -133,6 +172,9 @@ The parameters are validated at compile time by `static_assert`s in
 - The close-packed HPL fibre stack must fit in `kHplThickness`, the middle
   fibre row must fit in `kPlateXY`, and the outer rows must hold one fibre
   fewer than the middle row.
+- A row holds fewer fibres than the `fibreCopyNumber()` sublayer stride,
+  and a module fewer layer placements than the `layerCopyNumber()` module
+  stride.
 
 A violation fails the build with a descriptive message.
 
@@ -152,16 +194,21 @@ A violation fails the build with a descriptive message.
   within a row and between rows, is exactly one diameter apart.
 - `HplFibresInsideCasing` — the outermost fibres of each row stay inside
   the casing.
-- `HplBuilderPlacesSharedCentres` — `buildLayer` places every fibre at
+- `LayerCopyNumbersIdentifyModuleAndLayer` — every layer placement has a
+  unique copy number that decodes to its module (checked against its
+  position) and its layer.
+- `HplBuilderPlacesSharedCentres` — `makeLayer` places every fibre at
   `calo::fibreCentre()`, with copy number `calo::fibreCopyNumber()`.
 - `BarLayersSharedAcrossSlots` — every bar layer of one type places the
   same filled envelope, with each bar at its pitch and copy number = index.
 - `HplCasingsSharedAcrossLayers` — the calorimeter places one casing per
-  fibre orientation in every HPL slot.
+  fibre orientation directly in every HPL slot.
 - `HplBuilderRejectsThinCasing` — a casing thinner than the stack throws
   and leaves the mother volume empty.
 - `HplBuilderRejectsNarrowCasing` — a casing narrower than two fibre
   diameters throws and leaves the mother volume empty.
+- `HplBuilderRejectsCopyNumberOverflow` — a row of 10,000 fibres or more
+  throws, since its copy numbers would run into the next sublayer's.
 - `HplFibreCountToleratesRounding` — a casing-to-pitch ratio that rounds
   just below a whole number does not lose a fibre.
 
