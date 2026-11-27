@@ -176,19 +176,23 @@ void buildTarget(GeoVPhysVol* mother, const GeoMaterial* tungsten, const GeoMate
 /// polystyrene fibres in two staggered sub-layers. Fibres run along X (X plane,
 /// measuring Y) or along Y (Y plane, measuring X). @p envLog is the shared
 /// per-section envelope log volume and @p fibrePhys the shared per-section fibre
-/// physical volume; @p zFront is the plane's upstream face.
-void buildFibrePlane(GeoVPhysVol* mother, const GeoLogVol* envLog, const GeoPhysVol* fibrePhys,
-                     bool isX, LengthMm sectionXY, LengthMm zFront, const std::string& lTag) {
+/// physical volume.
+///
+/// Every plane of one orientation in a section is identical, so the plane is
+/// built once per section and orientation and placed in all 14 layers with
+/// placeFibrePlane(). GeoModel's Geant4 conversion makes one logical volume
+/// per filled envelope, so the fibres then exist once per section and
+/// orientation in Geant4 too, rather than once per plane. The fibres are named
+/// `{sTag}/FibreX` (or `FibreY`); the layer comes from the envelope's placement.
+GeoPhysVol* makeFibrePlane(const GeoLogVol* envLog, const GeoPhysVol* fibrePhys, bool isX,
+                           LengthMm sectionXY, const std::string& sTag) {
     const LengthMm r = 0.5 * s_hcal_fibre_diameter;
     const LengthMm d = s_hcal_fibre_diameter;
     const LengthMm halfXY = 0.5 * sectionXY;
     const LengthMm envHalfZ = s_hcal_fibre_sublayers * r;  // 0.25 mm
 
-    const std::string envName = lTag + (isX ? "/FibreX" : "/FibreY");
+    const std::string fibreName = sTag + (isX ? "/FibreX" : "/FibreY");
     auto* envPhys = new GeoPhysVol(envLog);
-    mother->add(new GeoNameTag(envName));
-    mother->add(new GeoTransform(GeoTrf::Translate3D(0.0, 0.0, gm(zFront + envHalfZ))));
-    mother->add(envPhys);
 
     // Tube axis is Z; rotate it to lie along X (X plane) or Y (Y plane).
     const GeoTrf::Transform3D rot =
@@ -221,10 +225,21 @@ void buildFibrePlane(GeoVPhysVol* mother, const GeoLogVol* envLog, const GeoPhys
             GeoTrf::Transform3D(GeoTrf::Translate3D(0.0, 0.0, gm(localZ))) *
             GeoXF::Pow(unitStep, pos) * rot;
 
-        envPhys->add(new GeoNameTag(envName));
+        envPhys->add(new GeoNameTag(fibreName));
         envPhys->add(new GeoSerialIdentifier(sub * nFibres));
         envPhys->add(new GeoSerialTransformer(fibrePhys, &fibreXF, nFibres));
     }
+    return envPhys;
+}
+
+/// Place a fibre plane built by makeFibrePlane() in @p mother as
+/// `{lTag}/FibreX` (or `FibreY`), with its upstream face at @p zFront.
+void placeFibrePlane(GeoVPhysVol* mother, GeoPhysVol* plane, bool isX, LengthMm zFront,
+                     const std::string& lTag) {
+    const LengthMm envHalfZ = s_hcal_fibre_sublayers * 0.5 * s_hcal_fibre_diameter;
+    mother->add(new GeoNameTag(lTag + (isX ? "/FibreX" : "/FibreY")));
+    mother->add(new GeoTransform(GeoTrf::Translate3D(0.0, 0.0, gm(zFront + envHalfZ))));
+    mother->add(plane);
 }
 
 /// Build the HCAL: three transverse sections of 14 layers each, every layer an
@@ -263,6 +278,9 @@ void buildHCal(GeoVPhysVol* mother, const GeoMaterial* air, const GeoMaterial* i
             new GeoLogVol(sTag + "/fibre", new GeoTube(0.0, gm(r), halfXY), polystyrene);
         // One shared fibre physical volume placed by every plane in this section.
         auto* fibrePhys = new GeoPhysVol(fibreLog);
+        // One filled plane per orientation, placed in every layer of this section.
+        auto* planeX = makeFibrePlane(fibreEnvLog, fibrePhys, /*isX=*/true, sectionXY, sTag);
+        auto* planeY = makeFibrePlane(fibreEnvLog, fibrePhys, /*isX=*/false, sectionXY, sTag);
 
         const int nTiles = static_cast<int>(std::lround(units::ratio(sectionXY / s_hcal_tile_xy)));
         const LengthMm tileHalf = 0.5 * s_hcal_tile_xy;
@@ -272,9 +290,9 @@ void buildHCal(GeoVPhysVol* mother, const GeoMaterial* air, const GeoMaterial* i
 
             placeChild(mother, ironLog, lTag + "/Fe", l, 0.0 * mm, 0.0 * mm, z + 0.5 * s_hcal_iron);
             z += s_hcal_iron;
-            buildFibrePlane(mother, fibreEnvLog, fibrePhys, /*isX=*/true, sectionXY, z, lTag);
+            placeFibrePlane(mother, planeX, /*isX=*/true, z, lTag);
             z += s_hcal_fibre_plane;
-            buildFibrePlane(mother, fibreEnvLog, fibrePhys, /*isX=*/false, sectionXY, z, lTag);
+            placeFibrePlane(mother, planeY, /*isX=*/false, z, lTag);
             z += s_hcal_fibre_plane;
 
             const LengthMm tileZc = z + 0.5 * s_hcal_tile_thickness;
