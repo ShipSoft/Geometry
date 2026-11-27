@@ -98,23 +98,4 @@ GeoPhysVol* calo_fibre_hp::makeLayer(const GeoMaterial* aluminiumMat, const GeoM
     return casingPhys;
 }
 
-void calo_fibre_hp::placeLayer(GeoVPhysVol* mother, GeoPhysVol* casing, const std::string& layerTag,
-                               units::LengthMm zCenter, const std::string& nameSuffix) {
-    mother->add(new GeoNameTag(layerTag + "_HPL_Casing" + nameSuffix));
-    mother->add(new GeoTransform(GeoTrf::Translate3D(0.0, 0.0, gm(zCenter))));
-    mother->add(casing);
-}
-
-void calo_fibre_hp::buildLayer(GeoVPhysVol* mother, const GeoMaterial* aluminiumMat,
-                               const GeoMaterial* fibreMat, const std::string& layerTag,
-                               units::LengthMm zCenter, units::LengthMm casingXY,
-                               units::LengthMm casingZ, units::LengthMm fiberDiam,
-                               units::LengthMm fiberCoreDiam, bool fibresAlongY,
-                               const std::string& nameSuffix) {
-    placeLayer(mother,
-               makeLayer(aluminiumMat, fibreMat, casingXY, casingZ, fiberDiam, fiberCoreDiam,
-                         fibresAlongY),
-               layerTag, zCenter, nameSuffix);
-}
-
 }  // namespace SHiP::geometry

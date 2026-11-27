@@ -16,32 +16,6 @@ namespace SHiP::geometry {
 
 using units::gm;
 
-void calo_bar::placeLayer(GeoVPhysVol* mother, GeoLogVol const* barLog, units::LengthMm pitch,
-                          int nBars, units::LengthMm zCenter, std::string_view tagPrefix,
-                          int layerIndex, BarAxis axis, const std::string& nameSuffix) {
-    const double step = gm(pitch);
-    const double firstBarCenter = -0.5 * (nBars - 1) * step;
-
-    for (int i = 0; i < nBars; ++i) {
-        const double barCenter = firstBarCenter + (i * step);
-
-        double x = 0.0;
-        double y = 0.0;
-        if (axis == BarAxis::AlongX) {
-            x = barCenter;
-        } else {
-            y = barCenter;
-        }
-
-        const auto name = std::format("{}_L{}_B{}{}", tagPrefix, layerIndex, i, nameSuffix);
-
-        auto* barPhys = new GeoPhysVol(barLog);
-        mother->add(new GeoNameTag(name.c_str()));
-        mother->add(new GeoTransform(GeoTrf::Translate3D(x, y, gm(zCenter))));
-        mother->add(barPhys);
-    }
-}
-
 GeoPhysVol* calo_bar::makeLayer(const GeoLogVol* envLog, const GeoLogVol* barLog,
                                 units::LengthMm pitch, int nBars, BarAxis axis,
                                 std::string_view barTag) {

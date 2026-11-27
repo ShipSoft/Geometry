@@ -5,9 +5,6 @@
 
 #include "SHiP/geometry/Units.h"
 
-#include <string>
-
-class GeoVPhysVol;
 class GeoPhysVol;
 class GeoMaterial;
 
@@ -35,16 +32,6 @@ namespace calo_fibre_hp {
 GeoPhysVol* makeLayer(const GeoMaterial* aluminiumMat, const GeoMaterial* fibreMat,
                       units::LengthMm casingXY, units::LengthMm casingZ, units::LengthMm fiberDiam,
                       units::LengthMm fiberCoreDiam, bool fibresAlongY);
-
-/// Places @p casing in @p mother at @p zCenter, named `{layerTag}_HPL_Casing{nameSuffix}`.
-void placeLayer(GeoVPhysVol* mother, GeoPhysVol* casing, const std::string& layerTag,
-                units::LengthMm zCenter, const std::string& nameSuffix);
-
-/// Builds a casing of its own with makeLayer() and places it with placeLayer().
-void buildLayer(GeoVPhysVol* mother, const GeoMaterial* aluminiumMat, const GeoMaterial* fibreMat,
-                const std::string& layerTag, units::LengthMm zCenter, units::LengthMm casingXY,
-                units::LengthMm casingZ, units::LengthMm fiberDiam, units::LengthMm fiberCoreDiam,
-                bool fibresAlongY, const std::string& nameSuffix);
 
 }  // namespace calo_fibre_hp
 

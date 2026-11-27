@@ -9,7 +9,9 @@
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoIntrusivePtr.h>
 #include <GeoModelKernel/GeoLogVol.h>
+#include <GeoModelKernel/GeoNameTag.h>
 #include <GeoModelKernel/GeoPhysVol.h>
+#include <GeoModelKernel/GeoTransform.h>
 #include <GeoModelKernel/GeoVolumeCursor.h>
 
 #include <algorithm>
@@ -110,9 +112,13 @@ struct HplBuild {
 
     void build(SHiP::geometry::units::LengthMm casingXY,
                SHiP::geometry::units::LengthMm casingZ) const {
-        SHiP::geometry::calo_fibre_hp::buildLayer(mother, al, ps, "T", 0.0 * mm, casingXY, casingZ,
-                                                  calo::kFiberDiameter, calo::kFiberCoreDiameter,
-                                                  true, "");
+        // makeLayer() throws before creating anything, so a rejected casing
+        // never reaches the mother.
+        GeoPhysVol* casing = SHiP::geometry::calo_fibre_hp::makeLayer(
+            al, ps, casingXY, casingZ, calo::kFiberDiameter, calo::kFiberCoreDiameter, true);
+        mother->add(new GeoNameTag("T_HPL_Casing"));
+        mother->add(new GeoTransform(GeoTrf::Transform3D::Identity()));
+        mother->add(casing);
     }
 };
 
