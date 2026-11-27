@@ -34,7 +34,8 @@ class TimingDetectorFactory {
     /**
      * @brief This subsystem's self-description (name, node, id, placement).
      *
-     * Placed at z = 95.902 m, from the GDML reference.
+     * Integration layout 2026-1.2 (EDMS 3287817 v1.2): 0.46 m slot from 96.14
+     * to 96.60 m; placed at the slot centre, z = 96.37 m.
      */
     static constexpr SubsystemDescriptor descriptor() {
         using units::gm;
@@ -44,7 +45,7 @@ class TimingDetectorFactory {
                 .id = 7,
                 .x_mm = 0.0,
                 .y_mm = 0.0,
-                .z_mm = gm(95.902 * m),
+                .z_mm = gm(96.37 * m),
                 .isWorld = false};
     }
 

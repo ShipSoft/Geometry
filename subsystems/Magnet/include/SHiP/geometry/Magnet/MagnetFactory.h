@@ -31,7 +31,8 @@ class MagnetFactory {
     /**
      * @brief This subsystem's self-description (name, node, id, placement).
      *
-     * Z: 87.07 to 92.07 m, so the container is centred at z = 89.57 m.
+     * Integration layout 2026-1.2 (EDMS 3287817 v1.2): 5 m slot from 87.22 to
+     * 92.22 m, so the container is centred at z = 89.72 m.
      */
     static constexpr SubsystemDescriptor descriptor() {
         using units::gm;
@@ -41,7 +42,7 @@ class MagnetFactory {
                 .id = 6,
                 .x_mm = 0.0,
                 .y_mm = 0.0,
-                .z_mm = gm(89.57 * m),
+                .z_mm = gm(89.72 * m),
                 .isWorld = false};
     }
     /**

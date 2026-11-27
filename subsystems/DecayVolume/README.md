@@ -47,7 +47,8 @@ structure pieces and sensor pieces alike — is a direct child of
 `/SHiP/decay_volume` (the clash-avoidance logic relies on this flat layout, and
 `test_decayvolume` asserts all 3712 are direct children with no grandchildren).
 
-Position in world: z = 58120 mm (centre), unchanged. The 50 m SBT is centred
+Position in world: z = 58270 mm (centre), the 2026-1.2 position of the vessel
+(EDMS 3287817 v1.2). The 50 m SBT is centred
 on the container origin (entrance face at z = −25000 mm in the local frame).
 
 ### Structure (312 GeoBox)

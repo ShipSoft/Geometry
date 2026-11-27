@@ -16,6 +16,13 @@
  * "SHiP preliminary infrastructure requirements, layout and integration at
  * ECN3", EDMS 3309666 rev. 0.3, tables 3 and 4. Update both files together.
  *
+ * The z ranges of the upstream background tagger, the decay volume, the
+ * tracker stations, the spectrometer magnet and the timing detector follow
+ * the integration layout drawing SPSXXSHIP0002 version 2026-1.2 (EDMS 3287817
+ * v1.2) instead; their transverse sizes are still those of rev. 0.3. The
+ * drawing gives the 50 m decay vessel centred at 58.27 m; the decay-volume
+ * envelope keeps the 0.2 m margin at each end that rev. 0.3 has.
+ *
  * z is measured from the target front face (the SHiP global origin). Only
  * the configurations this geometry builds (WARM muon shield, COMMON) are
  * transcribed; the HYBRID rows are omitted. Empty CSV cells (the hadron
@@ -59,22 +66,22 @@ inline constexpr std::array<Envelope, 5> kMuonShield{{
 }};
 inline constexpr Envelope kNeutrinoDetector{.name="Scattering and neutrino detector", .zStart=26.40 * detail::m, .zEnd=31.50 * detail::m,
     .halfWidthUp=0.30 * detail::m, .halfWidthDown=0.40 * detail::m, .halfHeightUp=0.30 * detail::m, .halfHeightDown=0.40 * detail::m};
-inline constexpr Envelope kUpstreamTagger{.name="Upstream background tagger", .zStart=32.52 * detail::m, .zEnd=32.92 * detail::m,
+inline constexpr Envelope kUpstreamTagger{.name="Upstream background tagger", .zStart=32.67 * detail::m, .zEnd=33.07 * detail::m,
     .halfWidthUp=0.75 * detail::m, .halfWidthDown=0.75 * detail::m, .halfHeightUp=1.60 * detail::m, .halfHeightDown=1.60 * detail::m};
-inline constexpr Envelope kDecayVolume{.name="Decay volume", .zStart=32.92 * detail::m, .zEnd=83.32 * detail::m,
+inline constexpr Envelope kDecayVolume{.name="Decay volume", .zStart=33.07 * detail::m, .zEnd=83.47 * detail::m,
     .halfWidthUp=0.70 * detail::m, .halfWidthDown=2.20 * detail::m, .halfHeightUp=1.55 * detail::m, .halfHeightDown=3.20 * detail::m};
 /// Thickness of the SBT shell around the decay volume (the CSV lists it as a
 /// half-width/height of 0.46 m).
 inline constexpr auto kSurroundTaggerThickness = 0.46 * detail::m;
 inline constexpr std::array<Envelope, 4> kTrackerStations{{
-    {.name="Straw Tracker station 1", .zStart=83.57 * detail::m, .zEnd=84.57 * detail::m, .halfWidthUp=3.00 * detail::m, .halfWidthDown=3.00 * detail::m, .halfHeightUp=3.50 * detail::m, .halfHeightDown=3.50 * detail::m},
-    {.name="Straw Tracker station 2", .zStart=85.57 * detail::m, .zEnd=86.57 * detail::m, .halfWidthUp=3.00 * detail::m, .halfWidthDown=3.00 * detail::m, .halfHeightUp=3.50 * detail::m, .halfHeightDown=3.50 * detail::m},
-    {.name="Straw Tracker station 3", .zStart=92.57 * detail::m, .zEnd=93.57 * detail::m, .halfWidthUp=3.00 * detail::m, .halfWidthDown=3.00 * detail::m, .halfHeightUp=3.50 * detail::m, .halfHeightDown=3.50 * detail::m},
-    {.name="Straw Tracker station 4", .zStart=94.57 * detail::m, .zEnd=95.57 * detail::m, .halfWidthUp=3.00 * detail::m, .halfWidthDown=3.00 * detail::m, .halfHeightUp=3.50 * detail::m, .halfHeightDown=3.50 * detail::m},
+    {.name="Straw Tracker station 1", .zStart=83.72 * detail::m, .zEnd=84.72 * detail::m, .halfWidthUp=3.00 * detail::m, .halfWidthDown=3.00 * detail::m, .halfHeightUp=3.50 * detail::m, .halfHeightDown=3.50 * detail::m},
+    {.name="Straw Tracker station 2", .zStart=85.72 * detail::m, .zEnd=86.72 * detail::m, .halfWidthUp=3.00 * detail::m, .halfWidthDown=3.00 * detail::m, .halfHeightUp=3.50 * detail::m, .halfHeightDown=3.50 * detail::m},
+    {.name="Straw Tracker station 3", .zStart=92.72 * detail::m, .zEnd=93.72 * detail::m, .halfWidthUp=3.00 * detail::m, .halfWidthDown=3.00 * detail::m, .halfHeightUp=3.50 * detail::m, .halfHeightDown=3.50 * detail::m},
+    {.name="Straw Tracker station 4", .zStart=94.72 * detail::m, .zEnd=95.72 * detail::m, .halfWidthUp=3.00 * detail::m, .halfWidthDown=3.00 * detail::m, .halfHeightUp=3.50 * detail::m, .halfHeightDown=3.50 * detail::m},
 }};
-inline constexpr Envelope kMagnet{.name="Main spectrometer magnet", .zStart=87.07 * detail::m, .zEnd=92.07 * detail::m,
+inline constexpr Envelope kMagnet{.name="Main spectrometer magnet", .zStart=87.22 * detail::m, .zEnd=92.22 * detail::m,
     .halfWidthUp=3.25 * detail::m, .halfWidthDown=3.25 * detail::m, .halfHeightUp=4.30 * detail::m, .halfHeightDown=4.30 * detail::m};
-inline constexpr Envelope kTimingDetector{.name="Timing detector", .zStart=95.82 * detail::m, .zEnd=96.32 * detail::m,
+inline constexpr Envelope kTimingDetector{.name="Timing detector", .zStart=96.14 * detail::m, .zEnd=96.60 * detail::m,
     .halfWidthUp=2.75 * detail::m, .halfWidthDown=2.75 * detail::m, .halfHeightUp=3.25 * detail::m, .halfHeightDown=3.25 * detail::m};
 inline constexpr std::array<Envelope, 3> kCalorimeter{{
     {.name="Split ECAL (front)", .zStart=96.87 * detail::m, .zEnd=97.07 * detail::m, .halfWidthUp=2.25 * detail::m, .halfWidthDown=2.25 * detail::m, .halfHeightUp=3.50 * detail::m, .halfHeightDown=3.50 * detail::m},
