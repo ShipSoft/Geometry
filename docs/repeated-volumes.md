@@ -184,6 +184,40 @@ while Geant4 kept the same 47,008 physical volumes. Combine it with sharing
 the filled volume (anti-pattern 1) when the grid repeats: the neutrino
 detector fibre planes use both.
 
+## Anti-pattern 4: a logical volume and shape for every placement
+
+Every placement creates its own shape and `GeoLogVol`, even when several
+placements have the same shape and material:
+
+```cpp
+for (const auto& cell : cells) {
+    const auto* shape = new GeoTrap(/* cell dimensions */);
+    const auto* log = new GeoLogVol(cell.name, shape, material);
+    mother->add(new GeoNameTag(cell.name));
+    mother->add(new GeoTransform(cell.placement));
+    mother->add(new GeoFullPhysVol(log));
+}
+```
+
+Each `GeoLogVol` becomes a Geant4 logical volume with its own solid, and
+GeoModel cannot share them, because only the same object is shared: a second
+`GeoLogVol` with the same name, shape and material is a different volume.
+
+To fix it, create one shape and logical volume per distinct shape and
+material, keyed for example by the cell's dimensions, and reuse it for every
+placement that matches. Put the identity of each placement in its name tag
+and copy number rather than in the logical-volume name.
+
+The gain is the number of duplicate shapes, usually far smaller than in the
+patterns above. In the decay volume, 3,713 logical volumes hold 2,279
+distinct shapes, since the vessel tapers and most sensor cells differ in
+size along z. Sharing the rest would probably save less than a megabyte.
+There, the logical-volume names also carry each sensor cell's identity
+(`sensors_Side_S3_XP_C2_P1_W0`, say), so sharing would be a breaking change
+for little gain, and the decay volume was left as it is.
+Keep the pattern in mind for new subsystems, where getting it right from the
+start costs nothing.
+
 ## Identifying volumes after sharing
 
 A shared volume has one set of children, so the names and copy numbers of
