@@ -9,14 +9,20 @@
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoIntrusivePtr.h>
 #include <GeoModelKernel/GeoLogVol.h>
+#include <GeoModelKernel/GeoNameTag.h>
 #include <GeoModelKernel/GeoPhysVol.h>
+#include <GeoModelKernel/GeoTransform.h>
+#include <GeoModelKernel/GeoVolumeCursor.h>
 
 #include <algorithm>
+#include <array>
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <cmath>
 #include <limits>
+#include <set>
 #include <stdexcept>
+#include <string>
 
 using SHiP::geometry::CalorimeterFactory;
 using SHiP::geometry::Materials;
@@ -47,6 +53,40 @@ TEST_CASE("CalorimeterHasChildren", "[calorimeter]") {
     CHECK(calo->getNChildVols() == kExpectedChildren);  // NOLINT(readability/check)
 }
 
+TEST_CASE("LayerCopyNumbersIdentifyModuleAndLayer", "[calorimeter]") {
+    // Shared layers carry no module of their own, so the copy number of each
+    // layer placement must identify both the module and the layer.
+    namespace calo = SHiP::geometry::calo;
+    using SHiP::geometry::units::gm;
+    Materials materials;
+    CalorimeterFactory factory(materials);
+    const GeoIntrusivePtr<GeoPhysVol> calorimeter{factory.build()};
+    const double x0 = -0.5 * (calo::kModuleNX - 1) * gm(calo::kModulePitchX);
+    const double y0 = -0.5 * (calo::kModuleNY - 1) * gm(calo::kModulePitchY);
+
+    std::set<int> seen;
+    for (unsigned c = 0; c < calorimeter->getNChildVols(); ++c) {
+        // value_or rather than a REQUIRE on has_value(): clang-tidy cannot
+        // see through Catch's macros. No valid copy number is negative.
+        const int id = calorimeter->getIdOfChildVol(c).value_or(-1);
+        REQUIRE(id >= 0);
+        CHECK(seen.insert(id).second);
+        // Modules are placed one after another, each layer by layer.
+        const int module = static_cast<int>(c) / calo::kVolsPerModule;
+        const int layer = static_cast<int>(c) % calo::kVolsPerModule;
+        const int ix = module % calo::kModuleNX;
+        const int iy = module / calo::kModuleNX;
+        const GeoTrf::Vector3D t = calorimeter->getXToChildVol(c).translation();
+        if (calo::moduleOfLayerCopyNumber(id) != calo::moduleIndex(ix, iy) ||
+            calo::layerOfLayerCopyNumber(id) != layer ||
+            t.x() != x0 + (ix * gm(calo::kModulePitchX)) ||
+            t.y() != y0 + (iy * gm(calo::kModulePitchY))) {
+            FAIL("child " << c << " (" << calorimeter->getNameOfChildVol(c) << ") has copy number "
+                          << id << " at (" << t.x() << ", " << t.y() << ")");
+        }
+    }
+}
+
 // ── HPL fibre layout ─────────────────────────────────────────────────────────
 
 namespace {
@@ -74,9 +114,13 @@ struct HplBuild {
 
     void build(SHiP::geometry::units::LengthMm casingXY,
                SHiP::geometry::units::LengthMm casingZ) const {
-        SHiP::geometry::calo_fibre_hp::buildLayer(mother, al, ps, "T", 0.0 * mm, 0, casingXY,
-                                                  casingZ, calo::kFiberDiameter,
-                                                  calo::kFiberCoreDiameter, true, "");
+        // makeLayer() throws before creating anything, so a rejected casing
+        // never reaches the mother.
+        GeoPhysVol* casing = SHiP::geometry::calo_fibre_hp::makeLayer(
+            al, ps, casingXY, casingZ, calo::kFiberDiameter, calo::kFiberCoreDiameter, true);
+        mother->add(new GeoNameTag("T_HPL_Casing"));
+        mother->add(new GeoTransform(GeoTrf::Transform3D::Identity()));
+        mother->add(casing);
     }
 };
 
@@ -152,6 +196,109 @@ TEST_CASE("HplBuilderPlacesSharedCentres", "[calorimeter]") {
                 FAIL("fibre S" << s << "_F" << i << " at (" << t.x() << ", " << t.y() << ", "
                                << t.z() << ")");
             }
+            if (casing->getIdOfChildVol(child) != calo::fibreCopyNumber(s, i)) {
+                FAIL("fibre S" << s << "_F" << i << " has the wrong copy number");
+            }
+        }
+    }
+}
+
+TEST_CASE("HplCasingsSharedAcrossLayers", "[calorimeter]") {
+    // Every HPL layer of one orientation places the same casing, so the
+    // fibres exist once per orientation rather than once per layer.
+    Materials materials;
+    CalorimeterFactory factory(materials);
+    const GeoIntrusivePtr<GeoPhysVol> calorimeter{factory.build()};
+    std::set<const GeoVPhysVol*> casings;
+    unsigned placements = 0;
+    // The casings sit directly in the container, at the same depth as the
+    // bar layers.
+    for (unsigned c = 0; c < calorimeter->getNChildVols(); ++c) {
+        const PVConstLink child = calorimeter->getChildVol(c);
+        if (child->getLogVol()->getName() == "HPL_CasingLog") {
+            casings.insert(child.get());
+            ++placements;
+        }
+    }
+    const auto isHpl = [](calo::LayerCode code) {
+        return code == calo::LayerCode::FibreHPL_X || code == calo::LayerCode::FibreHPL_Y;
+    };
+    const auto hplPerModule =
+        static_cast<unsigned>(std::ranges::count_if(calo::kEcalLayers, isHpl) +
+                              std::ranges::count_if(calo::kHcalLayers, isHpl));
+    REQUIRE(hplPerModule > 0);
+    CHECK(placements == calo::kModuleNX * calo::kModuleNY * hplPerModule);
+    CHECK(casings.size() == 2);
+}
+
+TEST_CASE("BarLayersSharedAcrossSlots", "[calorimeter]") {
+    // Every bar layer of one type places the same filled envelope, whose bars
+    // sit at the layer's pitch with copy number = bar index.
+    Materials materials;
+    CalorimeterFactory factory(materials);
+    const GeoIntrusivePtr<GeoPhysVol> calorimeter{factory.build()};
+
+    struct BarType {
+        calo::LayerCode code;
+        std::string envName;
+        double pitch;
+        int nBars;
+        bool alongX;  // bars replicated along X
+    };
+    const std::array<BarType, 4> types{{
+        {.code = calo::LayerCode::WidePVT_H,
+         .envName = "/SHiP/calorimeter/wide_pvt_h_env",
+         .pitch = gm(calo::kWidePVTBarPitch),
+         .nBars = calo::kWidePVTBarCount,
+         .alongX = false},
+        {.code = calo::LayerCode::WidePVT_V,
+         .envName = "/SHiP/calorimeter/wide_pvt_v_env",
+         .pitch = gm(calo::kWidePVTBarPitch),
+         .nBars = calo::kWidePVTBarCount,
+         .alongX = true},
+        {.code = calo::LayerCode::ThinPS_H,
+         .envName = "/SHiP/calorimeter/thin_ps_h_env",
+         .pitch = gm(calo::kThinPSBarPitch),
+         .nBars = calo::kThinPSBarCount,
+         .alongX = false},
+        {.code = calo::LayerCode::ThinPS_V,
+         .envName = "/SHiP/calorimeter/thin_ps_v_env",
+         .pitch = gm(calo::kThinPSBarPitch),
+         .nBars = calo::kThinPSBarCount,
+         .alongX = true},
+    }};
+
+    for (const auto& type : types) {
+        std::set<const GeoVPhysVol*> layers;
+        unsigned placements = 0;
+        for (unsigned c = 0; c < calorimeter->getNChildVols(); ++c) {
+            const PVConstLink child = calorimeter->getChildVol(c);
+            if (child->getLogVol()->getName() == type.envName) {
+                layers.insert(child.get());
+                ++placements;
+            }
+        }
+        const auto perModule =
+            static_cast<unsigned>(std::ranges::count(calo::kEcalLayers, type.code) +
+                                  std::ranges::count(calo::kHcalLayers, type.code));
+        INFO(type.envName);
+        REQUIRE(perModule > 0);
+        CHECK(placements == calo::kModuleNX * calo::kModuleNY * perModule);
+        REQUIRE(layers.size() == 1);
+
+        const GeoVPhysVol* layer = *layers.begin();
+        REQUIRE(layer->getNChildVols() == static_cast<unsigned>(type.nBars));
+        const double first = -0.5 * (type.nBars - 1) * type.pitch;
+        int i = 0;
+        for (GeoVolumeCursor bar(layer); !bar.atEnd(); bar.next(), ++i) {
+            const GeoTrf::Vector3D t = bar.getTransform().translation();
+            const double across = first + (i * type.pitch);
+            const double x = type.alongX ? across : 0.0;
+            const double y = type.alongX ? 0.0 : across;
+            if (t.x() != x || t.y() != y || t.z() != 0.0 || bar.getId() != i) {
+                FAIL(type.envName << " bar " << i << " at (" << t.x() << ", " << t.y() << ", "
+                                  << t.z() << "), id " << bar.getId().value_or(-1));
+            }
         }
     }
 }
@@ -169,6 +316,15 @@ TEST_CASE("HplBuilderRejectsNarrowCasing", "[calorimeter]") {
     // 2 mm < 2 * 1.2 mm: the outer sublayers would hold no fibres.
     CHECK_THROWS_AS(hpl.build(2.0 * mm, calo::kHplThickness), std::runtime_error);
     CHECK(hpl.mother->getNChildVols() == 0);
+}
+
+TEST_CASE("HplBuilderRejectsCopyNumberOverflow", "[calorimeter]") {
+    const HplBuild hpl;
+    // 2160 mm / 0.2 mm = 10800 fibres per row, more than the sublayer stride
+    // of fibreCopyNumber(), so neighbouring sublayers would share numbers.
+    CHECK_THROWS_AS(SHiP::geometry::calo_fibre_hp::makeLayer(hpl.al, hpl.ps, 2160.0 * mm, 1.0 * mm,
+                                                             0.2 * mm, 0.18 * mm, true),
+                    std::runtime_error);
 }
 
 TEST_CASE("HplFibreCountToleratesRounding", "[calorimeter]") {

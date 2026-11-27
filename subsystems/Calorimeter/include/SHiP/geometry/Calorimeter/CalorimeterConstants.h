@@ -202,6 +202,41 @@ constexpr FibreCentre fibreCentre(int sublayer, int index, units::LengthMm casin
     return {.across = (index - 0.5 * (n - 1)) * fibreDiameter, .z = (sublayer - 1) * dz};
 }
 
+/// Stride between sublayers in fibreCopyNumber(); larger than any row.
+inline constexpr int kHplCopyNumberStride = 10000;
+
+/// Geant4 copy number of fibre @p index in sublayer @p sublayer within its
+/// casing: sublayer * kHplCopyNumberStride + index, so it reads as S/F.
+constexpr int fibreCopyNumber(int sublayer, int index) {
+    return (sublayer * kHplCopyNumberStride) + index;
+}
+
+/// Stride between modules in layerCopyNumber(); larger than the number of
+/// layers in one module.
+inline constexpr int kLayerCopyNumberStride = 1000;
+
+/// Index of module (@p moduleX, @p moduleY), counting along X first.
+constexpr int moduleIndex(int moduleX, int moduleY) {
+    return (moduleY * kModuleNX) + moduleX;
+}
+
+/// Geant4 copy number of layer @p layer (counted from 0 in each module, over
+/// every volume the module places in the container) in module @p module:
+/// module * kLayerCopyNumberStride + layer, unique across the calorimeter.
+constexpr int layerCopyNumber(int module, int layer) {
+    return (module * kLayerCopyNumberStride) + layer;
+}
+
+/// Module index encoded in a layerCopyNumber().
+constexpr int moduleOfLayerCopyNumber(int copyNumber) {
+    return copyNumber / kLayerCopyNumberStride;
+}
+
+/// Layer index within its module encoded in a layerCopyNumber().
+constexpr int layerOfLayerCopyNumber(int copyNumber) {
+    return copyNumber % kLayerCopyNumberStride;
+}
+
 /// Fibres in one HPL layer, summed over its sublayers.
 inline constexpr int kFibresPerHpl = [] {
     int n = 0;
@@ -227,6 +262,14 @@ static_assert(fibresPerSublayer(1) * kFiberDiameter <= kPlateXY,
 static_assert(fibresPerSublayer(0) == fibresPerSublayer(1) - 1 &&
                   fibresPerSublayer(2) == fibresPerSublayer(1) - 1,
               "outer HPL fibre rows hold one fibre fewer than the middle row");
+static_assert(fibresPerSublayer(1) < kHplCopyNumberStride,
+              "HPL fibre copy numbers of adjacent sublayers would collide");
+static_assert(kVolsPerModule < kLayerCopyNumberStride,
+              "layer copy numbers of adjacent modules would collide");
+static_assert(moduleOfLayerCopyNumber(layerCopyNumber(moduleIndex(1, 2), 42)) ==
+                      moduleIndex(1, 2) &&
+                  layerOfLayerCopyNumber(layerCopyNumber(moduleIndex(1, 2), 42)) == 42,
+              "layer copy number must decode to its module and layer");
 static_assert(kFibresPerHpl == 5398, "transcription guard: 1799 + 1800 + 1799 fibres per HPL");
 static_assert(kTotalStackZ == 2600.0 * units::mm,
               "transcription guard: 40 lead + 40 scint + 8 HPL + 1 air gap in the ECAL "

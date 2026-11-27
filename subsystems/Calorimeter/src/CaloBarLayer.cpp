@@ -3,6 +3,7 @@
 
 #include "SHiP/geometry/Calorimeter/CaloBarLayer.h"
 
+#include <GeoModelKernel/GeoIdentifierTag.h>
 #include <GeoModelKernel/GeoLogVol.h>
 #include <GeoModelKernel/GeoNameTag.h>
 #include <GeoModelKernel/GeoPhysVol.h>
@@ -15,30 +16,24 @@ namespace SHiP::geometry {
 
 using units::gm;
 
-void calo_bar::placeLayer(GeoVPhysVol* mother, GeoLogVol const* barLog, units::LengthMm pitch,
-                          int nBars, units::LengthMm zCenter, std::string_view tagPrefix,
-                          int layerIndex, BarAxis axis, const std::string& nameSuffix) {
+GeoPhysVol* calo_bar::makeLayer(const GeoLogVol* envLog, const GeoLogVol* barLog,
+                                units::LengthMm pitch, int nBars, BarAxis axis,
+                                std::string_view barTag) {
+    auto* envPhys = new GeoPhysVol(envLog);
     const double step = gm(pitch);
     const double firstBarCenter = -0.5 * (nBars - 1) * step;
 
     for (int i = 0; i < nBars; ++i) {
         const double barCenter = firstBarCenter + (i * step);
+        const double x = axis == BarAxis::AlongX ? barCenter : 0.0;
+        const double y = axis == BarAxis::AlongX ? 0.0 : barCenter;
 
-        double x = 0.0;
-        double y = 0.0;
-        if (axis == BarAxis::AlongX) {
-            x = barCenter;
-        } else {
-            y = barCenter;
-        }
-
-        const auto name = std::format("{}_L{}_B{}{}", tagPrefix, layerIndex, i, nameSuffix);
-
-        auto* barPhys = new GeoPhysVol(barLog);
-        mother->add(new GeoNameTag(name.c_str()));
-        mother->add(new GeoTransform(GeoTrf::Translate3D(x, y, gm(zCenter))));
-        mother->add(barPhys);
+        envPhys->add(new GeoNameTag(std::format("{}_B{}", barTag, i)));
+        envPhys->add(new GeoIdentifierTag(i));
+        envPhys->add(new GeoTransform(GeoTrf::Translate3D(x, y, 0.0)));
+        envPhys->add(new GeoPhysVol(barLog));
     }
+    return envPhys;
 }
 
 }  // namespace SHiP::geometry
