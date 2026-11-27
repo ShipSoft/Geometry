@@ -47,7 +47,7 @@ milestone lands.)
 |-----------|--------|-------------|
 | [Cavern](subsystems/Cavern/README.md) | Complete | World volume with subtracted rock cavities |
 | [Target](subsystems/Target/README.md) | Complete | 2026 BDF target: 33 W disks in grooved steel core with jacket and endcap |
-| [MuonShield](subsystems/MuonShield/README.md) | Approximate | 6 stations, box approximations of arb8 shapes |
+| [MuonShield](subsystems/MuonShield/README.md) | Approximate | TRY_2026 hadron stopper and magnets M1-M7 as solid iron blocks |
 | [NeutrinoDetector](subsystems/NeutrinoDetector/README.md) | Approximate | Veto + Si/W target + HCAL with individual scintillating fibres |
 | [Magnet](subsystems/Magnet/README.md) | Approximate | Iron yoke with box-shaped coils (should be tubes) |
 | [DecayVolume](subsystems/DecayVolume/README.md) | Implemented | Frustum: SBT steel structure + LAB sensors + helium centre |

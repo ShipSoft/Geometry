@@ -13,8 +13,13 @@
 #include <GeoModelKernel/GeoLogVol.h>
 #include <GeoModelKernel/GeoNameTag.h>
 #include <GeoModelKernel/GeoPhysVol.h>
+#include <GeoModelKernel/GeoShape.h>
+#include <GeoModelKernel/GeoShapeShift.h>
+#include <GeoModelKernel/GeoShapeSubtraction.h>
 #include <GeoModelKernel/GeoTransform.h>
 
+#include <algorithm>
+#include <cstddef>
 #include <string>
 #include <string_view>
 
@@ -23,480 +28,157 @@ namespace SHiP::geometry {
 using units::gm;
 using units::mm;
 
-// ---------------------------------------------------------------------------
-// GDML-derived station data (all dimensions in mm)
-// Bounding-box centres and half-sizes are computed from the arb8 vertices in
-// ship_geometry.gdml. Station z-positions are relative to the MuonShieldArea
-// container centre (GDML station_z_cm - 1676.33 cm) × 10 mm/cm.
-// ---------------------------------------------------------------------------
-constexpr MuonShieldFactory::StationData
-    MuonShieldFactory::k_stations[6] =
-        {
-            // ── MagnAbsorb  (GDML z = 319.5 cm, dz = 115.5 cm) ──────────────────
-            {.name = "magn_absorb",
-             .stationZ = -13568.3 * mm,
-             .containerHalfX = 1020.0 * mm,
-             .containerHalfY = 1691.0 * mm,
-             .containerHalfZ = 1155.0 * mm,
-             .pieces =
-                 {
-                     {.halfX = 250.0 * mm,
-                      .halfY = 1690.0 * mm,
-                      .halfZ = 1155.0 * mm,
-                      .centX = 250.0 * mm,
-                      .centY = -1.0 * mm,
-                      .name = "middle_mag_l"},
-                     {.halfX = 250.0 * mm,
-                      .halfY = 1690.0 * mm,
-                      .halfZ = 1155.0 * mm,
-                      .centX = -250.0 * mm,
-                      .centY = 1.0 * mm,
-                      .name = "middle_mag_r"},
-                     {.halfX = 250.0 * mm,
-                      .halfY = 1690.0 * mm,
-                      .halfZ = 1155.0 * mm,
-                      .centX = 770.0 * mm,
-                      .centY = 0.0 * mm,
-                      .name = "mag_ret_l"},
-                     {.halfX = 250.0 * mm,
-                      .halfY = 1690.0 * mm,
-                      .halfZ = 1155.0 * mm,
-                      .centX = -770.0 * mm,
-                      .centY = 0.0 * mm,
-                      .name = "mag_ret_r"},
-                     {.halfX = 510.0 * mm,
-                      .halfY = 250.0 * mm,
-                      .halfZ = 1155.0 * mm,
-                      .centX = 510.0 * mm,
-                      .centY = 1440.0 * mm,
-                      .name = "mag_top_left"},
-                     {.halfX = 510.0 * mm,
-                      .halfY = 250.0 * mm,
-                      .halfZ = 1155.0 * mm,
-                      .centX = -510.0 * mm,
-                      .centY = 1440.0 * mm,
-                      .name = "mag_top_right"},
-                     {.halfX = 510.0 * mm,
-                      .halfY = 250.0 * mm,
-                      .halfZ = 1155.0 * mm,
-                      .centX = 510.0 * mm,
-                      .centY = -1440.0 * mm,
-                      .name = "mag_bot_left"},
-                     {.halfX = 510.0 * mm,
-                      .halfY = 250.0 * mm,
-                      .halfZ = 1155.0 * mm,
-                      .centX = -510.0 * mm,
-                      .centY = -1440.0 * mm,
-                      .name = "mag_bot_right"},
-                 }},
-
-            // ── Magn1  (GDML z = 950 cm, dz = 495 cm) ────────────────────────────
-            {.name = "magn_1",
-             .stationZ = -7263.3 * mm,
-             .containerHalfX = 1697.0 * mm,
-             .containerHalfY = 1230.0 * mm,
-             .containerHalfZ = 4950.0 * mm,
-             .pieces =
-                 {
-                     {.halfX = 399.6 * mm,
-                      .halfY = 1228.2 * mm,
-                      .halfZ = 4950.0 * mm,
-                      .centX = 399.6 * mm,
-                      .centY = 0.0 * mm,
-                      .name = "middle_mag_l"},
-                     {.halfX = 399.6 * mm,
-                      .halfY = 1228.2 * mm,
-                      .halfZ = 4950.0 * mm,
-                      .centX = -399.6 * mm,
-                      .centY = 0.0 * mm,
-                      .name = "middle_mag_r"},
-                     {.halfX = 487.7 * mm,
-                      .halfY = 1229.2 * mm,
-                      .halfZ = 4950.0 * mm,
-                      .centX = 1208.7 * mm,
-                      .centY = 0.0 * mm,
-                      .name = "mag_ret_l"},
-                     {.halfX = 487.7 * mm,
-                      .halfY = 1229.2 * mm,
-                      .halfZ = 4950.0 * mm,
-                      .centX = -1208.7 * mm,
-                      .centY = 0.0 * mm,
-                      .name = "mag_ret_r"},
-                     {.halfX = 848.2 * mm,
-                      .halfY = 479.6 * mm,
-                      .halfZ = 4950.0 * mm,
-                      .centX = 848.2 * mm,
-                      .centY = 749.6 * mm,
-                      .name = "mag_top_left"},
-                     {.halfX = 848.2 * mm,
-                      .halfY = 479.6 * mm,
-                      .halfZ = 4950.0 * mm,
-                      .centX = -848.2 * mm,
-                      .centY = 749.6 * mm,
-                      .name = "mag_top_right"},
-                     {.halfX = 848.2 * mm,
-                      .halfY = 479.6 * mm,
-                      .halfZ = 4950.0 * mm,
-                      .centX = 848.2 * mm,
-                      .centY = -749.6 * mm,
-                      .name = "mag_bot_left"},
-                     {.halfX = 848.2 * mm,
-                      .halfY = 479.6 * mm,
-                      .halfZ = 4950.0 * mm,
-                      .centX = -848.2 * mm,
-                      .centY = -749.6 * mm,
-                      .name = "mag_bot_right"},
-                 }},
-
-            // ── Magn2  (GDML z = 1735.48 cm, dz = 280.48 cm) ─────────────────────
-            {.name = "magn_2",
-             .stationZ = 591.5 * mm,
-             .containerHalfX = 1736.0 * mm,
-             .containerHalfY = 1056.0 * mm,
-             .containerHalfZ = 2804.8 * mm,
-             .pieces =
-                 {
-                     {.halfX = 265.6 * mm,
-                      .halfY = 1054.6 * mm,
-                      .halfZ = 2804.8 * mm,
-                      .centX = 265.6 * mm,
-                      .centY = 0.0 * mm,
-                      .name = "middle_mag_l"},
-                     {.halfX = 265.6 * mm,
-                      .halfY = 1054.6 * mm,
-                      .halfZ = 2804.8 * mm,
-                      .centX = -265.6 * mm,
-                      .centY = 0.0 * mm,
-                      .name = "middle_mag_r"},
-                     {.halfX = 594.7 * mm,
-                      .halfY = 1055.6 * mm,
-                      .halfZ = 2804.8 * mm,
-                      .centX = 1140.3 * mm,
-                      .centY = 0.0 * mm,
-                      .name = "mag_ret_l"},
-                     {.halfX = 594.7 * mm,
-                      .halfY = 1055.6 * mm,
-                      .halfZ = 2804.8 * mm,
-                      .centX = -1140.3 * mm,
-                      .centY = 0.0 * mm,
-                      .name = "mag_ret_r"},
-                     {.halfX = 867.5 * mm,
-                      .halfY = 312.8 * mm,
-                      .halfZ = 2804.8 * mm,
-                      .centX = 867.5 * mm,
-                      .centY = 742.8 * mm,
-                      .name = "mag_top_left"},
-                     {.halfX = 867.5 * mm,
-                      .halfY = 312.8 * mm,
-                      .halfZ = 2804.8 * mm,
-                      .centX = -867.5 * mm,
-                      .centY = 742.8 * mm,
-                      .name = "mag_top_right"},
-                     {.halfX = 867.5 * mm,
-                      .halfY = 312.8 * mm,
-                      .halfZ = 2804.8 * mm,
-                      .centX = 867.5 * mm,
-                      .centY = -742.8 * mm,
-                      .name = "mag_bot_left"},
-                     {.halfX = 867.5 * mm,
-                      .halfY = 312.8 * mm,
-                      .halfZ = 2804.8 * mm,
-                      .centX = -867.5 * mm,
-                      .centY = -742.8 * mm,
-                      .name = "mag_bot_right"},
-                 }},
-
-            // ── Magn3  (GDML z = 2258.49 cm, dz = 232.53 cm) ─────────────────────
-            {.name = "magn_3",
-             .stationZ = 5821.6 * mm,
-             .containerHalfX = 1781.0 * mm,
-             .containerHalfY = 597.0 * mm,
-             .containerHalfZ = 2325.3 * mm,
-             .pieces =
-                 {
-                     {.halfX = 18.4 * mm,
-                      .halfY = 595.8 * mm,
-                      .halfZ = 2325.3 * mm,
-                      .centX = 23.4 * mm,
-                      .centY = 0.0 * mm,
-                      .name = "middle_mag_l"},
-                     {.halfX = 18.4 * mm,
-                      .halfY = 595.8 * mm,
-                      .halfZ = 2325.3 * mm,
-                      .centX = -23.4 * mm,
-                      .centY = 0.0 * mm,
-                      .name = "middle_mag_r"},
-                     {.halfX = 849.3 * mm,
-                      .halfY = 596.8 * mm,
-                      .halfZ = 2325.3 * mm,
-                      .centX = 931.6 * mm,
-                      .centY = 0.0 * mm,
-                      .name = "mag_ret_l"},
-                     {.halfX = 849.3 * mm,
-                      .halfY = 596.8 * mm,
-                      .halfZ = 2325.3 * mm,
-                      .centX = -931.6 * mm,
-                      .centY = 0.0 * mm,
-                      .name = "mag_ret_r"},
-                     {.halfX = 888.0 * mm,
-                      .halfY = 18.4 * mm,
-                      .halfZ = 2325.3 * mm,
-                      .centX = 893.0 * mm,
-                      .centY = 578.4 * mm,
-                      .name = "mag_top_left"},
-                     {.halfX = 888.0 * mm,
-                      .halfY = 18.4 * mm,
-                      .halfZ = 2325.3 * mm,
-                      .centX = -893.0 * mm,
-                      .centY = 578.4 * mm,
-                      .name = "mag_top_right"},
-                     {.halfX = 888.0 * mm,
-                      .halfY = 18.4 * mm,
-                      .halfZ = 2325.3 * mm,
-                      .centX = 893.0 * mm,
-                      .centY = -578.4 * mm,
-                      .name = "mag_bot_left"},
-                     {.halfX = 888.0 * mm,
-                      .halfY = 18.4 * mm,
-                      .halfZ = 2325.3 * mm,
-                      .centX = -893.0 * mm,
-                      .centY = -578.4 * mm,
-                      .name = "mag_bot_right"},
-                 }},
-
-            // ── Magn4  (GDML z = 2586.02 cm, dz = 85 cm) ─────────────────────────
-            {.name = "magn_4",
-             .stationZ = 9096.9 * mm,
-             .containerHalfX = 1797.0 * mm,
-             .containerHalfY = 1332.0 * mm,
-             .containerHalfZ = 850.0 * mm,
-             .pieces =
-                 {
-                     {.halfX = 535.6 * mm,
-                      .halfY = 1330.2 * mm,
-                      .halfZ = 850.0 * mm,
-                      .centX = 535.6 * mm,
-                      .centY = 0.0 * mm,
-                      .name = "middle_mag_l"},
-                     {.halfX = 535.6 * mm,
-                      .halfY = 1330.2 * mm,
-                      .halfZ = 850.0 * mm,
-                      .centX = -535.6 * mm,
-                      .centY = 0.0 * mm,
-                      .name = "middle_mag_r"},
-                     {.halfX = 713.0 * mm,
-                      .halfY = 1331.2 * mm,
-                      .halfZ = 850.0 * mm,
-                      .centX = 1083.0 * mm,
-                      .centY = 0.0 * mm,
-                      .name = "mag_ret_l"},
-                     {.halfX = 713.0 * mm,
-                      .halfY = 1331.2 * mm,
-                      .halfZ = 850.0 * mm,
-                      .centX = -1083.0 * mm,
-                      .centY = 0.0 * mm,
-                      .name = "mag_ret_r"},
-                     {.halfX = 898.0 * mm,
-                      .halfY = 385.6 * mm,
-                      .halfZ = 850.0 * mm,
-                      .centX = 898.0 * mm,
-                      .centY = 945.6 * mm,
-                      .name = "mag_top_left"},
-                     {.halfX = 898.0 * mm,
-                      .halfY = 385.6 * mm,
-                      .halfZ = 850.0 * mm,
-                      .centX = -898.0 * mm,
-                      .centY = 945.6 * mm,
-                      .name = "mag_top_right"},
-                     {.halfX = 898.0 * mm,
-                      .halfY = 385.6 * mm,
-                      .halfZ = 850.0 * mm,
-                      .centX = 898.0 * mm,
-                      .centY = -945.6 * mm,
-                      .name = "mag_bot_left"},
-                     {.halfX = 898.0 * mm,
-                      .halfY = 385.6 * mm,
-                      .halfZ = 850.0 * mm,
-                      .centX = -898.0 * mm,
-                      .centY = -945.6 * mm,
-                      .name = "mag_bot_right"},
-                 }},
-
-            // ── Magn5  (GDML z = 2914.84 cm, dz = 233.82 cm) ─────────────────────
-            {.name = "magn_5",
-             .stationZ = 12385.1 * mm,
-             .containerHalfX = 1808.0 * mm,
-             .containerHalfY = 960.0 * mm,
-             .containerHalfZ = 2338.2 * mm,
-             .pieces =
-                 {
-                     {.halfX = 200.0 * mm,
-                      .halfY = 959.0 * mm,
-                      .halfZ = 2338.2 * mm,
-                      .centX = 200.0 * mm,
-                      .centY = 0.0 * mm,
-                      .name = "middle_mag_l"},
-                     {.halfX = 200.0 * mm,
-                      .halfY = 959.0 * mm,
-                      .halfZ = 2338.2 * mm,
-                      .centX = -200.0 * mm,
-                      .centY = 0.0 * mm,
-                      .name = "middle_mag_r"},
-                     {.halfX = 728.9 * mm,
-                      .halfY = 960.0 * mm,
-                      .halfZ = 2338.2 * mm,
-                      .centX = 1079.2 * mm,
-                      .centY = 0.0 * mm,
-                      .name = "mag_ret_l"},
-                     {.halfX = 728.9 * mm,
-                      .halfY = 960.0 * mm,
-                      .halfZ = 2338.2 * mm,
-                      .centX = -1079.2 * mm,
-                      .centY = 0.0 * mm,
-                      .name = "mag_ret_r"},
-                     {.halfX = 904.0 * mm,
-                      .halfY = 200.0 * mm,
-                      .halfZ = 2338.2 * mm,
-                      .centX = 904.0 * mm,
-                      .centY = 760.0 * mm,
-                      .name = "mag_top_left"},
-                     {.halfX = 904.0 * mm,
-                      .halfY = 200.0 * mm,
-                      .halfZ = 2338.2 * mm,
-                      .centX = -904.0 * mm,
-                      .centY = 760.0 * mm,
-                      .name = "mag_top_right"},
-                     {.halfX = 904.0 * mm,
-                      .halfY = 200.0 * mm,
-                      .halfZ = 2338.2 * mm,
-                      .centX = 904.0 * mm,
-                      .centY = -760.0 * mm,
-                      .name = "mag_bot_left"},
-                     {.halfX = 904.0 * mm,
-                      .halfY = 200.0 * mm,
-                      .halfZ = 2338.2 * mm,
-                      .centX = -904.0 * mm,
-                      .centY = -760.0 * mm,
-                      .name = "mag_bot_right"},
-                 }},
-};
-
 // ── Compile-time validation ──────────────────────────────────────────────
 namespace {
 
 using MSF = MuonShieldFactory;
 
-constexpr checks::Box stationBox(const MSF::StationData& st) {
-    return checks::box(0.0 * mm, 0.0 * mm, st.stationZ, st.containerHalfX, st.containerHalfY,
-                       st.containerHalfZ);
+constexpr auto kZero = 0.0 * mm;
+
+constexpr checks::Box magnetBox(const MSF::MagnetData& magnet) {
+    return checks::box(kZero, kZero, magnet.zCentre(), magnet.halfX, magnet.halfY, magnet.halfZ);
 }
 
-// Pieces are placed in the station's XY frame at z = 0.
-constexpr bool pieceFits(const MSF::StationData& st, const MSF::PieceData& p,
-                         units::LengthMm tol = 0.0 * mm) {
-    return checks::contains(checks::box(st.containerHalfX, st.containerHalfY, st.containerHalfZ),
-                            checks::box(p.centX, p.centY, 0.0 * mm, p.halfX, p.halfY, p.halfZ),
-                            tol);
+constexpr checks::Box areaBox() {
+    return checks::box(kZero, kZero, MSF::s_centreZ, MSF::s_areaHalfX, MSF::s_areaHalfY,
+                       MSF::s_areaHalfZ);
 }
 
-// Known deviation (#120): the magn_5 return-yoke pieces (1079.2 + 728.9 mm)
-// reach 0.1 mm past the station container half-width (1808.0 mm). They may
-// stick out by no more than kKnownProtrusion (0.1 mm plus rounding).
-constexpr auto kKnownProtrusion = 0.11 * mm;
-
-constexpr bool isKnownProtrusion(const MSF::StationData& st, const MSF::PieceData& p) {
-    const std::string_view station = st.name;
-    const std::string_view piece = p.name;
-    return station == "magn_5" && (piece == "mag_ret_l" || piece == "mag_ret_r");
+constexpr checks::Box cavityBox(const MSF::CavitySection& section) {
+    return checks::box(kZero, kZero, 0.5 * (section.zStart + section.zEnd), section.halfX,
+                       section.halfY, 0.5 * (section.zEnd - section.zStart));
 }
 
-constexpr bool piecesFitStations() {
-    for (const auto& st : MSF::k_stations) {
-        for (const auto& p : st.pieces) {
-            const bool known = isKnownProtrusion(st, p);
-            if (pieceFits(st, p) == known || (known && !pieceFits(st, p, kKnownProtrusion))) {
-                return false;
-            }
-        }
-    }
-    return true;
+/// Only M5 and M6 carry the SND, and every cavity step stays inside the iron
+/// of the magnets it cuts transversely, so each keeps an iron frame around it.
+constexpr bool sndCavityInM5AndM6() {
+    return !MSF::hasSndCavity(MSF::k_hadronStopper) &&
+           std::ranges::all_of(MSF::k_magnets, [](const MSF::MagnetData& magnet) {
+               const std::string_view name = magnet.name;
+               const bool expected = name == "magn_5" || name == "magn_6";
+               if (MSF::hasSndCavity(magnet) != expected) {
+                   return false;
+               }
+               return std::ranges::all_of(MSF::k_sndCavity, [&magnet](const MSF::CavitySection& s) {
+                   return !MSF::cuts(s, magnet) ||
+                          (s.halfX < magnet.halfX && s.halfY < magnet.halfY);
+               });
+           });
 }
 
 }  // namespace
 
-static_assert(piecesFitStations(),
-              "a muon-shield piece sticks out of its station container, or a known "
-              "protrusion has been fixed (then drop it from isKnownProtrusion) or has grown "
-              "past kKnownProtrusion");
-static_assert(checks::firstFailure(MSF::k_stations,
-                                   [](const MSF::StationData& st) {
-                                       return checks::contains(
-                                           checks::box(MSF::s_areaHalfX, MSF::s_areaHalfY,
-                                                       MSF::s_areaHalfZ),
-                                           stationBox(st));
+static_assert(sndCavityInM5AndM6(),
+              "the SND cavity must cut M5 and M6 only, and leave iron around it transversely");
+static_assert(std::ranges::all_of(MSF::k_sndCavity,
+                                  [](const MSF::CavitySection& s) {
+                                      return checks::contains(areaBox(), cavityBox(s));
+                                  }),
+              "the SND cavity sticks out of the muon-shield container");
+static_assert(MSF::k_sndCavity.back().zStart == MSF::k_magnets[5].zStart &&
+                  MSF::k_sndCavity.back().zEnd == MSF::k_magnets[5].zEnd(),
+              "the HCAL step of the SND cavity must span M6 face to face");
+static_assert(checks::contains(areaBox(), magnetBox(MSF::k_hadronStopper)),
+              "the hadron stopper sticks out of the muon-shield container");
+static_assert(checks::firstFailure(MSF::k_magnets,
+                                   [](const MSF::MagnetData& magnet) {
+                                       return checks::contains(areaBox(), magnetBox(magnet));
                                    }) == checks::npos,
-              "a muon-shield station sticks out of the MuonShieldArea container");
-static_assert(checks::firstPairFailure(MSF::k_stations,
-                                       [](const MSF::StationData& a, const MSF::StationData& b) {
-                                           return stationBox(a).z.hi <= stationBox(b).z.lo;
+              "a muon-shield magnet sticks out of the muon-shield container");
+static_assert(MSF::k_hadronStopper.zEnd() <= MSF::k_magnets.front().zStart,
+              "the hadron stopper must end before M1");
+static_assert(checks::firstPairFailure(MSF::k_magnets,
+                                       [](const MSF::MagnetData& a, const MSF::MagnetData& b) {
+                                           return a.zEnd() <= b.zStart;
                                        }) == checks::npos,
-              "muon-shield stations must be ordered along z without overlapping");
+              "muon-shield magnets must be ordered along z without overlapping");
 
 // ---------------------------------------------------------------------------
 
-MuonShieldFactory::MuonShieldFactory(Materials& materials) : m_materials(materials) {}
+namespace {
 
-GeoPhysVol* MuonShieldFactory::buildStation(const StationData& station) {
-    const GeoMaterial* air = m_materials.requireMaterial("Air");
-    const GeoMaterial* iron = m_materials.requireMaterial("Iron");
-
-    // Air container that spans all 8 pieces of this station
-    auto const* stationBox = new GeoBox(gm(station.containerHalfX), gm(station.containerHalfY),
-                                        gm(station.containerHalfZ));
-    const std::string containerName = "/SHiP/muon_shield/" + std::string(station.name);
-    const auto* stationLog = new GeoLogVol(containerName, stationBox, air);
-    auto* stationPhys = new GeoPhysVol(stationLog);
-
-    // Place 8 Iron bounding-box approximations
-    for (const PieceData& piece : station.pieces) {
-        auto const* pieceBox = new GeoBox(gm(piece.halfX), gm(piece.halfY), gm(piece.halfZ));
-        const std::string pieceName =
-            "/SHiP/muon_shield/" + std::string(station.name) + "/" + piece.name;
-        const auto* pieceLog = new GeoLogVol(pieceName, pieceBox, iron);
-        auto* piecePhys = new GeoPhysVol(pieceLog);
-
-        GeoTrf::Transform3D const trf = GeoTrf::Translate3D(gm(piece.centX), gm(piece.centY), 0.0);
-        stationPhys->add(new GeoNameTag(pieceName));
-        stationPhys->add(new GeoIdentifierTag(static_cast<int>(&piece - &station.pieces[0])));
-        stationPhys->add(new GeoTransform(trf));
-        stationPhys->add(piecePhys);
+/// @p body, a solid on the beam axis from @p zLo to @p zHi (world frame),
+/// with the part of the SND cavity inside it cut out. Where a cut reaches a
+/// face of the body, or a wider step of the cavity, it is extended a little
+/// past it, so the subtraction leaves no zero-thickness skin. Where the cavity
+/// ends inside the body, the cut ends exactly on the SND's face.
+const GeoShape* subtractSndCavity(const GeoShape* body, units::LengthMm zLo, units::LengthMm zHi) {
+    using Section = MuonShieldFactory::CavitySection;
+    const auto& cavity = MuonShieldFactory::k_sndCavity;
+    constexpr auto eps = 1.0 * mm;
+    const auto wider = [&cavity](std::size_t i, const Section& s) {
+        if (i >= cavity.size()) {
+            return false;
+        }
+        const auto& n = cavity.at(i);
+        return n.halfX >= s.halfX && n.halfY >= s.halfY;
+    };
+    const auto zCentre = 0.5 * (zLo + zHi);
+    const GeoShape* shape = body;
+    for (std::size_t i = 0; i < cavity.size(); ++i) {
+        const Section& section = cavity.at(i);
+        if (section.zEnd <= zLo || zHi <= section.zStart) {
+            continue;
+        }
+        auto cutLo = section.zStart;
+        if (cutLo <= zLo) {
+            cutLo = zLo - eps;
+        } else if (i > 0 && wider(i - 1, section)) {
+            cutLo -= eps;
+        }
+        auto cutHi = section.zEnd;
+        if (cutHi >= zHi) {
+            cutHi = zHi + eps;
+        } else if (wider(i + 1, section)) {
+            cutHi += eps;
+        }
+        auto const* cut =
+            new GeoBox(gm(section.halfX), gm(section.halfY), gm(0.5 * (cutHi - cutLo)));
+        GeoTrf::Translate3D const cutTrf(0.0, 0.0, gm(0.5 * (cutLo + cutHi) - zCentre));
+        shape = &shape->subtract(*cut << cutTrf);
     }
-
-    return stationPhys;
+    return shape;
 }
+
+}  // namespace
+
+MuonShieldFactory::MuonShieldFactory(Materials& materials) : m_materials(materials) {}
 
 GeoPhysVol* MuonShieldFactory::build() {
     const GeoMaterial* air = m_materials.requireMaterial("Air");
+    const GeoMaterial* iron = m_materials.requireMaterial("Iron");
 
-    // Overall MuonShieldArea container (Air)
-    auto const* areaBox = new GeoBox(gm(s_areaHalfX), gm(s_areaHalfY), gm(s_areaHalfZ));
-    const auto* areaLog = new GeoLogVol("/SHiP/muon_shield", areaBox, air);
+    // The container has the SND's shape cut out of it, so that the SND, its
+    // sibling in the world, does not overlap it (Layout.h, kCutOuts).
+    const GeoShape* area = subtractSndCavity(
+        new GeoBox(gm(s_areaHalfX), gm(s_areaHalfY), gm(s_areaHalfZ)), s_zStart, s_zEnd);
+    auto const* areaLog = new GeoLogVol("/SHiP/muon_shield", area, air);
     auto* areaPhys = new GeoPhysVol(areaLog);
 
-    // Build and place 6 stations
-    for (const StationData& station : k_stations) {
-        GeoPhysVol* stationPhys = buildStation(station);
-        const std::string stationName = "/SHiP/muon_shield/" + std::string(station.name);
-        GeoTrf::Transform3D const trf = GeoTrf::Translate3D(0.0, 0.0, gm(station.stationZ));
-        areaPhys->add(new GeoNameTag(stationName));
-        areaPhys->add(new GeoIdentifierTag(static_cast<int>(&station - &k_stations[0])));
-        areaPhys->add(new GeoTransform(trf));
-        areaPhys->add(stationPhys);
+    // The hadron stopper first, then M1-M7, each with its index as identifier.
+    int id = 0;
+    const auto place = [&](const MagnetData& magnet) {
+        const GeoShape* shape = new GeoBox(gm(magnet.halfX), gm(magnet.halfY), gm(magnet.halfZ));
+        shape = subtractSndCavity(shape, magnet.zStart, magnet.zEnd());
+
+        const std::string name = "/SHiP/muon_shield/" + std::string(magnet.name);
+        auto* magnetPhys = new GeoPhysVol(new GeoLogVol(name, shape, iron));
+        areaPhys->add(new GeoNameTag(name));
+        areaPhys->add(new GeoIdentifierTag(id++));
+        areaPhys->add(
+            new GeoTransform(GeoTrf::Translate3D(0.0, 0.0, gm(magnet.zCentre() - s_centreZ))));
+        areaPhys->add(magnetPhys);
+    };
+    place(k_hadronStopper);
+    for (const MagnetData& magnet : k_magnets) {
+        place(magnet);
     }
 
     return areaPhys;
 }
 
+// Static self-registration, and a link anchor the generated builder code calls.
+// NOLINTNEXTLINE(bugprone-throwing-static-initialization,cert-err58-cpp,misc-use-internal-linkage)
 REGISTER_SUBSYSTEM(MuonShieldFactory)
 
 }  // namespace SHiP::geometry

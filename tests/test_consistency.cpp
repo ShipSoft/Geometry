@@ -10,11 +10,14 @@
 #include <GeoModelKernel/GeoDefinitions.h>
 #include <GeoModelKernel/GeoLogVol.h>
 #include <GeoModelKernel/GeoPhysVol.h>
+#include <GeoModelKernel/GeoShape.h>
+#include <GeoModelKernel/GeoShapeSubtraction.h>
 #include <GeoModelKernel/GeoTube.h>
 #include <GeoModelKernel/GeoVPhysVol.h>
 
 #include <array>
 #include <catch2/catch_test_macros.hpp>
+#include <cstddef>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -101,13 +104,45 @@ TEST_CASE("ConsistencyTest.SubsystemsPlacedAsInLayout", "[consistency]") {
     for (const auto& slot : layout::kSlots) {
         INFO("Subsystem " << slot.path);
         const auto child = findChild(world, slot.path);
-        REQUIRE(child.has_value());
-        const GeoTrf::Vector3D t = world->getXToChildVol(child->index).translation();
+        if (!child) {
+            FAIL("not placed in the world");
+            continue;
+        }
+        const auto& placed = *child;
+        const GeoTrf::Vector3D t = world->getXToChildVol(placed.index).translation();
         CHECK(t.x() == gm(slot.x));
         CHECK(t.y() == gm(slot.y));
         CHECK(t.z() == gm(slot.z));
 
-        const auto* box = dynamic_cast<const GeoBox*>(child->vol->getLogVol()->getShape());
+        // Every container is a box except the SND's, a stepped union of
+        // boxes whose bounding box is its slot, and the muon shield's, a box
+        // with the SND's sections cut out of it.
+        const GeoShape* shape = placed.vol->getLogVol()->getShape();
+        if (slot.path == layout::kMuonShield.path) {
+            std::size_t nCuts = 0;
+            while (const auto* cut = dynamic_cast<const GeoShapeSubtraction*>(shape)) {
+                shape = cut->getOpA();
+                ++nCuts;
+            }
+            CHECK(nCuts == SHiP::geometry::MuonShieldFactory::k_sndCavity.size());
+        }
+        if (slot.path == layout::kNeutrinoDetector.path) {
+            double xmin = 0;
+            double ymin = 0;
+            double zmin = 0;
+            double xmax = 0;
+            double ymax = 0;
+            double zmax = 0;
+            shape->extent(xmin, ymin, zmin, xmax, ymax, zmax);
+            CHECK(xmin == -gm(slot.halfX));
+            CHECK(xmax == gm(slot.halfX));
+            CHECK(ymin == -gm(slot.halfY));
+            CHECK(ymax == gm(slot.halfY));
+            CHECK(zmin == -gm(slot.halfZ));
+            CHECK(zmax == gm(slot.halfZ));
+            continue;
+        }
+        const auto* box = dynamic_cast<const GeoBox*>(shape);
         REQUIRE(box != nullptr);
         CHECK(box->getXHalfLength() == gm(slot.halfX));
         CHECK(box->getYHalfLength() == gm(slot.halfY));
@@ -136,14 +171,18 @@ constexpr auto kSndUpstream = [] {
     return slots;
 }();
 constexpr std::array<layout::KnownOverlap, 0> kNoKnownOverlaps{};
+constexpr std::array<layout::CutOut, 0> kNoCutOuts{};
 }  // namespace
 
 static_assert(layout::firstOutOfOrder(kSwapped) == 3);
 static_assert(layout::firstUnexpectedOverlap(kMagnetOnTiming) != SHiP::geometry::checks::npos);
-static_assert(layout::firstUnexpectedOverlap(layout::kSlots, kNoKnownOverlaps) == 1,
-              "muon shield / SND is the first known overlap");
+static_assert(layout::firstUnexpectedOverlap(layout::kSlots, kNoKnownOverlaps) == 5,
+              "trackers / magnet is the first known overlap");
+static_assert(layout::firstUnexpectedOverlap(layout::kSlots, layout::kKnownOverlaps, kNoCutOuts) ==
+                  1,
+              "without its cavity, the muon shield overlaps the SND");
 static_assert(layout::firstUnexpectedOverlap(kSndUpstream) == 1,
-              "a known overlap that grows is no longer accepted");
+              "an SND that leaves its cavity in the muon shield overlaps it");
 static_assert(!layout::fitsEnvelopeZ(Slot{.z = layout::kDecayVolume.z + 1.0 * units::mm,
                                           .halfZ = layout::kDecayVolume.halfZ},
                                      SHiP::geometry::envelopes::kDecayVolume));
