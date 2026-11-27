@@ -47,14 +47,18 @@ class CalorimeterFactory {
    private:
     Materials& m_materials;
 
-    /** The two HPL casings, each shared by every layer of its orientation. */
-    struct HplCasings {
-        GeoPhysVol* alongY;  ///< fibres along Y
-        GeoPhysVol* alongX;  ///< fibres along X
+    /** Filled layers, each shared by every slot of its type in every module. */
+    struct SharedLayers {
+        GeoPhysVol* hplAlongY;  ///< HPL casing, fibres along Y
+        GeoPhysVol* hplAlongX;  ///< HPL casing, fibres along X
+        GeoPhysVol* widePvtH;   ///< wide PVT bars, long along X
+        GeoPhysVol* widePvtV;   ///< wide PVT bars, long along Y
+        GeoPhysVol* thinPsH;    ///< thin PS bars, long along X
+        GeoPhysVol* thinPsV;    ///< thin PS bars, long along Y
     };
 
     /** Place one NX×NY tiled stack of layers inside @p container. */
-    void buildStack(GeoPhysVol* container, const HplCasings& hpl, int moduleX, int moduleY,
+    void buildStack(GeoPhysVol* container, const SharedLayers& shared, int moduleX, int moduleY,
                     double offsetX, double offsetY) const;
 };
 

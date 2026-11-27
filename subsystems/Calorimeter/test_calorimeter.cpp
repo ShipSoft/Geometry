@@ -10,14 +10,17 @@
 #include <GeoModelKernel/GeoIntrusivePtr.h>
 #include <GeoModelKernel/GeoLogVol.h>
 #include <GeoModelKernel/GeoPhysVol.h>
+#include <GeoModelKernel/GeoVolumeCursor.h>
 
 #include <algorithm>
+#include <array>
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <cmath>
 #include <limits>
 #include <set>
 #include <stdexcept>
+#include <string>
 
 using SHiP::geometry::CalorimeterFactory;
 using SHiP::geometry::Materials;
@@ -187,6 +190,78 @@ TEST_CASE("HplCasingsSharedAcrossLayers", "[calorimeter]") {
     REQUIRE(hplPerModule > 0);
     CHECK(placements == calo::kModuleNX * calo::kModuleNY * hplPerModule);
     CHECK(casings.size() == 2);
+}
+
+TEST_CASE("BarLayersSharedAcrossSlots", "[calorimeter]") {
+    // Every bar layer of one type places the same filled envelope, whose bars
+    // sit at the layer's pitch with copy number = bar index.
+    Materials materials;
+    CalorimeterFactory factory(materials);
+    const GeoIntrusivePtr<GeoPhysVol> calorimeter{factory.build()};
+
+    struct BarType {
+        calo::LayerCode code;
+        std::string envName;
+        double pitch;
+        int nBars;
+        bool alongX;  // bars replicated along X
+    };
+    const std::array<BarType, 4> types{{
+        {.code = calo::LayerCode::WidePVT_H,
+         .envName = "/SHiP/calorimeter/wide_pvt_h_env",
+         .pitch = gm(calo::kWidePVTBarPitch),
+         .nBars = calo::kWidePVTBarCount,
+         .alongX = false},
+        {.code = calo::LayerCode::WidePVT_V,
+         .envName = "/SHiP/calorimeter/wide_pvt_v_env",
+         .pitch = gm(calo::kWidePVTBarPitch),
+         .nBars = calo::kWidePVTBarCount,
+         .alongX = true},
+        {.code = calo::LayerCode::ThinPS_H,
+         .envName = "/SHiP/calorimeter/thin_ps_h_env",
+         .pitch = gm(calo::kThinPSBarPitch),
+         .nBars = calo::kThinPSBarCount,
+         .alongX = false},
+        {.code = calo::LayerCode::ThinPS_V,
+         .envName = "/SHiP/calorimeter/thin_ps_v_env",
+         .pitch = gm(calo::kThinPSBarPitch),
+         .nBars = calo::kThinPSBarCount,
+         .alongX = true},
+    }};
+
+    for (const auto& type : types) {
+        std::set<const GeoVPhysVol*> layers;
+        unsigned placements = 0;
+        for (unsigned c = 0; c < calorimeter->getNChildVols(); ++c) {
+            const PVConstLink child = calorimeter->getChildVol(c);
+            if (child->getLogVol()->getName() == type.envName) {
+                layers.insert(child.get());
+                ++placements;
+            }
+        }
+        const auto perModule =
+            static_cast<unsigned>(std::ranges::count(calo::kEcalLayers, type.code) +
+                                  std::ranges::count(calo::kHcalLayers, type.code));
+        INFO(type.envName);
+        REQUIRE(perModule > 0);
+        CHECK(placements == calo::kModuleNX * calo::kModuleNY * perModule);
+        REQUIRE(layers.size() == 1);
+
+        const GeoVPhysVol* layer = *layers.begin();
+        REQUIRE(layer->getNChildVols() == static_cast<unsigned>(type.nBars));
+        const double first = -0.5 * (type.nBars - 1) * type.pitch;
+        int i = 0;
+        for (GeoVolumeCursor bar(layer); !bar.atEnd(); bar.next(), ++i) {
+            const GeoTrf::Vector3D t = bar.getTransform().translation();
+            const double across = first + (i * type.pitch);
+            const double x = type.alongX ? across : 0.0;
+            const double y = type.alongX ? 0.0 : across;
+            if (t.x() != x || t.y() != y || t.z() != 0.0 || bar.getId() != i) {
+                FAIL(type.envName << " bar " << i << " at (" << t.x() << ", " << t.y() << ", "
+                                  << t.z() << "), id " << bar.getId().value_or(-1));
+            }
+        }
+    }
 }
 
 TEST_CASE("HplBuilderRejectsThinCasing", "[calorimeter]") {

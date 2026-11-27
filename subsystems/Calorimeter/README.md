@@ -87,6 +87,22 @@ with copy number `calo::fibreCopyNumber(sublayer, index)` =
 placement, `{layer}_HPL_Casing_MX{x}Y{y}`, one level up the touchable
 history.
 
+## Bar layers
+
+Every scintillator bar layer of one type (`WidePVT_H`, `WidePVT_V`,
+`ThinPS_H`, `ThinPS_V`) is identical, in the ECAL and the HCAL alike. The
+factory builds each type once as an air envelope filled with its bars
+(`calo_bar::makeLayer()`), and places that envelope in every slot of that
+type across the six modules (270 bar-layer slots in all). GeoModel and Geant4 then hold 504 bars
+(2 × 36 + 2 × 216) instead of 31 320.
+
+A bar's name and copy number identify it within its layer: bar `i` is named
+`{type}_B{i}` (for example `thin_ps_h_B17`) with copy number `i`. The layer
+and module come from the envelope's placement,
+`/SHiP/calorimeter/{ecal|hcal}/gl{n}_sl{m}_{type}_MX{x}Y{y}`, one level up
+the touchable history. The bar logical volumes are
+`/SHiP/calorimeter/{type}` and the envelopes `/SHiP/calorimeter/{type}_env`.
+
 ## Materials
 
 | Material   | Density       | Composition         | Notes                       |
@@ -138,6 +154,8 @@ A violation fails the build with a descriptive message.
   the casing.
 - `HplBuilderPlacesSharedCentres` — `buildLayer` places every fibre at
   `calo::fibreCentre()`, with copy number `calo::fibreCopyNumber()`.
+- `BarLayersSharedAcrossSlots` — every bar layer of one type places the
+  same filled envelope, with each bar at its pitch and copy number = index.
 - `HplCasingsSharedAcrossLayers` — the calorimeter places one casing per
   fibre orientation in every HPL slot.
 - `HplBuilderRejectsThinCasing` — a casing thinner than the stack throws

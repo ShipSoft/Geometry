@@ -10,6 +10,7 @@
 
 class GeoVPhysVol;
 class GeoLogVol;
+class GeoPhysVol;
 
 namespace SHiP::geometry {
 
@@ -28,6 +29,19 @@ namespace calo_bar {
 void placeLayer(GeoVPhysVol* mother, GeoLogVol const* barLog, units::LengthMm pitch, int nBars,
                 units::LengthMm zCenter, std::string_view tagPrefix, int layerIndex, BarAxis axis,
                 const std::string& nameSuffix = "");
+
+/**
+ * @brief Builds an envelope filled with one layer of bars, to be placed any
+ * number of times.
+ *
+ * All calorimeter bar layers of one type are identical, so the calorimeter
+ * builds each type once and places it in every slot. The bars fill
+ * @p envLog at @p pitch, centred on its origin; bar @p i is named
+ * `{barTag}_B{i}` and carries copy number @p i. The layer and module come
+ * from the envelope's placement.
+ */
+GeoPhysVol* makeLayer(const GeoLogVol* envLog, const GeoLogVol* barLog, units::LengthMm pitch,
+                      int nBars, BarAxis axis, std::string_view barTag);
 
 }  // namespace calo_bar
 
