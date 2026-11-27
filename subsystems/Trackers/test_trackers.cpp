@@ -55,15 +55,17 @@ TEST_CASE("TrackersStationsMatchConstants", "[trackers]") {
         INFO("station " << name);
         const auto index = findChildIndex(tc, name);
         REQUIRE(index.has_value());
-        const GeoVPhysVol* station = &*tc->getChildVol(*index);
+        // REQUIRE aborts the test case, which clang-tidy cannot see.
+        // NOLINTNEXTLINE(bugprone-unchecked-optional-access)
+        const unsigned int idx = *index;
+        const GeoVPhysVol* station = &*tc->getChildVol(idx);
         const auto* box = dynamic_cast<const GeoBox*>(station->getLogVol()->getShape());
         REQUIRE(box != nullptr);
         CHECK(box->getXHalfLength() == gm(TrackersFactory::s_halfX));
         CHECK(box->getYHalfLength() == gm(TrackersFactory::s_halfY));
         CHECK(box->getZHalfLength() == gm(TrackersFactory::s_halfZ));
-        CHECK(tc->getXToChildVol(*index).translation().y() ==
-              gm(TrackersFactory::s_stationYOffset));
-        CHECK(tc->getXToChildVol(*index).translation().z() ==
+        CHECK(tc->getXToChildVol(idx).translation().y() == gm(TrackersFactory::s_stationYOffset));
+        CHECK(tc->getXToChildVol(idx).translation().z() ==
               gm(stationZ[s] - TrackersFactory::s_containerCentreZ));
     }
 }
@@ -121,10 +123,13 @@ TEST_CASE("TrackersHasTrackerMagnet", "[trackers]") {
     const auto index = findChildIndex(tc, "/SHiP/trackers/tracker_magnet");
     INFO("tracker_magnet not found");
     REQUIRE(index.has_value());
-    const GeoVPhysVol* tm = &*tc->getChildVol(*index);
+    // REQUIRE aborts the test case, which clang-tidy cannot see.
+    // NOLINTNEXTLINE(bugprone-unchecked-optional-access)
+    const unsigned int idx = *index;
+    const GeoVPhysVol* tm = &*tc->getChildVol(idx);
     const auto* box = dynamic_cast<const GeoBox*>(tm->getLogVol()->getShape());
     REQUIRE(box != nullptr);
     CHECK(box->getZHalfLength() == gm(TrackersFactory::s_trackerMagnetHalfZ));
-    CHECK(tc->getXToChildVol(*index).translation().z() ==
+    CHECK(tc->getXToChildVol(idx).translation().z() ==
           gm(TrackersFactory::s_trackerMagnetZ - TrackersFactory::s_containerCentreZ));
 }

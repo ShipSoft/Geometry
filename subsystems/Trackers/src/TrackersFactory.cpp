@@ -122,8 +122,7 @@ GeoPhysVol* TrackersFactory::build() {
 
         // Place the station relative to the container centre.
         const double relativeZ = gm(stationZ[i] - s_containerCentreZ);
-        const GeoTrf::Transform3D stationTrf =
-            GeoTrf::Translate3D(0.0, gm(s_stationYOffset), relativeZ);
+        const GeoTrf::Translate3D stationTrf(0.0, gm(s_stationYOffset), relativeZ);
 
         // Name kept as "/SHiP/trackers/station_<n>" for downstream lookups.
         const std::string stationName = "/SHiP/trackers/station_" + std::to_string(i + 1);
