@@ -18,10 +18,13 @@ class Materials;
 /**
  * @brief Factory for the Magnet (spectrometer magnet) geometry
  *
- * Based on GDML reference:
- * - magyoke (iron yoke): Outer 600×860×280 cm, inner cutout 440×700×282 cm
- * - MCoil1-4: Aluminium half-tubes, rmin=10mm, rmax=800mm, half-z=1660mm
- * - CV connectors: Aluminium boxes 80×650×25 cm at 4 positions
+ * Envelopes from the integration CAD model ST1967028_01 (layout 2026-0.1,
+ * EDMS 3287817 v1.1):
+ * - yoke: 8.0 m wide, 8.5 m high, 3.51 m long, centred on the 5 m slot
+ * - coils: two vertical packs (reference coil of field map V21), 130 mm
+ *   thick, 6.75 m high, 4.69 m long, at x = ±2221 mm
+ * The yoke aperture is not resolved in the CAD model; it is kept at 7.0 m
+ * high and widened to 4.6 m so that the coil packs sit inside it.
  */
 class MagnetFactory {
    public:
@@ -50,10 +53,10 @@ class MagnetFactory {
      */
     [[nodiscard]] GeoPhysVol* build();
 
-    // Container sized to enclose the yoke, coils, and connectors: HalfX and
-    // HalfZ exceed the yoke outer dimensions, while HalfY matches it.
-    static constexpr auto s_containerHalfX = 3250.0 * units::mm;
-    static constexpr auto s_containerHalfY = 4300.0 * units::mm;
+    // Container: the 5 m slot of the integration layout, as wide and high
+    // as the yoke.
+    static constexpr auto s_containerHalfX = 4000.0 * units::mm;
+    static constexpr auto s_containerHalfY = 4250.0 * units::mm;
     static constexpr auto s_containerHalfZ = 2500.0 * units::mm;
 
    private:
@@ -61,68 +64,51 @@ class MagnetFactory {
 
     GeoPhysVol* createYoke();
     GeoPhysVol* createCoil(const std::string& name);
-    GeoPhysVol* createVerticalConnector(const std::string& name);
 
-    // Yoke dimensions from GDML (half-sizes)
-    // GDML: outer 600×860×280 cm, inner 440×700×282 cm
-    static constexpr auto s_yokeOuterHalfX = 3000.0 * units::mm;
-    static constexpr auto s_yokeOuterHalfY = 4300.0 * units::mm;
-    static constexpr auto s_yokeOuterHalfZ = 1400.0 * units::mm;
-    static constexpr auto s_yokeInnerHalfX = 2200.0 * units::mm;
+    // Yoke dimensions (half-sizes): outer envelope from the CAD model, the
+    // inner cutout is 10 mm longer than the yoke so the subtraction leaves
+    // no coincident faces.
+    static constexpr auto s_yokeOuterHalfX = 4000.0 * units::mm;
+    static constexpr auto s_yokeOuterHalfY = 4250.0 * units::mm;
+    static constexpr auto s_yokeOuterHalfZ = 1755.5 * units::mm;
+    static constexpr auto s_yokeInnerHalfX = 2300.0 * units::mm;
     static constexpr auto s_yokeInnerHalfY = 3500.0 * units::mm;
-    static constexpr auto s_yokeInnerHalfZ = 1410.0 * units::mm;
+    static constexpr auto s_yokeInnerHalfZ = 1765.5 * units::mm;
 
-    // Coil dimensions (simplified as boxes)
-    static constexpr auto s_coilHalfX = 800.0 * units::mm;
-    static constexpr auto s_coilHalfY = 400.0 * units::mm;
-    static constexpr auto s_coilHalfZ = 1660.0 * units::mm;
-    static constexpr auto s_coilXOffset = 2200.0 * units::mm;
-    static constexpr auto s_coilYOffset = 3250.0 * units::mm;
-
-    // Vertical connector dimensions from GDML: 80×650×25 cm
-    static constexpr auto s_connectorHalfX = 400.0 * units::mm;
-    static constexpr auto s_connectorHalfY = 3250.0 * units::mm;
-    static constexpr auto s_connectorHalfZ = 125.0 * units::mm;
-    static constexpr auto s_connectorXOffset = 2600.0 * units::mm;
-    static constexpr auto s_connectorZOffset = 1525.0 * units::mm;  // From GDML positions
+    // Coil packs (simplified as boxes): CAD reference coil of field map V21
+    static constexpr auto s_coilHalfX = 65.0 * units::mm;
+    static constexpr auto s_coilHalfY = 3375.0 * units::mm;
+    static constexpr auto s_coilHalfZ = 2343.5 * units::mm;
+    static constexpr auto s_coilXOffset = 2221.0 * units::mm;
 
     // ── Compile-time validation ─────────────────────────────────────────
-    // Coils sit at (±s_coilXOffset, ±s_coilYOffset, 0) and connectors at
-    // (±s_connectorXOffset, 0, ±s_connectorZOffset); checking the +x/+y/+z
-    // copy covers all four by symmetry.
+    // The coil packs sit at (±s_coilXOffset, 0, 0); checking the +x copy
+    // covers both by symmetry.
     static constexpr auto s_zero = 0.0 * units::mm;
     static constexpr checks::Box s_containerBox =
         checks::box(s_containerHalfX, s_containerHalfY, s_containerHalfZ);
     static constexpr checks::Box s_coilBox =
-        checks::box(s_coilXOffset, s_coilYOffset, s_zero, s_coilHalfX, s_coilHalfY, s_coilHalfZ);
-    static constexpr checks::Box s_connectorBox =
-        checks::box(s_connectorXOffset, s_zero, s_connectorZOffset, s_connectorHalfX,
-                    s_connectorHalfY, s_connectorHalfZ);
+        checks::box(s_coilXOffset, s_zero, s_zero, s_coilHalfX, s_coilHalfY, s_coilHalfZ);
     /// The iron of one yoke side: outside the inner window in x, full height.
     static constexpr checks::Box s_yokeSideBox = checks::box(
         0.5 * (s_yokeInnerHalfX + s_yokeOuterHalfX), s_zero, s_zero,
         0.5 * (s_yokeOuterHalfX - s_yokeInnerHalfX), s_yokeOuterHalfY, s_yokeOuterHalfZ);
+    /// The iron above the inner window, full width.
+    static constexpr checks::Box s_yokeTopBox =
+        checks::box(s_zero, 0.5 * (s_yokeInnerHalfY + s_yokeOuterHalfY), s_zero, s_yokeOuterHalfX,
+                    0.5 * (s_yokeOuterHalfY - s_yokeInnerHalfY), s_yokeOuterHalfZ);
 
     static_assert(s_yokeInnerHalfX < s_yokeOuterHalfX && s_yokeInnerHalfY < s_yokeOuterHalfY &&
                       s_yokeInnerHalfZ >= s_yokeOuterHalfZ,
                   "the yoke inner cut-out must leave a frame open along the beam");
     static_assert(checks::contains(s_containerBox, checks::box(s_yokeOuterHalfX, s_yokeOuterHalfY,
                                                                s_yokeOuterHalfZ)) &&
-                      checks::contains(s_containerBox, s_coilBox) &&
-                      checks::contains(s_containerBox, s_connectorBox),
+                      checks::contains(s_containerBox, s_coilBox),
                   "a magnet part sticks out of the container");
-    static_assert(!checks::overlaps(s_connectorBox, s_yokeSideBox),
-                  "the connectors must sit clear of the yoke");
-    // Known deviations (#119): the box coils approximate GDML half-tubes and
-    // overlap both the yoke sides and the connectors. Each overlap must stay
-    // within its current region (magnet frame, mm), so the build fails both
-    // when it is fixed and when it grows.
-    static_assert(checks::overlapsWithin(s_coilBox, s_yokeSideBox,
-                                         checks::bounds(2200, 3000, 2850, 3650, -1400, 1400)),
-                  "the coil/yoke overlap is gone (assert !overlaps) or has grown");
-    static_assert(checks::overlapsWithin(s_coilBox, s_connectorBox,
-                                         checks::bounds(2200, 3000, 2850, 3250, 1400, 1650)),
-                  "the coil/connector overlap is gone (assert !overlaps) or has grown");
+    static_assert(s_coilXOffset > s_coilHalfX, "the coil packs must not overlap each other");
+    static_assert(!checks::overlaps(s_coilBox, s_yokeSideBox) &&
+                      !checks::overlaps(s_coilBox, s_yokeTopBox),
+                  "the coil packs must sit inside the yoke aperture");
 };
 
 }  // namespace SHiP::geometry

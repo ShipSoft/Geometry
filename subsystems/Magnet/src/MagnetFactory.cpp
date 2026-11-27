@@ -37,63 +37,18 @@ GeoPhysVol* MagnetFactory::build() {
     containerPhys->add(new GeoTransform(GeoTrf::Transform3D::Identity()));
     containerPhys->add(yoke);
 
-    // Create and place coils
+    // Create and place the two vertical coil packs
     auto* coil1 = createCoil("/SHiP/magnet/coil_1");
     containerPhys->add(new GeoNameTag("/SHiP/magnet/coil_1"));
     containerPhys->add(new GeoIdentifierTag(1));
-    containerPhys->add(
-        new GeoTransform(GeoTrf::Translate3D(gm(s_coilXOffset), gm(s_coilYOffset), 0.0)));
+    containerPhys->add(new GeoTransform(GeoTrf::Translate3D(gm(s_coilXOffset), 0.0, 0.0)));
     containerPhys->add(coil1);
 
     auto* coil2 = createCoil("/SHiP/magnet/coil_2");
     containerPhys->add(new GeoNameTag("/SHiP/magnet/coil_2"));
     containerPhys->add(new GeoIdentifierTag(2));
-    containerPhys->add(
-        new GeoTransform(GeoTrf::Translate3D(gm(-s_coilXOffset), gm(s_coilYOffset), 0.0)));
+    containerPhys->add(new GeoTransform(GeoTrf::Translate3D(gm(-s_coilXOffset), 0.0, 0.0)));
     containerPhys->add(coil2);
-
-    auto* coil3 = createCoil("/SHiP/magnet/coil_3");
-    containerPhys->add(new GeoNameTag("/SHiP/magnet/coil_3"));
-    containerPhys->add(new GeoIdentifierTag(3));
-    containerPhys->add(
-        new GeoTransform(GeoTrf::Translate3D(gm(s_coilXOffset), gm(-s_coilYOffset), 0.0)));
-    containerPhys->add(coil3);
-
-    auto* coil4 = createCoil("/SHiP/magnet/coil_4");
-    containerPhys->add(new GeoNameTag("/SHiP/magnet/coil_4"));
-    containerPhys->add(new GeoIdentifierTag(4));
-    containerPhys->add(
-        new GeoTransform(GeoTrf::Translate3D(gm(-s_coilXOffset), gm(-s_coilYOffset), 0.0)));
-    containerPhys->add(coil4);
-
-    // Create and place vertical connectors
-    auto* cv1 = createVerticalConnector("/SHiP/magnet/connector_1");
-    containerPhys->add(new GeoNameTag("/SHiP/magnet/connector_1"));
-    containerPhys->add(new GeoIdentifierTag(5));
-    containerPhys->add(new GeoTransform(
-        GeoTrf::Translate3D(gm(s_connectorXOffset), 0.0, gm(-s_connectorZOffset))));
-    containerPhys->add(cv1);
-
-    auto* cv2 = createVerticalConnector("/SHiP/magnet/connector_2");
-    containerPhys->add(new GeoNameTag("/SHiP/magnet/connector_2"));
-    containerPhys->add(new GeoIdentifierTag(6));
-    containerPhys->add(new GeoTransform(
-        GeoTrf::Translate3D(gm(-s_connectorXOffset), 0.0, gm(-s_connectorZOffset))));
-    containerPhys->add(cv2);
-
-    auto* cv3 = createVerticalConnector("/SHiP/magnet/connector_3");
-    containerPhys->add(new GeoNameTag("/SHiP/magnet/connector_3"));
-    containerPhys->add(new GeoIdentifierTag(7));
-    containerPhys->add(
-        new GeoTransform(GeoTrf::Translate3D(gm(s_connectorXOffset), 0.0, gm(s_connectorZOffset))));
-    containerPhys->add(cv3);
-
-    auto* cv4 = createVerticalConnector("/SHiP/magnet/connector_4");
-    containerPhys->add(new GeoNameTag("/SHiP/magnet/connector_4"));
-    containerPhys->add(new GeoIdentifierTag(8));
-    containerPhys->add(new GeoTransform(
-        GeoTrf::Translate3D(gm(-s_connectorXOffset), 0.0, gm(s_connectorZOffset))));
-    containerPhys->add(cv4);
 
     return containerPhys;
 }
@@ -120,15 +75,6 @@ GeoPhysVol* MagnetFactory::createCoil(const std::string& name) {
     auto const* coilBox = new GeoBox(gm(s_coilHalfX), gm(s_coilHalfY), gm(s_coilHalfZ));
     const auto* coilLog = new GeoLogVol(name, coilBox, aluminium);
     return new GeoPhysVol(coilLog);
-}
-
-GeoPhysVol* MagnetFactory::createVerticalConnector(const std::string& name) {
-    const auto* aluminium = m_materials.requireMaterial("Aluminium");
-
-    auto const* connectorBox =
-        new GeoBox(gm(s_connectorHalfX), gm(s_connectorHalfY), gm(s_connectorHalfZ));
-    const auto* connectorLog = new GeoLogVol(name, connectorBox, aluminium);
-    return new GeoPhysVol(connectorLog);
 }
 
 REGISTER_SUBSYSTEM(MagnetFactory)
