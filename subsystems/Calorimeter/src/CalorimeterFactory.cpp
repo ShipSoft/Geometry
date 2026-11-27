@@ -117,7 +117,10 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, const SharedLayers& s
     // z cursor: the layer stack is centred at z=0 in the container volume.
     double zCursor = -0.5 * gm(calo::kTotalStackZ);
 
-    int layerId = 0;  // monotonic identifier used for GeoIdentifierTag
+    // Layers are counted from 0 in each module; their copy numbers also
+    // encode the module, so they are unique across the calorimeter.
+    const int module = calo::moduleIndex(moduleX, moduleY);
+    int layerId = 0;
 
     // Lambda: wrap a layer in a named air-box envelope inside the container
     auto makeEnv = [&](const std::string& name, double halfZ, double zCenter) -> GeoPhysVol* {
@@ -125,7 +128,7 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, const SharedLayers& s
         const auto* envLog = new GeoLogVol(name + "_env", envShape, airMat);
         auto* envPhys = new GeoPhysVol(envLog);
         container->add(new GeoNameTag(name.c_str()));
-        container->add(new GeoIdentifierTag(layerId++));
+        container->add(new GeoIdentifierTag(calo::layerCopyNumber(module, layerId++)));
         container->add(new GeoTransform(GeoTrf::Translate3D(offsetX, offsetY, zCenter)));
         container->add(envPhys);
         return envPhys;
@@ -134,7 +137,7 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, const SharedLayers& s
     // Lambda: place a shared, already filled layer inside the container
     auto placeShared = [&](const std::string& name, GeoPhysVol* layer, double zCenter) {
         container->add(new GeoNameTag(name));
-        container->add(new GeoIdentifierTag(layerId++));
+        container->add(new GeoIdentifierTag(calo::layerCopyNumber(module, layerId++)));
         container->add(new GeoTransform(GeoTrf::Translate3D(offsetX, offsetY, zCenter)));
         container->add(layer);
     };
@@ -172,7 +175,8 @@ void CalorimeterFactory::buildStack(GeoPhysVol* container, const SharedLayers& s
                         const auto volumeName =
                             std::format("{}_iron_{}{}", basePath, absorberIdx, moduleTag);
                         container->add(new GeoNameTag(volumeName.c_str()));
-                        container->add(new GeoIdentifierTag(layerId++));
+                        container->add(
+                            new GeoIdentifierTag(calo::layerCopyNumber(module, layerId++)));
                         container->add(new GeoTransform(
                             GeoTrf::Translate3D(offsetX, offsetY, zCursor + sec.absorberHalfZ)));
                         container->add(new GeoPhysVol(sec.absorberLog));
