@@ -6,11 +6,17 @@
 #include "SHiP/geometry/SubsystemDescriptor.h"
 #include "SHiP/geometry/Units.h"
 
+#include <string_view>
+
 class GeoPhysVol;
 
 namespace SHiP::geometry {
 
 class Materials;
+
+namespace calo {
+enum class LayerCode;
+}
 
 /**
  * @brief Factory for the Calorimeter (ECAL + HCAL) geometry.
@@ -55,7 +61,19 @@ class CalorimeterFactory {
         GeoPhysVol* widePvtV;   ///< wide PVT bars, long along Y
         GeoPhysVol* thinPsH;    ///< thin PS bars, long along X
         GeoPhysVol* thinPsV;    ///< thin PS bars, long along Y
+
+        /** A shared layer with its name in volume names and its thickness. */
+        struct Layer {
+            std::string_view type;  ///< e.g. "thin_ps_h" or "hpl_y"
+            GeoPhysVol* volume;
+            double thickness;  ///< GeoModel units (mm)
+        };
+
+        /** The shared layer for a bar or HPL @p code; throws for anything else. */
+        [[nodiscard]] Layer forCode(calo::LayerCode code) const;
     };
+
+    class ModuleStack;
 
     /** Place one NX×NY tiled stack of layers inside @p container. */
     void buildStack(GeoPhysVol* container, const SharedLayers& shared, int moduleX, int moduleY,
