@@ -430,7 +430,7 @@
     "type": "sister",
     "volume": "/SHiP/trackers",
     "other": "/SHiP/cavern",
-    "max_distance_mm": 66.0,
+    "max_distance_mm": 237.0,
     "issue": 120
   }
 ]
