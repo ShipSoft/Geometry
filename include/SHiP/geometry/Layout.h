@@ -243,8 +243,6 @@ inline constexpr std::array kCavities = [] {
              C::s_stairHalfZ),
         hall(C::s_yokePitPosX, C::s_yokePitPosY, C::s_yokePitPosZ, C::s_yokePitHalfX,
              C::s_yokePitHalfY, C::s_yokePitHalfZ),
-        hall(C::s_targetPitPosX, C::s_targetPitPosY, C::s_targetPitPosZ, C::s_targetPitHalfX,
-             C::s_targetPitHalfY, C::s_targetPitHalfZ),
     };
 }();
 

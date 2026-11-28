@@ -95,8 +95,8 @@ TEST_CASE("CavernCavities", "[cavern]") {
         CHECK(isRock(0, -4364 - eps, 89720));
         CHECK(isRock(0, -3364 - eps, 80000));
     }
-    SECTION("Target pit 1 m deep below the TCC8 floor") {
-        CHECK_FALSE(isRock(0, -2703 + eps, 1460));
-        CHECK(isRock(0, -2703 - eps, 1460));
+    SECTION("No pit below the target: the TCC8 floor is unbroken") {
+        CHECK_FALSE(isRock(0, -1703 + eps, 1460));
+        CHECK(isRock(0, -1703 - eps, 1460));
     }
 }
