@@ -22,7 +22,7 @@ class Materials;
  * "/SHiP/timing_detector/bar_<col>_<row>" names; sensitive-detector assignment
  * is performed downstream by name pattern.
  *
- * Container half-sizes (mm): 2750 × 3250 × 250.
+ * Container half-sizes (mm): 2750 × 3250 × 230.
  * Bar half-sizes (mm):        700 × 30 × 5.
  * Z stagger (mm):             z = (row%2)·12 + (col%2)·90 → levels 0/12/90/102.
  */
@@ -54,10 +54,12 @@ class TimingDetectorFactory {
     /** Number of bars placed during the last build() call. */
     int barCount() const { return m_barCount; }
 
-    // Container dimensions
+    // Container dimensions. The length is the 0.46 m slot of the integration
+    // layout 2026-0.1 (EDMS 3287817 v1.1); the bar layer sits at the front
+    // of the slot, where the CAD model ST1967028_01 has the first bar layer.
     static constexpr auto s_containerHalfX = 2750.0 * units::mm;
     static constexpr auto s_containerHalfY = 3250.0 * units::mm;
-    static constexpr auto s_containerHalfZ = 250.0 * units::mm;
+    static constexpr auto s_containerHalfZ = 230.0 * units::mm;
 
     // Bar dimensions
     static constexpr auto s_barHalfX = 700.0 * units::mm;  // 140 cm full length
@@ -80,11 +82,13 @@ class TimingDetectorFactory {
     /// Centre of the bar in column @p ic, row @p ir:
     ///   x = (ic - 1) * pitch          → -1300, 0, +1300 mm
     ///   y = y0 + ir * step            → -3220 … +3220 mm (step 6440/109)
-    ///   z = (ir%2)*12 + (ic%2)*90     → 4 stagger levels: 0, 12, 90, 102 mm
+    ///   z = (ir%2)*12 + (ic%2)*90     → 4 stagger levels: 0, 12, 90, 102 mm,
+    ///                                   measured from the front face of the slot
     static constexpr BarCentre barCentre(int ic, int ir) {
         return {.x = (ic - 1) * s_columnPitchX,
                 .y = s_rowY0 + ir * s_rowStepY,
-                .z = (ir % 2) * s_zStaggerRow + (ic % 2) * s_zStaggerCol};
+                .z = -s_containerHalfZ + s_barHalfZ + (ir % 2) * s_zStaggerRow +
+                     (ic % 2) * s_zStaggerCol};
     }
 
     static constexpr checks::Box barBox(int ic, int ir) {

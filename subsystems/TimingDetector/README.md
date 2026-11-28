@@ -9,9 +9,10 @@ The TimingDetector subsystem implements 330 scintillator bars (3 columns x 110 r
 ## Geometry Tree
 
 ```
-Timing_Detector (Air, 5500×6500×500 mm)
+Timing_Detector (Air, 5500×6500×460 mm)
  └─ 330 × scintillator bars (1400×60×10 mm each)
-     3 columns × 110 rows; z stagger = (row%2)·12 + (col%2)·90 mm
+     3 columns × 110 rows; z stagger = (row%2)·12 + (col%2)·90 mm,
+     bar layer at the front of the container
 ```
 
 Position in world: z = 95902 mm.
