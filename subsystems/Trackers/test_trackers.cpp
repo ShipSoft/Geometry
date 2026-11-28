@@ -2,10 +2,12 @@
 // Copyright (C) CERN for the benefit of the SHiP Collaboration
 
 #include "SHiP/geometry/Materials.h"
+#include "SHiP/geometry/Publishing.h"
 #include "SHiP/geometry/Trackers/TrackersFactory.h"
 #include "SHiP/geometry/Units.h"
 
 #include <GeoModelKernel/GeoBox.h>
+#include <GeoModelKernel/GeoFullPhysVol.h>
 #include <GeoModelKernel/GeoLogVol.h>
 #include <GeoModelKernel/GeoPhysVol.h>
 #include <GeoModelKernel/GeoVPhysVol.h>
@@ -125,4 +127,34 @@ TEST_CASE("TrackersHasTrackerMagnet", "[trackers]") {
     CHECK(box->getZHalfLength() == gm(TrackersFactory::s_trackerMagnetHalfZ));
     CHECK(tc->getXToChildVol(*index).translation().z() ==
           gm(TrackersFactory::s_trackerMagnetZ - TrackersFactory::s_containerCentreZ));
+}
+
+// Inside a PublishingScope, the factory publishes its four stations, keyed by
+// their names, under the "Trackers" system; outside one, it publishes nothing.
+TEST_CASE("TrackersPublishesStations", "[trackers]") {
+    Materials materials;
+    SHiP::geometry::Publishers publishers;
+    const GeoVPhysVol* tc = nullptr;
+    {
+        const SHiP::geometry::PublishingScope scope{publishers};
+        tc = TrackersFactory(materials).build();
+    }
+    REQUIRE(tc != nullptr);
+    const auto all = publishers.all();
+    REQUIRE(all.size() == 1);
+    CHECK(all.front()->getName() == "Trackers");
+    const auto published = all.front()->getPublishedFPV();
+    REQUIRE(published.size() == TrackersFactory::s_nStations);
+    for (int i = 1; i <= TrackersFactory::s_nStations; ++i) {
+        const std::string name = "/SHiP/trackers/station_" + std::to_string(i);
+        INFO("station " << name);
+        const auto it = published.find(name);
+        REQUIRE(it != published.end());
+        CHECK(it->second == findChild(tc, name));
+    }
+
+    // Out of scope, a second build leaves the publisher alone (a publish
+    // into it would also throw on the reused keys).
+    (void)TrackersFactory(materials).build();
+    CHECK(all.front()->getPublishedFPV().size() == TrackersFactory::s_nStations);
 }
