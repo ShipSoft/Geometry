@@ -31,6 +31,7 @@ configure_file(
 add_library(
     ship_geometry
     Materials.cpp
+    Publishing.cpp
     DetectorBuilder.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/LinkSubsystems.cpp
 )

@@ -4,10 +4,12 @@
 #include "SHiP/geometry/Trackers/TrackersFactory.h"
 
 #include "SHiP/geometry/Materials.h"
+#include "SHiP/geometry/Publishing.h"
 #include "SHiP/geometry/SubsystemRegistry.h"
 
 #include <GeoModelKernel/GeoBox.h>
 #include <GeoModelKernel/GeoDefinitions.h>
+#include <GeoModelKernel/GeoFullPhysVol.h>
 #include <GeoModelKernel/GeoIdentifierTag.h>
 #include <GeoModelKernel/GeoLogVol.h>
 #include <GeoModelKernel/GeoNameTag.h>
@@ -116,7 +118,7 @@ GeoPhysVol* TrackersFactory::build() {
                                                                s_station3Z, s_station4Z};
 
     for (int i = 0; i < s_nStations; ++i) {
-        GeoPhysVol* stationPhys = buildStation(i);
+        GeoFullPhysVol* stationPhys = buildStation(i);
 
         // Place the station relative to the container centre.
         const double relativeZ = gm(stationZ[i] - s_containerCentreZ);
@@ -128,6 +130,9 @@ GeoPhysVol* TrackersFactory::build() {
         containerPhys->add(new GeoIdentifierTag(i));
         containerPhys->add(new GeoTransform(stationTrf));
         containerPhys->add(stationPhys);
+        // Published for tracking: ACTS's GeoModel plugin turns each station
+        // into one measurement surface.
+        publish(descriptor().name, stationName, stationPhys);
     }
 
     // Inert tracker-magnet marker, in the gap between station 2 and the
@@ -146,7 +151,7 @@ GeoPhysVol* TrackersFactory::build() {
 
 // ── buildStation ─────────────────────────────────────────────────────────────
 
-GeoPhysVol* TrackersFactory::buildStation(int stationIndex) {
+GeoFullPhysVol* TrackersFactory::buildStation(int stationIndex) {
     const GeoMaterial* air = m_materials.requireMaterial("Air");
 
     // Station envelope: fixed GDML statbox size. Kept exactly so the geometry
@@ -154,7 +159,8 @@ GeoPhysVol* TrackersFactory::buildStation(int stationIndex) {
     const std::string stationName = "/SHiP/trackers/station_" + std::to_string(stationIndex + 1);
     auto const* stationBox = new GeoBox(gm(s_halfX), gm(s_halfY), gm(s_halfZ));
     const auto* stationLog = new GeoLogVol(stationName, stationBox, air);
-    auto* stationPhys = new GeoPhysVol(stationLog);
+    // A full physical volume, so that it can be published (see build()).
+    auto* stationPhys = new GeoFullPhysVol(stationLog);
 
     // Four stereo views, stacked along Z within the station, each rotated
     // about the beam axis by its signed stereo angle.

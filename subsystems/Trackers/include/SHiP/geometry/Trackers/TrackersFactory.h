@@ -9,6 +9,7 @@
 #include <array>
 #include <string>
 
+class GeoFullPhysVol;
 class GeoPhysVol;
 
 namespace SHiP::geometry {
@@ -139,7 +140,7 @@ class TrackersFactory {
      * @param stationIndex 0-based station index (0..3).
      * @return The station envelope physical volume.
      */
-    GeoPhysVol* buildStation(int stationIndex);
+    GeoFullPhysVol* buildStation(int stationIndex);
 
     /**
      * @brief Build one stereo view: a frame plus two staggered sub-layers.

@@ -18,6 +18,7 @@
 // builds exactly one subsystem on its own at the origin.
 
 #include "SHiP/geometry/DetectorBuilder.h"
+#include "SHiP/geometry/Publishing.h"
 #include "SHiP/geometry/SubsystemRegistry.h"
 
 #include <GeoModelDBManager/GMDBManager.h>
@@ -143,9 +144,13 @@ int main(int argc, char* argv[]) {
     }
 
     const GeoVPhysVol* geometry = nullptr;
+    // Collects the volumes the factories publish while building (see
+    // Publishing.h); they are written next to the tree.
+    SHiP::geometry::Publishers publishers;
     std::string label;
 
     try {
+        const SHiP::geometry::PublishingScope publishing{publishers};
         if (standalone) {
             // One subsystem by itself: no world, so it sits at the origin
             // rather than at its position in the detector.
@@ -209,7 +214,8 @@ int main(int argc, char* argv[]) {
     GMDBManager db(outputFile);
     GeoModelIO::WriteGeoModel writer(db);
     geometry->exec(&writer);
-    writer.saveToDB();
+    auto published = publishers.all();
+    writer.saveToDB(published);
     spdlog::info("Done.");
     return 0;
 }
